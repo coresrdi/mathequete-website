@@ -16,6 +16,7 @@ import {
   handleCreateCheckoutSession
 } from './stripe-webhook';
 import { verifierCodeBrut } from './generate-codes';
+import { handleReleaseDevice } from './release-device';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -41,6 +42,10 @@ export default {
 
       if (url.pathname === '/stripe-webhook') {
         return handleStripeWebhook(request, env);
+      }
+
+      if (url.pathname === '/release-device') {
+        return handleReleaseDevice(request, env);
       }
 
       if (url.pathname === '/verify-license' && request.method === 'POST') {
