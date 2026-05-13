@@ -1,37 +1,95 @@
+# ─────────────────────────────────────────────────────────────────────────────
 # Configuration Cloudflare Worker — Mathéquête API
+# Sprint S5 — Mai 2026
 # Doc : https://developers.cloudflare.com/workers/wrangler/configuration/
+#
+# Procédure de remplissage (étapes à faire dans l'ordre) :
+#
+#   1. wrangler login
+#   2. wrangler d1 create mathequete-db
+#      → copie le database_id retourné → REMPLACER plus bas
+#   3. wrangler d1 execute mathequete-db --file=schema.sql --remote
+#   4. wrangler secret put HMAC_SECRET_KEY    (colle ~/prod_hmac.key)
+#   5. wrangler secret put STRIPE_SECRET_KEY  (sk_live_xxx)
+#   6. wrangler secret put RESEND_API_KEY     (re_xxx)
+#   7. wrangler deploy
+#   8. Configure le webhook Stripe → copie whsec_xxx →
+#      wrangler secret put STRIPE_WEBHOOK_SECRET → wrangler deploy
+#   9. Cloudflare DNS : ajoute mathequete.ca, active la route Workers
+#  10. Resend : vérifie le domaine mathequete.ca via DNS Cloudflare
+# ─────────────────────────────────────────────────────────────────────────────
 
 name = "mathequete-api"
 main = "src/index.ts"
 compatibility_date = "2025-05-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Domaine custom (à brancher après achat domaine mathequete.com)
+# ─── Route domaine custom ────────────────────────────────────────────────────
+# Active une fois mathequete.ca branché sur Cloudflare DNS.
+# Cloudflare → Workers & Pages → ton worker → Settings → Triggers → Add route.
+# OU décommente ici puis `wrangler deploy`.
+#
 # routes = [
-#   { pattern = "api.mathequete.com/*", custom_domain = true }
+#   { pattern = "mathequete.ca/api/*", zone_name = "mathequete.ca" }
 # ]
 
-# Liaison D1 (SQLite serverless)
+# ─── D1 (SQLite serverless) ─────────────────────────────────────────────────
+# Crée la base avec : wrangler d1 create mathequete-db
+# Puis colle le database_id retourné ci-dessous.
+
 [[d1_databases]]
 binding = "DB"
 database_name = "mathequete-db"
-database_id = "REMPLACER_APRES_CREATION_D1"
+database_id = "À_REMPLIR_APRÈS_wrangler_d1_create"
 
-# Variables publiques (non-sensibles)
+# ─── Variables publiques (non-sensibles, visibles dans le code) ─────────────
+
 [vars]
 ENVIRONMENT = "production"
 STRIPE_API_VERSION = "2024-12-18.acacia"
-RESEND_FROM_EMAIL = "contact@mathequete.com"
+RESEND_FROM_EMAIL = "licences@mathequete.ca"
 RESEND_FROM_NAME = "Mathéquête"
-PUBLIC_SITE_URL = "https://mathequete.com"
+PUBLIC_SITE_URL = "https://mathequete.ca"
 
-# ===== Secrets (à pousser via wrangler secret put) =====
-# wrangler secret put STRIPE_SECRET_KEY
-# wrangler secret put STRIPE_WEBHOOK_SECRET
-# wrangler secret put RESEND_API_KEY
-# wrangler secret put HMAC_SECRET_KEY   # openssl rand -hex 32
+# ─── Secrets à pousser via wrangler secret put (NE PAS METTRE ICI) ──────────
+#
+# Commandes à exécuter une seule fois :
+#
+#   # 1. Clé HMAC maître (même valeur que Godot user://hmac_license.key)
+#   openssl rand -hex 32 > ~/prod_hmac.key
+#   wrangler secret put HMAC_SECRET_KEY < ~/prod_hmac.key
+#
+#   # 2. Stripe (depuis dashboard.stripe.com → Developers → API keys)
+#   wrangler secret put STRIPE_SECRET_KEY        # sk_live_xxx
+#   wrangler secret put STRIPE_WEBHOOK_SECRET    # whsec_xxx (après étape webhook)
+#
+#   # 3. Resend (depuis resend.com → API Keys)
+#   wrangler secret put RESEND_API_KEY           # re_xxx
+#
+# Vérifie la liste avec : wrangler secret list
+# Supprime avec :        wrangler secret delete NOM
 
-# ===== Environnement dev local =====
+# ─── Environnement dev local (`wrangler dev`) ───────────────────────────────
+
 [env.dev]
 name = "mathequete-api-dev"
-vars = { ENVIRONMENT = "development" }
+
+[env.dev.vars]
+ENVIRONMENT = "development"
+STRIPE_API_VERSION = "2024-12-18.acacia"
+RESEND_FROM_EMAIL = "test@mathequete.ca"
+RESEND_FROM_NAME = "Mathéquête DEV"
+PUBLIC_SITE_URL = "http://localhost:8788"
+
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "mathequete-db-dev"
+database_id = "À_REMPLIR_APRÈS_wrangler_d1_create_dev"
+
+# ─── Limites / observabilité (optionnel) ────────────────────────────────────
+
+[observability]
+enabled = true
+
+[limits]
+cpu_ms = 50
