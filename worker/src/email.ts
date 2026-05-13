@@ -96,6 +96,13 @@ export function renderEmailLicenceEmise(d: DonneesLicenceEmise): string {
             pour <strong>${d.nb_eleves_max} élèves</strong>.</li>
       </ol>
 
+      <p style="background:#fef3c7; border-left:4px solid #f59e0b; padding:10px 14px; margin:14px 0; font-size:14px;">
+        <strong>Bon à savoir :</strong> une licence débloque l'appareil au complet.
+        Tous les profils enfants créés sur la même tablette / téléphone profitent
+        automatiquement des contenus prémium. Pour équiper plusieurs appareils
+        (1 par élève), commandez un pack « Classe » ou « École ».
+      </p>
+
       <h3 style="color:#1e40af;">Détails de la licence</h3>
       <table style="width:100%; border-collapse:collapse;">
         <tr><td style="padding:8px 0; border-bottom:1px solid #e2e8f0;"><strong>Type</strong></td>
