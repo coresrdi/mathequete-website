@@ -1,0 +1,23 @@
+{
+  "name": "mathequete-worker",
+  "version": "0.1.0",
+  "description": "Cloudflare Worker API — Génération licences HMAC + intégration Stripe + email Resend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "db:init": "wrangler d1 execute mathequete-db --file=schema.sql",
+    "db:init:local": "wrangler d1 execute mathequete-db --local --file=schema.sql",
+    "secret:hmac": "openssl rand -hex 32"
+  },
+  "dependencies": {
+    "stripe": "^17.5.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250101.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^3.95.0"
+  }
+}

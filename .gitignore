@@ -1,0 +1,30 @@
+# Node / Worker
+node_modules/
+.wrangler/
+.dev.vars
+worker/dist/
+*.log
+
+# Build artifacts
+*.bak
+.DS_Store
+Thumbs.db
+
+# Secrets (jamais en clair)
+.env
+.env.local
+secrets.json
+
+# IDE
+.vscode/
+.idea/
+
+# Python (CLI tools)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Generated test data
+test-codes.csv
+test-licenses.pdf

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculateur de prix — Mathéquête</title>
+  <meta name="description" content="Calculez le prix exact d'une licence Mathéquête pour votre école selon le nombre d'élèves. Tarif dégressif à partir de 0,55 $/élève/an.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+  <header class="mq-header">
+    <nav>
+      <a href="/" class="mq-logo">★ Mathéquête</a>
+      <ul class="mq-nav-links">
+        <li><a href="index.html">Accueil</a></li>
+        <li><a href="comparaison-prodigy.html">vs Prodigy</a></li>
+        <li><a href="achat.html">Acheter</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="mq-section">
+    <h2>Calculateur de prix pour votre école</h2>
+    <p class="text-center" style="color: var(--mq-muted); margin-bottom: 2rem;">
+      Glissez pour ajuster, ou tapez le nombre exact d'élèves. Le prix s'ajuste en direct.
+    </p>
+
+    <div class="mq-calculator">
+      <label for="nbEleves">
+        Nombre d'élèves dans votre école : <strong id="nbElevesNum">100</strong>
+      </label>
+      <input type="range" id="nbEleves" min="10" max="1400" step="10" value="100">
+
+      <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem;">
+        <label for="nbElevesInput" style="margin: 0; font-weight: 400; color: var(--mq-muted);">
+          ou saisie directe :
+        </label>
+        <input type="number" id="nbElevesNum" min="1" max="2000" value="100" style="max-width: 120px; margin: 0;">
+      </div>
+
+      <p style="margin-top: 1.5rem; color: var(--mq-muted);">
+        Palier correspondant : <strong id="palierNom">Classe Moyenne</strong>
+      </p>
+
+      <!-- Zone calcul normal -->
+      <div id="zoneCalcul" class="result-box">
+        <div style="font-size: 0.95rem; opacity: 0.85;">Prix annuel HT</div>
+        <div class="total" id="prixTotal">98 $</div>
+        <div class="per-student-result">
+          <span id="prixUnit">0,98 $</span> par élève par année
+        </div>
+
+        <details style="margin-top: 1rem; text-align: left;">
+          <summary style="cursor: pointer; opacity: 0.9;">Détail taxes (Québec)</summary>
+          <table style="width:100%; color:white; margin-top:0.5rem;">
+            <tr><td>Prix HT</td><td style="text-align:right;" id="prixTotalDup">98 $</td></tr>
+            <tr><td>TPS 5 %</td><td style="text-align:right;" id="tps">5 $</td></tr>
+            <tr><td>TVQ 9,975 %</td><td style="text-align:right;" id="tvq">10 $</td></tr>
+            <tr style="border-top: 1px solid rgba(255,255,255,0.3);">
+              <td><strong>Total TTC</strong></td>
+              <td style="text-align:right;"><strong id="totalTTC">113 $</strong></td>
+            </tr>
+          </table>
+        </details>
+
+        <div class="comparison" style="margin-top: 1.5rem; text-align: left;">
+          <strong>Comparaison Prodigy :</strong><br>
+          Pour le même nombre d'élèves, Prodigy coûterait <strong id="economie">4 902 $</strong> de plus.<br>
+          Mathéquête est <strong><span id="ratio">50,9</span>× moins cher</strong>.
+        </div>
+      </div>
+
+      <!-- Zone "sur devis" si >1300 -->
+      <div id="zoneDevis" class="result-box" style="display:none;">
+        <div class="total" style="font-size: 2rem;">Sur devis</div>
+        <p style="margin-top: 1rem;">
+          Pour les commissions scolaires complètes (>1300 élèves), nous établissons
+          un tarif personnalisé incluant déploiement, formation et support dédié.
+        </p>
+        <a href="mailto:contact@mathequete.com?subject=Demande de devis CSS" class="mq-btn-primary" style="margin-top:1rem;">
+          Demander un devis personnalisé
+        </a>
+      </div>
+
+      <p style="margin-top: 2rem; font-size: 0.9rem; color: var(--mq-muted); text-align: center;">
+        Les taxes (TPS 5 % + TVQ 9,975 %) sont ajoutées au moment du paiement.<br>
+        Licence valide 365 jours, renouvelable. Annulation à tout moment.
+      </p>
+
+      <div style="text-align:center; margin-top:2rem;">
+        <a href="achat.html" class="mq-btn-primary">Procéder à l'achat</a>
+      </div>
+    </div>
+
+  </section>
+
+  <footer class="mq-footer">
+    <div class="mq-footer-content">
+      <div>
+        <h4>Mathéquête</h4>
+        <p style="color: #cbd5e1;">Jeu mathématique québécois<br>© 2026 CORES RDI</p>
+      </div>
+      <div>
+        <h4>Produit</h4>
+        <a href="index.html">Accueil</a>
+        <a href="achat.html">Acheter</a>
+        <a href="comparaison-prodigy.html">vs Prodigy</a>
+      </div>
+      <div>
+        <h4>Légal</h4>
+        <a href="https://coresrdi.github.io/mathequete-privacy/">Confidentialité</a>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <a href="mailto:contact@mathequete.com">contact@mathequete.com</a>
+      </div>
+    </div>
+    <div class="mq-footer-bottom">Fait avec ★ au Québec</div>
+  </footer>
+
+  <script src="assets/js/calculateur.js"></script>
+  <script>
+    // Garder le tableau de détail synchronisé
+    document.addEventListener('DOMContentLoaded', function() {
+      const obs = new MutationObserver(() => {
+        const dup = document.getElementById('prixTotalDup');
+        const src = document.getElementById('prixTotal');
+        if (dup && src) dup.textContent = src.textContent;
+      });
+      const target = document.getElementById('prixTotal');
+      if (target) obs.observe(target, { childList: true, characterData: true, subtree: true });
+    });
+  </script>
+
+</body>
+</html>

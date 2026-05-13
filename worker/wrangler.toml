@@ -1,0 +1,37 @@
+# Configuration Cloudflare Worker — Mathéquête API
+# Doc : https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "mathequete-api"
+main = "src/index.ts"
+compatibility_date = "2025-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Domaine custom (à brancher après achat domaine mathequete.com)
+# routes = [
+#   { pattern = "api.mathequete.com/*", custom_domain = true }
+# ]
+
+# Liaison D1 (SQLite serverless)
+[[d1_databases]]
+binding = "DB"
+database_name = "mathequete-db"
+database_id = "REMPLACER_APRES_CREATION_D1"
+
+# Variables publiques (non-sensibles)
+[vars]
+ENVIRONMENT = "production"
+STRIPE_API_VERSION = "2024-12-18.acacia"
+RESEND_FROM_EMAIL = "contact@mathequete.com"
+RESEND_FROM_NAME = "Mathéquête"
+PUBLIC_SITE_URL = "https://mathequete.com"
+
+# ===== Secrets (à pousser via wrangler secret put) =====
+# wrangler secret put STRIPE_SECRET_KEY
+# wrangler secret put STRIPE_WEBHOOK_SECRET
+# wrangler secret put RESEND_API_KEY
+# wrangler secret put HMAC_SECRET_KEY   # openssl rand -hex 32
+
+# ===== Environnement dev local =====
+[env.dev]
+name = "mathequete-api-dev"
+vars = { ENVIRONMENT = "development" }
