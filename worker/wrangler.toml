@@ -34,7 +34,7 @@ STRIPE_API_VERSION = "2024-12-18.acacia"
 # sera vérifié sur resend.com → Domains.
 RESEND_FROM_EMAIL = "onboarding@resend.dev"
 RESEND_FROM_NAME = "Mathéquête"
-PUBLIC_SITE_URL = "https://mathequete-api.coresrdi.workers.dev"
+PUBLIC_SITE_URL = "https://mathequete.pages.dev"
 
 # ─── Secrets (poussés via `wrangler secret put`, JAMAIS dans ce fichier) ────
 #   wrangler secret put HMAC_SECRET_KEY
