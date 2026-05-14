@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acheter Mathéquête — Familles &amp; écoles</title>
-  <meta name="description" content="Choisis ta licence Mathéquête : Continent 1 famille à 4,99 $ CAD, ou 6 paliers école de 35 à 716 $ CAD pour 30 à 1 300 élèves. Paiement sécurisé Stripe.">
+  <title>Acheter Mathéquête — Individuelle, Pack 5, écoles</title>
+  <meta name="description" content="Choisis ta licence Mathéquête : Continent 1 individuelle à 4,99 $ CAD, Pack 5 à 19,99 $ CAD, ou 6 paliers école de 35 à 716 $ CAD pour 30 à 1 300 élèves. Paiement sécurisé Stripe.">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
@@ -37,8 +37,11 @@
 
   <!-- Tabs -->
   <div class="tabs" role="tablist">
-    <button class="tab-btn" :class="{ active: tab === 'famille' }" @click="tab = 'famille'; error = ''" role="tab" :aria-selected="tab === 'famille'">
-      👨‍👩‍👧 Pour une famille
+    <button class="tab-btn" :class="{ active: tab === 'individuelle' }" @click="tab = 'individuelle'; error = ''" role="tab" :aria-selected="tab === 'individuelle'">
+      👤 Licence individuelle
+    </button>
+    <button class="tab-btn" :class="{ active: tab === 'pack5' }" @click="tab = 'pack5'; error = ''" role="tab" :aria-selected="tab === 'pack5'">
+      👨‍👩‍👧 Pack 5
     </button>
     <button class="tab-btn" :class="{ active: tab === 'ecole' }" @click="tab = 'ecole'; error = ''" role="tab" :aria-selected="tab === 'ecole'">
       🏫 Pour une école
@@ -50,19 +53,36 @@
     <span x-text="error"></span>
   </div>
 
-  <!-- ===== FAMILLE ===== -->
-  <div x-show="tab === 'famille'" x-transition style="max-width: 420px; margin: 0 auto;">
+  <!-- ===== INDIVIDUELLE ===== -->
+  <div x-show="tab === 'individuelle'" x-transition style="max-width: 420px; margin: 0 auto;">
     <article class="sku-carte">
-      <h3>Continent&nbsp;1 — Famille</h3>
+      <h3>Continent&nbsp;1 — Individuelle</h3>
       <div class="sku-prix">4,99&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
       <div class="sku-taxes">+ TPS et TVQ calculées au paiement</div>
       <div class="sku-details">
-        <p><strong>1 licence</strong> — pour un enfant ou une fratrie sur le même appareil.<br>
-        Accès illimité au Continent&nbsp;1, hors-ligne après activation. Compatible Android et PC.</p>
+        <p><strong>1 licence permanente — 1 appareil à la fois</strong> (Windows, Android, ou bientôt Apple).<br>
+        Accès illimité au Continent&nbsp;1, hors-ligne après activation. Transférable depuis le jeu en quelques secondes.</p>
       </div>
       <button class="btn-aventure" @click="acheter('continent_1')" :disabled="loading">
         <template x-if="loading && loadingTier === 'continent_1'"><span class="spinner"></span></template>
         <span x-text="(loading && loadingTier === 'continent_1') ? 'Redirection…' : 'Acheter — 4,99 $'"></span>
+      </button>
+    </article>
+  </div>
+
+  <!-- ===== PACK 5 ===== -->
+  <div x-show="tab === 'pack5'" x-transition x-cloak style="max-width: 420px; margin: 0 auto;">
+    <article class="sku-carte">
+      <h3>Continent&nbsp;1 — Pack 5</h3>
+      <div class="sku-prix">19,99&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+      <div class="sku-taxes">+ TPS et TVQ calculées au paiement</div>
+      <div class="sku-details">
+        <p><strong>5 codes permanents distincts</strong>, chacun activable sur 1 appareil (Windows, Android, ou bientôt Apple).<br>
+        Idéal pour la fratrie, les cousins, ou à partager. Économie de 4,96 $ par rapport à 5 licences individuelles.</p>
+      </div>
+      <button class="btn-aventure" @click="acheter('pack_5_continent_1')" :disabled="loading">
+        <template x-if="loading && loadingTier === 'pack_5_continent_1'"><span class="spinner"></span></template>
+        <span x-text="(loading && loadingTier === 'pack_5_continent_1') ? 'Redirection…' : 'Acheter — 19,99 $'"></span>
       </button>
     </article>
   </div>

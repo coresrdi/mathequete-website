@@ -19,7 +19,8 @@ import {
   genererCode,
   tierVersType,
   expirationParDefaut,
-  nbElevesPourTier
+  nbElevesPourTier,
+  nbCodesPourTier
 } from './generate-codes';
 import { envoyerLicenceEmise } from './email';
 
@@ -79,30 +80,40 @@ export async function handleStripeWebhook(
     return new Response('OK (déjà traité)', { status: 200 });
   }
 
-  // ===== 4. Génération du code de licence =====
+  // ===== 4. Génération des codes de licence (1 ou plusieurs pour Pack 5) =====
   const type = tierVersType(tier);
   const expire_le = expirationParDefaut(type);
-  const id = genererId('c');
-  const { code_brut, code_affiche } = await genererCode(
-    { type, id, expire_le },
-    env.HMAC_SECRET_KEY
-  );
-
+  const nbCodes = nbCodesPourTier(tier);
   const nbElevesMax = nbElevesPourTier(tier);
   const now = Math.floor(Date.now() / 1000);
   const tarif = PRIX_TIERS_CENTS[tier];
 
-  // ===== 5. Persistance D1 (atomique : licence + achat) =====
-  const stmts = [
-    env.DB.prepare(`
-      INSERT INTO licences
-        (id, code, type, tier, nb_eleves_max, emis_le, expire_le,
-         email_acheteur, nom_acheteur, stripe_session, source)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'stripe')
-    `).bind(
-      id, code_affiche, type, tier, nbElevesMax,
-      now, expire_le, email, nom ?? null, session.id
-    ),
+  const licences: Array<{ id: string; code_affiche: string }> = [];
+  for (let i = 0; i < nbCodes; i++) {
+    const id = genererId('c');
+    const { code_affiche } = await genererCode(
+      { type, id, expire_le },
+      env.HMAC_SECRET_KEY
+    );
+    licences.push({ id, code_affiche });
+  }
+
+  // licence_id stocké dans la table `achats` pointe sur la première licence du lot
+  const primaryLicenceId = licences[0].id;
+  const codesAffiches = licences.map(l => l.code_affiche);
+
+  // ===== 5. Persistance D1 (atomique : N licences + 1 achat) =====
+  const stmts = licences.map(l => env.DB.prepare(`
+    INSERT INTO licences
+      (id, code, type, tier, nb_eleves_max, emis_le, expire_le,
+       email_acheteur, nom_acheteur, stripe_session, source)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'stripe')
+  `).bind(
+    l.id, l.code_affiche, type, tier, nbElevesMax,
+    now, expire_le, email, nom ?? null, session.id
+  ));
+
+  stmts.push(
     env.DB.prepare(`
       INSERT INTO achats
         (stripe_session_id, stripe_payment_id, tier, montant_cents,
@@ -119,20 +130,20 @@ export async function handleStripeWebhook(
       session.amount_total ?? tarif.prix_cents,
       email,
       nom ?? null,
-      id,
+      primaryLicenceId,
       now,
       JSON.stringify(event)
     )
-  ];
+  );
 
   await env.DB.batch(stmts);
 
-  // ===== 6. Envoi email Resend =====
+  // ===== 6. Envoi email Resend (1 email avec tous les codes) =====
   const totalCAD = (session.amount_total ?? tarif.prix_cents) / 100;
   const resp = await envoyerLicenceEmise(env, {
     email,
     nom,
-    code_affiche,
+    codes_affiches: codesAffiches,
     tier,
     nb_eleves_max: nbElevesMax,
     expire_le,
@@ -140,24 +151,27 @@ export async function handleStripeWebhook(
   });
 
   // Audit log envoi email
+  const sujetEmail = nbCodes > 1
+    ? `★ Vos ${nbCodes} licences Mathéquête (Pack 5)`
+    : `★ Votre licence Mathéquête : ${codesAffiches[0]}`;
   await env.DB.prepare(`
     INSERT INTO emails_envoyes
       (destinataire, sujet, type, licence_id, envoye_le, resend_id, statut, erreur)
     VALUES (?, ?, 'licence_emise', ?, ?, ?, ?, ?)
   `).bind(
     email,
-    `★ Votre licence Mathéquête : ${code_affiche}`,
-    id,
+    sujetEmail,
+    primaryLicenceId,
     now,
     resp.id ?? null,
     resp.error ? 'failed' : 'sent',
     resp.error ? resp.error.message : null
   ).run();
 
-  console.log(`[Webhook] licence ${code_affiche} émise pour ${email} (${tier})`);
+  console.log(`[Webhook] ${nbCodes} licence(s) émise(s) pour ${email} (${tier}) : ${codesAffiches.join(', ')}`);
 
   return new Response(
-    JSON.stringify({ ok: true, code_affiche, id }),
+    JSON.stringify({ ok: true, codes_affiches: codesAffiches, licence_id: primaryLicenceId }),
     { status: 200, headers: { 'Content-Type': 'application/json' } }
   );
 }
@@ -191,6 +205,14 @@ export async function handleCreateCheckoutSession(
     httpClient: Stripe.createFetchHttpClient()
   });
 
+  // Description Stripe : adaptée au type de licence
+  const isIndividuel = tier.startsWith('continent') || tier.startsWith('pack_5_continent');
+  const description = tarif.nb_codes > 1
+    ? `${tarif.nb_codes} codes permanents, 1 appareil par code`
+    : (isIndividuel
+      ? `Licence permanente, 1 appareil`
+      : `Licence annuelle ${tarif.nb_eleves} élèves`);
+
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     payment_method_types: ['card'],
@@ -199,7 +221,7 @@ export async function handleCreateCheckoutSession(
         currency: 'cad',
         product_data: {
           name: `Mathéquête — ${tarif.nom}`,
-          description: `Licence annuelle ${tarif.nb_eleves} élèves`
+          description: description
         },
         unit_amount: tarif.prix_cents
       },

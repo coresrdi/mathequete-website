@@ -1,13 +1,13 @@
 /**
  * Mathéquête — Composant Alpine pour la page d'achat.
  * Gère :
- *  - le basculement entre l'onglet famille et l'onglet école;
+ *  - le basculement entre les onglets individuelle, pack 5 et école;
  *  - l'appel à l'API Cloudflare Worker pour créer une session Stripe Checkout;
  *  - les états de chargement et les erreurs réseau.
  */
 function checkoutApp() {
   return {
-    tab: 'famille',           // 'famille' | 'ecole'
+    tab: 'individuelle',      // 'individuelle' | 'pack5' | 'ecole'
     loading: false,
     loadingTier: '',          // pour ne montrer le spinner que sur la carte cliquée
     error: '',

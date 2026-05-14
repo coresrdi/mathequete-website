@@ -182,19 +182,28 @@ export async function verifierCodeBrut(
 
 export function nbElevesPourTier(tier: string): number {
   const map: Record<string, number> = {
-    'continent_1':     1,
-    'classe_petite':   30,
-    'classe_moyenne':  100,
-    'petite_ecole':    300,
-    'ecole_standard':  500,
-    'grande_ecole':    1000,
-    'mega_ecole':      1300
+    'continent_1':         1,
+    'pack_5_continent_1':  1,
+    'classe_petite':       30,
+    'classe_moyenne':      100,
+    'petite_ecole':        300,
+    'ecole_standard':      500,
+    'grande_ecole':        1000,
+    'mega_ecole':          1300
   };
   return map[tier] ?? 30;
 }
 
+/* Sprint S3.C — Pack 5 : nombre de codes indépendants émis par achat. */
+export function nbCodesPourTier(tier: string): number {
+  const map: Record<string, number> = {
+    'pack_5_continent_1':  5
+  };
+  return map[tier] ?? 1;
+}
+
 export function tierVersType(tier: string): LicenceType {
-  if (tier.startsWith('continent')) return 'CONTINENT';
+  if (tier.startsWith('pack_5_continent') || tier.startsWith('continent')) return 'CONTINENT';
   if (tier.startsWith('classe')) return 'CLASSE';
   return 'ECOLE';
 }
