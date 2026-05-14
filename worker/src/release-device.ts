@@ -51,9 +51,10 @@ export async function handleReleaseDevice(
 
 	// 1. Vérifier HMAC du code (rejet immédiat si signature invalide)
 	const verif = await verifierCodeBrut(codeBrut, env.HMAC_SECRET_KEY);
-	if (!verif.valide || !verif.licence_id) {
+	if (!verif.valide || !verif.data) {
 		return jsonError('Code invalide ou signature corrompue', 400);
 	}
+	const licenceId = verif.data.id;
 
 	// 2. Récupérer la licence + activation courante
 	const stmt = env.DB.prepare(`
@@ -69,7 +70,7 @@ export async function handleReleaseDevice(
 			ON ca.licence_id = l.id
 			AND ca.statut = 'active'
 		WHERE l.id = ?
-	`).bind(verif.licence_id);
+	`).bind(licenceId);
 
 	const row = await stmt.first<{
 		licence_id: string;
