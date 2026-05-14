@@ -282,6 +282,16 @@ export async function handleActivationRedeem(
                      : row.licence_type === 'ECOLE' ? 500
                      : 9999;
 
+  // codes_actives : enregistre le device_hash de cette demande comme actif
+  // pour cette licence. Indispensable pour que /api/release-device puisse
+  // ensuite liberer ce device. Le statut par defaut est 'active' (cf migration
+  // 0002_add_device_transfer.sql).
+  const ipPaysRedeem =
+    request.cf && typeof (request.cf as { country?: string }).country === 'string'
+      ? (request.cf as { country: string }).country
+      : null;
+  const userAgentRedeem = request.headers.get('User-Agent') ?? null;
+
   await env.DB.batch([
     env.DB.prepare(`
       INSERT INTO licences (
@@ -293,6 +303,11 @@ export async function handleActivationRedeem(
       now, row.expire_le, '', '', // email/nom dans activation_requests
       JSON.stringify({ request_id: requestId, source_code: row.code })
     ),
+    env.DB.prepare(`
+      INSERT INTO codes_actives (
+        licence_id, device_hash, active_le, ip_pays, user_agent, statut
+      ) VALUES (?, ?, ?, ?, ?, 'active')
+    `).bind(licenceId, deviceHash, now, ipPaysRedeem, userAgentRedeem),
     env.DB.prepare(`
       UPDATE activation_requests
       SET licence_id = ?, code_affiche = ?, redeem_le = ?
