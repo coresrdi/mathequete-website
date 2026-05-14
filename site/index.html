@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mathéquête — Apprendre les maths en explorant un monde d'aventure</title>
+  <meta name="description" content="Mathéquête, un jeu éducatif québécois où les enfants progressent en maths en explorant des continents, des îles et des batailles. Compatible Android et PC, mode prof intégré pour les écoles primaires.">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <!-- Pico.css CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <!-- Google Fonts : Cinzel (titres aventure) + Caveat (manuscrit) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Styles custom -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Alpine.js CDN -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="site-nav">
+  <div class="container">
+    <a href="index.html" class="logo" aria-label="Accueil Mathéquête">
+      <img src="assets/logo.svg" alt="Mathéquête" height="44">
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="achat.html">Acheter</a>
+      <a href="guide-prof.html">Enseignants</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="hero-inner">
+    <img src="assets/logo.svg" alt="Mathéquête" style="height: 90px; margin: 0 auto;">
+    <h1>Apprendre les maths en explorant un monde d'aventure</h1>
+    <p class="slogan">Pars à la conquête des continents, île par île, bataille par bataille.</p>
+    <div class="hero-cta">
+      <a href="achat.html" class="btn-aventure">Acheter maintenant</a>
+      <a href="guide-prof.html" class="btn-secondaire">Pour les enseignants</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ FONCTIONNALITÉS ============ -->
+<section class="section">
+  <h2 class="section-titre">Une aventure pensée pour apprendre</h2>
+  <p class="section-sous-titre">Quatre piliers qui rendent Mathéquête différent des applis d'exercices classiques.</p>
+  <div class="cartes-grid">
+    <article class="carte">
+      <span class="emoji" aria-hidden="true">🗺️</span>
+      <h3>Aventure progressive</h3>
+      <p>Continents, îles, batailles math. Chaque victoire débloque une nouvelle région à explorer.</p>
+    </article>
+    <article class="carte">
+      <span class="emoji" aria-hidden="true">🎓</span>
+      <h3>Mode prof intégré</h3>
+      <p>8 paliers d'école, statistiques de classe en temps réel, alignement avec le programme québécois.</p>
+    </article>
+    <article class="carte">
+      <span class="emoji" aria-hidden="true">📴</span>
+      <h3>Hors-ligne</h3>
+      <p>Une fois activé, le jeu fonctionne sans connexion. Parfait pour la voiture, le chalet, l'école.</p>
+    </article>
+    <article class="carte">
+      <span class="emoji" aria-hidden="true">📱</span>
+      <h3>Multiplateforme</h3>
+      <p>Android et PC dès maintenant. Mac et iOS arrivent bientôt — sans frais supplémentaires.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ COMMENT ÇA MARCHE ============ -->
+<section class="section-pro">
+  <div class="section">
+    <h2 class="section-titre">Comment ça marche</h2>
+    <p class="section-sous-titre">Trois étapes, et l'aventure commence.</p>
+    <div class="etapes">
+      <div class="etape">
+        <h3>Choisis ton continent ou ta classe</h3>
+        <p>Famille pour un enfant, ou licences école pour 30 à 1 300 élèves.</p>
+      </div>
+      <div class="etape">
+        <h3>Reçois ton code par courriel</h3>
+        <p>Livraison instantanée après paiement Stripe (avec TPS et TVQ calculées automatiquement).</p>
+      </div>
+      <div class="etape">
+        <h3>Active le code dans le jeu</h3>
+        <p>Ouvre Mathéquête, va dans Réglages → Licence, saisis ton code. C'est parti !</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TARIFS ============ -->
+<section class="section">
+  <h2 class="section-titre">Des tarifs honnêtes</h2>
+  <p class="section-sous-titre">Pas d'abonnement, pas de microtransactions. Tu achètes, tu joues.</p>
+  <div class="tarifs-grid">
+    <div class="tarif-carte">
+      <h3>Famille</h3>
+      <div class="tarif-prix">4,99&nbsp;$<small> CAD</small></div>
+      <p style="margin: 0.3rem 0 1rem; opacity: 0.7; font-size: 0.9rem;">+ TPS et TVQ au paiement</p>
+      <p>Continent&nbsp;1 complet pour ton enfant. Accès illimité, hors-ligne après activation.</p>
+      <a href="achat.html" class="btn-aventure" style="margin-top: 1rem;">Acheter</a>
+    </div>
+    <div class="tarif-carte b2b">
+      <h3>Écoles</h3>
+      <div class="tarif-prix">35&nbsp;$<small> et + CAD</small></div>
+      <p style="margin: 0.3rem 0 1rem; opacity: 0.7; font-size: 0.9rem;">À partir de 30 élèves, jusqu'à 1 300</p>
+      <p>6 paliers disponibles. Mode prof, stats de classe, codes distribués par PDF.</p>
+      <a href="guide-prof.html" class="btn-secondaire" style="margin-top: 1rem;">Voir le guide</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="section-pro">
+  <div class="section">
+    <h2 class="section-titre">Questions fréquentes</h2>
+    <div class="faq" x-data="{ ouvert: null }">
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 1 ? null : 1)" :aria-expanded="ouvert === 1">
+          <span>Quels appareils sont supportés&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 1" x-transition x-cloak>
+          <p>Mathéquête fonctionne actuellement sur Android (téléphones et tablettes) et sur Windows PC. Les versions Mac et iOS arrivent au cours de l'année 2026, sans frais supplémentaires pour les acheteurs actuels.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 2 ? null : 2)" :aria-expanded="ouvert === 2">
+          <span>Combien de temps une licence est-elle valide&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 2" x-transition x-cloak>
+          <p>Les licences famille sont à vie. Les licences école sont valides pour une année scolaire complète (10 mois) et renouvelables au tarif en vigueur.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 3 ? null : 3)" :aria-expanded="ouvert === 3">
+          <span>Les autres continents seront-ils gratuits pour moi&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 3" x-transition x-cloak>
+          <p>Chaque continent (1, 2, 3, …) est un achat distinct. Le Continent&nbsp;1 couvre déjà des dizaines d'heures de jeu. Les futurs continents seront proposés à un tarif similaire, sans abonnement.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 4 ? null : 4)" :aria-expanded="ouvert === 4">
+          <span>Mon enfant peut-il jouer sans internet&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 4" x-transition x-cloak>
+          <p>Oui. Une fois le code activé (connexion requise une seule fois), Mathéquête fonctionne complètement hors-ligne. Idéal pour les voyages, le chalet, ou les classes sans wifi fiable.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 5 ? null : 5)" :aria-expanded="ouvert === 5">
+          <span>Y a-t-il une démo gratuite&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 5" x-transition x-cloak>
+          <p>Oui&nbsp;! Le tutoriel complet et la première île du Continent&nbsp;1 sont jouables gratuitement. Aucun code de carte de crédit demandé pour essayer.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 6 ? null : 6)" :aria-expanded="ouvert === 6">
+          <span>Mode prof&nbsp;: comment ça marche&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 6" x-transition x-cloak>
+          <p>Vous achetez un palier qui correspond à votre nombre d'élèves. Vous recevez un PDF avec un code par élève, un code prof, et un tableau de bord pour suivre la progression individuelle et les statistiques de classe en temps réel. Voir le <a href="guide-prof.html">guide enseignant</a> pour les détails.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="container">
+    <div>
+      <h4>Mathéquête</h4>
+      <p>Un jeu éducatif québécois pour apprendre les maths en s'amusant. Conçu par <strong>CORES RDI</strong>.</p>
+    </div>
+    <div>
+      <h4>Liens</h4>
+      <p>
+        <a href="index.html">Accueil</a><br>
+        <a href="achat.html">Acheter</a><br>
+        <a href="guide-prof.html">Guide enseignant</a>
+      </p>
+    </div>
+    <div>
+      <h4>Légal &amp; contact</h4>
+      <p>
+        <a href="https://coresrdi.github.io/mathequete-privacy/" target="_blank" rel="noopener">Politique de confidentialité</a><br>
+        <a href="mailto:coresrdi@gmail.com">coresrdi@gmail.com</a>
+      </p>
+    </div>
+  </div>
+  <p class="copyright">© 2026 CORES RDI — Tous droits réservés. Fait au Québec.</p>
+</footer>
+
+<style>[x-cloak] { display: none !important; }</style>
+</body>
+</html>

@@ -1,0 +1,570 @@
+/* ============================================================
+   Mathéquête — Styles custom (complète Pico.css)
+   Palette aventure : or, bleu nuit, parchemin, rouge boussole
+   ============================================================ */
+
+:root {
+  --aventure-or: #d4a017;
+  --aventure-or-fonce: #a8761a;
+  --aventure-bleu: #1e3a5f;
+  --aventure-bleu-clair: #2e5a8f;
+  --aventure-rouge: #c1432b;
+  --parchemin: #f5e6c8;
+  --parchemin-fonce: #e8d5a8;
+  --parchemin-clair: #fbf4e0;
+  --encre: #3a2c1a;
+
+  /* Override Pico */
+  --pico-primary: var(--aventure-bleu);
+  --pico-primary-hover: var(--aventure-bleu-clair);
+  --pico-primary-focus: rgba(30, 58, 95, 0.25);
+  --pico-primary-inverse: #fff;
+  --pico-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --pico-border-radius: 0.5rem;
+}
+
+/* ---------- Polices ---------- */
+.font-aventure {
+  font-family: 'Cinzel', 'IM Fell English', Georgia, serif;
+  letter-spacing: 0.02em;
+}
+.font-manuscrit {
+  font-family: 'Caveat', 'Brush Script MT', cursive;
+}
+h1, h2, h3, .titre-aventure {
+  font-family: 'Cinzel', Georgia, serif;
+  font-weight: 700;
+  color: var(--aventure-bleu);
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Body de base ---------- */
+body {
+  background: var(--parchemin-clair);
+  color: var(--encre);
+}
+
+/* ---------- Header / Nav ---------- */
+.site-nav {
+  background: var(--aventure-bleu);
+  padding: 0.8rem 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.site-nav .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.site-nav a {
+  color: var(--parchemin);
+  text-decoration: none;
+  font-weight: 500;
+}
+.site-nav a:hover { color: var(--aventure-or); }
+.site-nav .logo { display: flex; align-items: center; }
+.site-nav .logo svg { height: 44px; width: auto; }
+.site-nav .logo svg text { fill: var(--parchemin) !important; }
+.site-nav .nav-links {
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ---------- Hero parchemin ---------- */
+.hero {
+  background:
+    radial-gradient(ellipse at top left, rgba(212,160,23,0.18), transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(193,67,43,0.15), transparent 60%),
+    linear-gradient(135deg, var(--parchemin) 0%, var(--parchemin-fonce) 100%);
+  position: relative;
+  padding: 4rem 1rem 5rem;
+  overflow: hidden;
+  border-bottom: 4px solid var(--aventure-or);
+}
+.hero::before {
+  /* texture parchemin (bruit subtil via svg) */
+  content: "";
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0 0.2 0 0 0 0.08 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+  opacity: 0.4;
+  pointer-events: none;
+}
+.hero-inner {
+  position: relative;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+.hero h1 {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  margin: 1rem 0 0.6rem;
+  color: var(--aventure-bleu);
+  text-shadow: 1px 1px 0 var(--parchemin-clair), 2px 2px 6px rgba(0,0,0,0.1);
+}
+.hero .slogan {
+  font-family: 'Caveat', cursive;
+  font-size: clamp(1.3rem, 3.5vw, 2rem);
+  color: var(--aventure-rouge);
+  margin-bottom: 2rem;
+}
+.hero-cta {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-aventure {
+  display: inline-block;
+  padding: 0.9rem 2rem;
+  background: linear-gradient(180deg, var(--aventure-or) 0%, var(--aventure-or-fonce) 100%);
+  color: #fff !important;
+  border: 2px solid var(--aventure-or-fonce);
+  border-radius: 0.5rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 0 var(--aventure-or-fonce), 0 6px 12px rgba(0,0,0,0.2);
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+  font-size: 1.05rem;
+}
+.btn-aventure:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--aventure-or-fonce), 0 10px 16px rgba(0,0,0,0.25);
+}
+.btn-aventure:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--aventure-or-fonce);
+}
+.btn-secondaire {
+  display: inline-block;
+  padding: 0.9rem 2rem;
+  background: transparent;
+  color: var(--aventure-bleu) !important;
+  border: 2px solid var(--aventure-bleu);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-secondaire:hover {
+  background: var(--aventure-bleu);
+  color: var(--parchemin) !important;
+}
+
+/* ---------- Sections ---------- */
+.section {
+  padding: 4rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.section-titre {
+  text-align: center;
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  margin-bottom: 0.5rem;
+}
+.section-sous-titre {
+  text-align: center;
+  color: var(--encre);
+  opacity: 0.75;
+  margin-bottom: 3rem;
+  font-size: 1.05rem;
+}
+.section-pro {
+  /* Sections B2B sobres */
+  background: #fafafa;
+  border-top: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+/* ---------- Cartes fonctionnalités ---------- */
+.cartes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+.carte {
+  background: #fff;
+  border: 2px solid var(--parchemin-fonce);
+  border-radius: 0.8rem;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.carte:hover {
+  transform: translateY(-4px);
+  border-color: var(--aventure-or);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+.carte .emoji {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.6rem;
+}
+.carte h3 {
+  font-size: 1.2rem;
+  margin: 0.5rem 0;
+  color: var(--aventure-bleu);
+}
+.carte p {
+  font-size: 0.95rem;
+  color: var(--encre);
+  opacity: 0.85;
+  margin: 0;
+}
+
+/* ---------- Étapes ---------- */
+.etapes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+  counter-reset: etape;
+}
+.etape {
+  text-align: center;
+  position: relative;
+  padding-top: 3rem;
+}
+.etape::before {
+  counter-increment: etape;
+  content: counter(etape);
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 3rem; height: 3rem;
+  background: var(--aventure-or);
+  color: #fff;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 3px solid var(--aventure-bleu);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+.etape h3 {
+  font-size: 1.15rem;
+  margin-bottom: 0.4rem;
+}
+
+/* ---------- Tarifs ---------- */
+.tarifs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.tarif-carte {
+  background: #fff;
+  border: 3px solid var(--aventure-or);
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.tarif-carte.b2b {
+  border-color: var(--aventure-bleu);
+  background: #fff;
+}
+.tarif-carte h3 {
+  margin-top: 0;
+  font-size: 1.4rem;
+}
+.tarif-prix {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--aventure-rouge);
+  margin: 1rem 0 0.3rem;
+  font-family: 'Cinzel', Georgia, serif;
+}
+.tarif-prix small {
+  font-size: 0.85rem;
+  color: var(--encre);
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+/* ---------- FAQ accordion ---------- */
+.faq {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.faq-item {
+  border-bottom: 1px solid var(--parchemin-fonce);
+  padding: 0;
+}
+.faq-question {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 1.2rem 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--aventure-bleu);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: inherit;
+}
+.faq-question:hover { color: var(--aventure-or-fonce); }
+.faq-question .chevron {
+  font-size: 1.3rem;
+  transition: transform 0.2s;
+  color: var(--aventure-or);
+}
+.faq-question[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+.faq-reponse {
+  padding: 0 0.5rem 1.2rem;
+  color: var(--encre);
+  line-height: 1.6;
+}
+
+/* ---------- Tableaux ---------- */
+.tableau-paliers {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.tableau-paliers th {
+  background: var(--aventure-bleu);
+  color: var(--parchemin);
+  padding: 0.9rem;
+  text-align: left;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.95rem;
+}
+.tableau-paliers td {
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid #eee;
+}
+.tableau-paliers tr:last-child td { border-bottom: 0; }
+.tableau-paliers tr:hover td { background: var(--parchemin-clair); }
+.tableau-paliers .recommande {
+  background: rgba(212, 160, 23, 0.12);
+}
+.badge-reco {
+  background: var(--aventure-or);
+  color: #fff;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 0.4rem;
+}
+
+/* ---------- Page achat ---------- */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 2rem 0 2.5rem;
+  border-bottom: 2px solid var(--parchemin-fonce);
+  flex-wrap: wrap;
+}
+.tab-btn {
+  background: transparent;
+  border: 0;
+  padding: 0.9rem 1.6rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--encre);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  font-family: inherit;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab-btn.active {
+  color: var(--aventure-bleu);
+  border-bottom-color: var(--aventure-or);
+}
+.tab-btn:hover { color: var(--aventure-bleu); }
+
+.sku-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+.sku-carte {
+  background: #fff;
+  border: 2px solid var(--parchemin-fonce);
+  border-radius: 0.8rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.sku-carte:hover {
+  transform: translateY(-3px);
+  border-color: var(--aventure-or);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+.sku-carte h3 {
+  margin: 0 0 0.5rem;
+  color: var(--aventure-bleu);
+  font-size: 1.2rem;
+}
+.sku-prix {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--aventure-rouge);
+  font-family: 'Cinzel', Georgia, serif;
+  margin: 0.5rem 0 0.1rem;
+}
+.sku-taxes {
+  font-size: 0.85rem;
+  color: var(--encre);
+  opacity: 0.7;
+  margin-bottom: 0.8rem;
+}
+.sku-details {
+  flex: 1;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  color: var(--encre);
+}
+.sku-carte button {
+  width: 100%;
+}
+
+.toast-erreur {
+  background: #fdecea;
+  border: 1px solid var(--aventure-rouge);
+  color: var(--aventure-rouge);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  text-align: center;
+  font-weight: 600;
+}
+.note-paiement {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  color: var(--encre);
+  opacity: 0.75;
+}
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 1rem; height: 1rem;
+  border: 2px solid #fff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Page merci ---------- */
+.merci-hero {
+  text-align: center;
+  padding: 3rem 1rem 2rem;
+}
+.merci-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--aventure-rouge);
+}
+.merci-etapes {
+  max-width: 700px;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.merci-etape {
+  background: #fff;
+  border-left: 5px solid var(--aventure-or);
+  padding: 1.2rem 1.5rem;
+  border-radius: 0.4rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.merci-etape strong {
+  color: var(--aventure-bleu);
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  background: var(--aventure-bleu);
+  color: var(--parchemin);
+  padding: 2.5rem 1rem 1.5rem;
+  margin-top: 4rem;
+  font-size: 0.92rem;
+}
+.site-footer .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+}
+.site-footer h4 {
+  color: var(--aventure-or);
+  font-family: 'Cinzel', Georgia, serif;
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+}
+.site-footer p, .site-footer strong {
+  color: var(--parchemin);
+  opacity: 0.92;
+}
+.site-footer a {
+  color: var(--parchemin);
+  text-decoration: none;
+}
+.site-footer a:hover { color: var(--aventure-or); }
+.copyright {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(245, 230, 200, 0.2);
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+  .hero { padding: 2.5rem 1rem 3rem; }
+  .section { padding: 2.5rem 1rem; }
+  .hero-cta { flex-direction: column; align-items: stretch; }
+  .btn-aventure, .btn-secondaire {
+    width: 100%; text-align: center;
+  }
+  .site-nav .container { gap: 0.5rem; }
+  .site-nav .nav-links { gap: 0.7rem; font-size: 0.9rem; }
+  .tabs { gap: 0; }
+  .tab-btn { padding: 0.7rem 1rem; font-size: 0.95rem; }
+}
+@media (max-width: 380px) {
+  .hero h1 { font-size: 1.9rem; }
+  .site-nav .logo svg { height: 36px; }
+}
+
+/* Accessibilité focus */
+:focus-visible {
+  outline: 3px solid var(--aventure-or);
+  outline-offset: 2px;
+}

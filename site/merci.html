@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merci pour ton achat — Mathéquête</title>
+  <meta name="description" content="Ton achat Mathéquête est confirmé. Voici comment activer ton code et commencer l'aventure.">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="index.html" class="logo" aria-label="Accueil Mathéquête">
+      <img src="assets/logo.svg" alt="Mathéquête" height="44">
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="guide-prof.html">Enseignants</a>
+    </div>
+  </div>
+</nav>
+
+<div x-data="{
+  sessionId: new URLSearchParams(window.location.search).get('session_id') || ''
+}">
+
+<section class="merci-hero hero">
+  <div class="hero-inner">
+    <h1>Merci pour ton achat&nbsp;! 🎉</h1>
+    <p class="slogan">L'aventure t'attend.</p>
+    <p x-show="sessionId" x-cloak style="font-size: 0.85rem; opacity: 0.7; margin-top: 1rem;">
+      Référence de transaction&nbsp;: <code x-text="sessionId"></code>
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="section-titre">Prochaines étapes</h2>
+
+  <div class="merci-etapes">
+
+    <div class="merci-etape">
+      <strong>1. Vérifie tes courriels</strong>
+      Ton code arrive dans 1 à 2 minutes à l'adresse utilisée au paiement. <em>Pense à vérifier ton dossier <strong>spam</strong> ou <strong>courrier indésirable</strong></em> si tu ne le vois pas tout de suite.
+    </div>
+
+    <div class="merci-etape">
+      <strong>2. Télécharge Mathéquête</strong>
+      <div style="display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 0.6rem;">
+        <a href="#" class="btn-secondaire" aria-disabled="true" style="opacity: 0.6; cursor: not-allowed;">Android (bientôt sur Google Play)</a>
+        <a href="#" class="btn-secondaire" aria-disabled="true" style="opacity: 0.6; cursor: not-allowed;">Steam (à venir)</a>
+      </div>
+      <p style="margin-top: 0.6rem; font-size: 0.9rem; opacity: 0.75;">En attendant la publication officielle, le lien APK direct est inclus dans ton courriel de confirmation.</p>
+    </div>
+
+    <div class="merci-etape">
+      <strong>3. Active ton code dans le jeu</strong>
+      Ouvre Mathéquête → <strong>Réglages</strong> → <strong>Licence</strong> → saisis ton code. Une seule connexion internet est nécessaire pour activer&nbsp;; ensuite, le jeu fonctionne hors-ligne.
+    </div>
+
+  </div>
+
+  <p style="text-align: center; margin-top: 2rem; padding: 1.2rem; background: var(--parchemin); border-radius: 0.5rem; max-width: 700px; margin-left: auto; margin-right: auto;">
+    📚 <strong>Tu es enseignant·e&nbsp;?</strong> Si tu as acheté une licence école, tu recevras un <strong>PDF</strong> contenant un code par élève ainsi qu'un code prof. Voir le <a href="guide-prof.html">guide enseignant</a> pour la distribution.
+  </p>
+
+  <div style="text-align: center; margin-top: 2.5rem;">
+    <a href="index.html" class="btn-aventure">Retour à l'accueil</a>
+  </div>
+</section>
+
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>
+      <h4>Mathéquête</h4>
+      <p>Un jeu éducatif québécois pour apprendre les maths en s'amusant. Conçu par <strong>CORES RDI</strong>.</p>
+    </div>
+    <div>
+      <h4>Liens</h4>
+      <p>
+        <a href="index.html">Accueil</a><br>
+        <a href="achat.html">Acheter</a><br>
+        <a href="guide-prof.html">Guide enseignant</a>
+      </p>
+    </div>
+    <div>
+      <h4>Légal &amp; contact</h4>
+      <p>
+        <a href="https://coresrdi.github.io/mathequete-privacy/" target="_blank" rel="noopener">Politique de confidentialité</a><br>
+        <a href="mailto:coresrdi@gmail.com">coresrdi@gmail.com</a>
+      </p>
+    </div>
+  </div>
+  <p class="copyright">© 2026 CORES RDI — Tous droits réservés. Fait au Québec.</p>
+</footer>
+
+<style>[x-cloak] { display: none !important; }</style>
+</body>
+</html>
