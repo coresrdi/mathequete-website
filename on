@@ -1,0 +1,120 @@
+warning: in the working copy of 'worker/wrangler.toml', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/worker/wrangler.toml b/worker/wrangler.toml[m
+[1mindex d4fec89..20ca036 100644[m
+[1m--- a/worker/wrangler.toml[m
+[1m+++ b/worker/wrangler.toml[m
+[36m@@ -1,22 +1,7 @@[m
+ # ─────────────────────────────────────────────────────────────────────────────[m
+[31m-# Configuration Cloudflare Worker — Mathéquête API[m
+[31m-# Sprint S5 — Mai 2026[m
+[31m-# Doc : https://developers.cloudflare.com/workers/wrangler/configuration/[m
+[31m-#[m
+[31m-# Procédure de remplissage (étapes à faire dans l'ordre) :[m
+[31m-#[m
+[31m-#   1. wrangler login[m
+[31m-#   2. wrangler d1 create mathequete-db[m
+[31m-#      → copie le database_id retourné → REMPLACER plus bas[m
+[31m-#   3. wrangler d1 execute mathequete-db --file=schema.sql --remote[m
+[31m-#   4. wrangler secret put HMAC_SECRET_KEY    (colle ~/prod_hmac.key)[m
+[31m-#   5. wrangler secret put STRIPE_SECRET_KEY  (sk_live_xxx)[m
+[31m-#   6. wrangler secret put RESEND_API_KEY     (re_xxx)[m
+[31m-#   7. wrangler deploy[m
+[31m-#   8. Configure le webhook Stripe → copie whsec_xxx →[m
+[31m-#      wrangler secret put STRIPE_WEBHOOK_SECRET → wrangler deploy[m
+[31m-#   9. Cloudflare DNS : ajoute mathequete.ca, active la route Workers[m
+[31m-#  10. Resend : vérifie le domaine mathequete.ca via DNS Cloudflare[m
+[32m+[m[32m# Configuration Cloudflare Worker — Mathéquête API (PROD)[m
+[32m+[m[32m# Reconstruit le 13 mai 2026 après perte du fichier original.[m
+[32m+[m[32m# Source autoritative du database_id : `wrangler d1 list`.[m
+ # ─────────────────────────────────────────────────────────────────────────────[m
+ [m
+ name = "mathequete-api"[m
+[36m@@ -24,72 +9,41 @@[m [mmain = "src/index.ts"[m
+ compatibility_date = "2025-05-01"[m
+ compatibility_flags = ["nodejs_compat"][m
+ [m
+[31m-# ─── Route domaine custom ────────────────────────────────────────────────────[m
+[31m-# Active une fois mathequete.ca branché sur Cloudflare DNS.[m
+[31m-# Cloudflare → Workers & Pages → ton worker → Settings → Triggers → Add route.[m
+[31m-# OU décommente ici puis `wrangler deploy`.[m
+[32m+[m[32m# ─── Route domaine custom (désactivée pour l'instant) ───────────────────────[m
+[32m+[m[32m# Décommente quand mathequete.ca sera branché sur Cloudflare DNS.[m
+ #[m
+ # routes = [[m
+ #   { pattern = "mathequete.ca/api/*", zone_name = "mathequete.ca" }[m
+ # ][m
+ [m
+ # ─── D1 (SQLite serverless) ─────────────────────────────────────────────────[m
+[31m-# Crée la base avec : wrangler d1 create mathequete-db[m
+[31m-# Puis colle le database_id retourné ci-dessous.[m
+[32m+[m[32m# UUID récupéré via `wrangler d1 list` le 13 mai 2026.[m
+ [m
+ [[d1_databases]][m
+ binding = "DB"[m
+ database_name = "mathequete-db"[m
+[31m-database_id = "À_REMPLIR_APRÈS_wrangler_d1_create"[m
+[32m+[m[32mdatabase_id = "e3c52431-082b-463f-b6d3-bd777e76dc97"[m
+ [m
+[31m-# ─── Variables publiques (non-sensibles, visibles dans le code) ─────────────[m
+[32m+[m[32m# ─── Variables publiques (non-sensibles) ────────────────────────────────────[m
+ [m
+ [vars][m
+ ENVIRONMENT = "production"[m
+ STRIPE_API_VERSION = "2024-12-18.acacia"[m
+[31m-RESEND_FROM_EMAIL = "licences@mathequete.ca"[m
+[32m+[m[32m# Resend : onboarding@resend.dev est le domaine partagé Resend, marche sans[m
+[32m+[m[32m# vérification DNS. À remplacer par licences@mathequete.ca quand le domaine[m
+[32m+[m[32m# sera vérifié sur resend.com → Domains.[m
+[32m+[m[32mRESEND_FROM_EMAIL = "onboarding@resend.dev"[m
+ RESEND_FROM_NAME = "Mathéquête"[m
+[31m-PUBLIC_SITE_URL = "https://mathequete.ca"[m
+[32m+[m[32mPUBLIC_SITE_URL = "https://mathequete-api.coresrdi.workers.dev"[m
+ [m
+[31m-# ─── Secrets à pousser via wrangler secret put (NE PAS METTRE ICI) ──────────[m
+[31m-#[m
+[31m-# Commandes à exécuter une seule fois :[m
+[31m-#[m
+[31m-#   # 1. Clé HMAC maître (même valeur que Godot user://hmac_license.key)[m
+[31m-#   openssl rand -hex 32 > ~/prod_hmac.key[m
+[31m-#   wrangler secret put HMAC_SECRET_KEY < ~/prod_hmac.key[m
+[31m-#[m
+[31m-#   # 2. Stripe (depuis dashboard.stripe.com → Developers → API keys)[m
+[31m-#   wrangler secret put STRIPE_SECRET_KEY        # sk_live_xxx[m
+[31m-#   wrangler secret put STRIPE_WEBHOOK_SECRET    # whsec_xxx (après étape webhook)[m
+[31m-#[m
+[31m-#   # 3. Resend (depuis resend.com → API Keys)[m
+[31m-#   wrangler secret put RESEND_API_KEY           # re_xxx[m
+[31m-#[m
+[31m-# Vérifie la liste avec : wrangler secret list[m
+[31m-# Supprime avec :        wrangler secret delete NOM[m
+[31m-[m
+[31m-# ─── Environnement dev local (`wrangler dev`) ───────────────────────────────[m
+[31m-[m
+[31m-[env.dev][m
+[31m-name = "mathequete-api-dev"[m
+[31m-[m
+[31m-[env.dev.vars][m
+[31m-ENVIRONMENT = "development"[m
+[31m-STRIPE_API_VERSION = "2024-12-18.acacia"[m
+[31m-RESEND_FROM_EMAIL = "test@mathequete.ca"[m
+[31m-RESEND_FROM_NAME = "Mathéquête DEV"[m
+[31m-PUBLIC_SITE_URL = "http://localhost:8788"[m
+[31m-[m
+[31m-[[env.dev.d1_databases]][m
+[31m-binding = "DB"[m
+[31m-database_name = "mathequete-db-dev"[m
+[31m-database_id = "À_REMPLIR_APRÈS_wrangler_d1_create_dev"[m
+[32m+[m[32m# ─── Secrets (poussés via `wrangler secret put`, JAMAIS dans ce fichier) ────[m
+[32m+[m[32m#   wrangler secret put HMAC_SECRET_KEY[m
+[32m+[m[32m#   wrangler secret put STRIPE_SECRET_KEY[m
+[32m+[m[32m#   wrangler secret put STRIPE_WEBHOOK_SECRET[m
+[32m+[m[32m#   wrangler secret put RESEND_API_KEY[m
+ [m
+[31m-# ─── Limites / observabilité (optionnel) ────────────────────────────────────[m
+[32m+[m[32m# ─── Observabilité ──────────────────────────────────────────────────────────[m
+ [m
+ [observability][m
+ enabled = true[m
+ [m
+[31m-[limits][m
+[31m-cpu_ms = 50[m
