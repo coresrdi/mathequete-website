@@ -51,7 +51,7 @@ export default {
         return handleStripeWebhook(request, env);
       }
 
-      if (url.pathname === '/release-device') {
+      if (url.pathname === '/api/release-device') {
         return handleReleaseDevice(request, env);
       }
 
