@@ -28,3 +28,11 @@ venv/
 # Generated test data
 test-codes.csv
 test-licenses.pdf
+
+# Setup scripts locaux (jamais commités — peuvent contenir des prompts secrets)
+setup.sh.local
+worker/setup.sh.local
+
+# Anciens wrangler.toml de backup
+wranglerancien.toml
+worker/wranglerancien.toml
