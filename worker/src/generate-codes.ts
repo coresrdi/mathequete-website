@@ -182,6 +182,7 @@ export async function verifierCodeBrut(
 
 export function nbElevesPourTier(tier: string): number {
   const map: Record<string, number> = {
+    'continent_1':     1,
     'classe_petite':   30,
     'classe_moyenne':  100,
     'petite_ecole':    300,
@@ -193,6 +194,7 @@ export function nbElevesPourTier(tier: string): number {
 }
 
 export function tierVersType(tier: string): LicenceType {
+  if (tier.startsWith('continent')) return 'CONTINENT';
   if (tier.startsWith('classe')) return 'CLASSE';
   return 'ECOLE';
 }

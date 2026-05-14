@@ -41,6 +41,7 @@ function formaterCAD(montant: number): string {
 
 function nomTierLisible(tier: string): string {
   const map: Record<string, string> = {
+    'continent_1':     'Continent 1 — Famille (1 appareil)',
     'classe_petite':   'Classe Petite (30 élèves)',
     'classe_moyenne':  'Classe Moyenne (100 élèves)',
     'petite_ecole':    'Petite École (300 élèves)',
@@ -49,6 +50,10 @@ function nomTierLisible(tier: string): string {
     'mega_ecole':      'Méga École (1300 élèves)'
   };
   return map[tier] ?? tier;
+}
+
+function estTierFamille(tier: string): boolean {
+  return tier.startsWith('continent');
 }
 
 /* ===== Template HTML licence émise ===== */
@@ -92,15 +97,23 @@ export function renderEmailLicenceEmise(d: DonneesLicenceEmise): string {
         <li>Dans le jeu, ouvrez le menu <strong>Réglages</strong>.</li>
         <li>Touchez <strong>Activer une licence</strong>.</li>
         <li>Tapez le code ci-dessus (vous pouvez aussi le copier-coller).</li>
-        <li>La licence active immédiatement les 8 continents et le mode prof
-            pour <strong>${d.nb_eleves_max} élèves</strong>.</li>
+        ${estTierFamille(d.tier)
+          ? `<li>La licence active immédiatement le Continent 1 sur cet appareil.</li>`
+          : `<li>La licence active immédiatement les 8 continents et le mode prof
+            pour <strong>${d.nb_eleves_max} élèves</strong>.</li>`
+        }
       </ol>
 
       <p style="background:#fef3c7; border-left:4px solid #f59e0b; padding:10px 14px; margin:14px 0; font-size:14px;">
-        <strong>Bon à savoir :</strong> une licence débloque l'appareil au complet.
-        Tous les profils enfants créés sur la même tablette / téléphone profitent
-        automatiquement des contenus prémium. Pour équiper plusieurs appareils
-        (1 par élève), commandez un pack « Classe » ou « École ».
+        ${estTierFamille(d.tier)
+          ? `<strong>Bon à savoir :</strong> cette licence est valable sur un seul appareil.
+             Pour équiper une classe ou une école, découvrez nos packs sur
+             <a href="https://mathequete.com/achat.html">mathequete.com</a>.`
+          : `<strong>Bon à savoir :</strong> une licence débloque l'appareil au complet.
+             Tous les profils enfants créés sur la même tablette / téléphone profitent
+             automatiquement des contenus prémium. Pour équiper plusieurs appareils
+             (1 par élève), commandez un pack « Classe » ou « École ».`
+        }
       </p>
 
       <h3 style="color:#1e40af;">Détails de la licence</h3>

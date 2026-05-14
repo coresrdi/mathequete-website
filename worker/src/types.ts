@@ -28,6 +28,7 @@ export const PRIX_TIERS_CENTS: Record<string, {
   nb_eleves: number;
   nom: string;
 }> = {
+  'continent_1':    { prix_cents: 499,    nb_eleves: 1,    nom: 'Continent 1 — Famille' },
   'classe_petite':  { prix_cents: 3500,   nb_eleves: 30,   nom: 'Classe Petite' },
   'classe_moyenne': { prix_cents: 9800,   nb_eleves: 100,  nom: 'Classe Moyenne' },
   'petite_ecole':   { prix_cents: 26500,  nb_eleves: 300,  nom: 'Petite École' },
