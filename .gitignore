@@ -40,3 +40,8 @@ worker/wranglerancien.toml
 .dev.vars*
 !.dev.vars.example
 !.env.example
+
+# Wrangler auto-generated config (Pages/Workers build) - on garde wrangler.toml manuel uniquement
+wrangler.jsonc
+/wrangler.jsonc
+.wrangler/
