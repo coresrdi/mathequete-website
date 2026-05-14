@@ -24,6 +24,7 @@ import {
   handleAdminDecidePage,
   handleAdminDecideSubmit
 } from './manual-activation';
+import { handleStatsPush, handleStatsClasseGet } from './stats';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -53,6 +54,16 @@ export default {
 
       if (url.pathname === '/api/release-device') {
         return handleReleaseDevice(request, env);
+      }
+
+      // ===== Sprint C : stats élèves =====
+      if (url.pathname === '/api/stats/push') {
+        return handleStatsPush(request, env);
+      }
+
+      const statsClasseMatch = url.pathname.match(/^\/api\/stats\/classe\/([^/]+)$/);
+      if (statsClasseMatch) {
+        return handleStatsClasseGet(request, env, statsClasseMatch[1]);
       }
 
       // ===== Sprint S2 : activation manuelle =====
