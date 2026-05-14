@@ -17,6 +17,13 @@ import {
 } from './stripe-webhook';
 import { verifierCodeBrut } from './generate-codes';
 import { handleReleaseDevice } from './release-device';
+import {
+  handleActivationRequest,
+  handleActivationStatus,
+  handleActivationRedeem,
+  handleAdminDecidePage,
+  handleAdminDecideSubmit
+} from './manual-activation';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -46,6 +53,21 @@ export default {
 
       if (url.pathname === '/release-device') {
         return handleReleaseDevice(request, env);
+      }
+
+      // ===== Sprint S2 : activation manuelle =====
+      if (url.pathname === '/api/activation/request') {
+        return handleActivationRequest(request, env);
+      }
+      if (url.pathname === '/api/activation/status') {
+        return handleActivationStatus(request, env);
+      }
+      if (url.pathname === '/api/activation/redeem') {
+        return handleActivationRedeem(request, env);
+      }
+      if (url.pathname === '/admin/decide') {
+        if (request.method === 'GET')  return handleAdminDecidePage(request, env);
+        if (request.method === 'POST') return handleAdminDecideSubmit(request, env);
       }
 
       if (url.pathname === '/verify-license' && request.method === 'POST') {

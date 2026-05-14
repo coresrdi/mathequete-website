@@ -162,6 +162,96 @@ export function genererCSV(d: DonneesLicenceEmise): string {
 
 /* ===== Appel Resend ===== */
 
+/* ===== Sprint S2 : Email notification admin pour demande d'activation manuelle ===== */
+
+export interface DonneesNotificationAdmin {
+  requestId: string;
+  magicToken: string;
+  code: string;
+  codeLabel: string;
+  utilisationsRestantes: number;
+  email: string;
+  nom: string;
+  message: string;
+  ipPays: string;
+}
+
+export async function envoyerEmailNotificationAdmin(
+  env: Env,
+  d: DonneesNotificationAdmin
+): Promise<ResendResponse> {
+  // URL du Worker (PUBLIC_SITE_URL pointe vers mathequete.ca, mais l'admin va
+  // sur l'API du Worker directement). On utilise la route /admin/decide.
+  // En prod sur api.mathequete.com OU sur mathequete-api.coresrdi.workers.dev.
+  const baseUrl = env.ENVIRONMENT === 'production'
+    ? 'https://mathequete-api.coresrdi.workers.dev'
+    : 'http://localhost:8787';
+  const lienDecision = `${baseUrl}/admin/decide?token=${encodeURIComponent(d.magicToken)}`;
+
+  const html = `<!DOCTYPE html>
+<html lang="fr-CA">
+<head><meta charset="UTF-8"><title>Demande activation Mathequete</title></head>
+<body style="font-family: -apple-system, sans-serif; background:#f8fafc; padding:20px; margin:0; color:#0f172a;">
+  <div style="max-width:600px; margin:0 auto; background:white; border-radius:12px; overflow:hidden;">
+    <div style="background:#1e40af; color:white; padding:20px; text-align:center;">
+      <h2 style="margin:0;">Nouvelle demande d'activation</h2>
+    </div>
+    <div style="padding:24px;">
+      <p><strong>Code utilise :</strong> <code>${escapeHtml(d.code)}</code> (${escapeHtml(d.codeLabel)})</p>
+      <p><strong>Activations restantes apres celle-ci :</strong> ${d.utilisationsRestantes}</p>
+      <hr>
+      <p><strong>Joueur :</strong> ${escapeHtml(d.nom)}</p>
+      <p><strong>Email :</strong> <a href="mailto:${escapeHtml(d.email)}">${escapeHtml(d.email)}</a></p>
+      <p><strong>Pays :</strong> ${escapeHtml(d.ipPays)}</p>
+      <p><strong>Message :</strong></p>
+      <blockquote style="background:#f1f5f9; padding:12px; border-left:4px solid #2563eb; margin:8px 0;">
+        ${escapeHtml(d.message || '(aucun message)')}
+      </blockquote>
+      <hr>
+      <p style="text-align:center; margin:24px 0;">
+        <a href="${lienDecision}"
+           style="display:inline-block; background:#2563eb; color:white; padding:14px 28px; border-radius:8px; text-decoration:none; font-weight:600; font-size:16px;">
+          Decider (approuver / refuser)
+        </a>
+      </p>
+      <p style="font-size:12px; color:#64748b; text-align:center;">
+        Lien valide 24h. Request ID : <code>${escapeHtml(d.requestId)}</code>
+      </p>
+    </div>
+  </div>
+</body></html>`;
+
+  const body = {
+    from: `${env.RESEND_FROM_NAME} <${env.RESEND_FROM_EMAIL}>`,
+    to: ['coresrdi@gmail.com'],
+    subject: `[Mathequete] Demande activation - ${d.nom} (${d.code})`,
+    html: html
+  };
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+
+  const data = await res.json() as ResendResponse;
+  if (!res.ok) {
+    console.error('[Resend admin] echec envoi :', data);
+  }
+  return data;
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[c]!);
+}
+
+/* ===== Email licence emise (existant) ===== */
+
 export async function envoyerLicenceEmise(
   env: Env,
   d: DonneesLicenceEmise
