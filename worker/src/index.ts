@@ -8,6 +8,8 @@
  *   GET  /health                    → ping
  *
  * Vu depuis le frontend : api.mathequete.com (DNS routé via Cloudflare)
+ *
+ * Sprint D5 : rate limiting sur endpoints sensibles via D1.
  */
 
 import type { Env } from './types';
@@ -45,6 +47,16 @@ import {
   handleEleveUpdate,
   handleEleveDelete
 } from './eleves-routes';
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitResponse,
+  RL_AUTH_STRICT,
+  RL_SIGNUP,
+  RL_ACTIVATION,
+  RL_STATS_PUSH,
+  RL_2FA_EMAIL
+} from './rate-limit';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -76,8 +88,10 @@ export default {
         return handleReleaseDevice(request, env);
       }
 
-      // ===== Sprint C : stats élèves =====
+      // ===== Sprint C : stats élèves (rate limit par IP) =====
       if (url.pathname === '/api/stats/push') {
+        const rl = await checkRateLimit(env, `stats-push:ip:${getClientIp(request)}`, RL_STATS_PUSH);
+        if (!rl.allowed) return rateLimitResponse(rl);
         return handleStatsPush(request, env);
       }
 
@@ -86,14 +100,18 @@ export default {
         return handleStatsClasseGet(request, env, statsClasseMatch[1]);
       }
 
-      // ===== Sprint S2 : activation manuelle =====
+      // ===== Sprint S2 : activation manuelle (rate limit IP) =====
       if (url.pathname === '/api/activation/request') {
+        const rl = await checkRateLimit(env, `activation-req:ip:${getClientIp(request)}`, RL_ACTIVATION);
+        if (!rl.allowed) return rateLimitResponse(rl);
         return handleActivationRequest(request, env);
       }
       if (url.pathname === '/api/activation/status') {
         return handleActivationStatus(request, env);
       }
       if (url.pathname === '/api/activation/redeem') {
+        const rl = await checkRateLimit(env, `activation-redeem:ip:${getClientIp(request)}`, RL_ACTIVATION);
+        if (!rl.allowed) return rateLimitResponse(rl);
         return handleActivationRedeem(request, env);
       }
       if (url.pathname === '/admin/decide') {
@@ -102,17 +120,58 @@ export default {
       }
 
       // ===== Sprint D1 : Auth prof (app de gestion enseignant) =====
-      if (url.pathname === '/api/prof/signup')             return handleSignup(request, env);
-      if (url.pathname === '/api/prof/signup/confirm')     return handleSignupConfirm(request, env);
-      if (url.pathname === '/api/prof/login')              return handleLogin(request, env);
-      if (url.pathname === '/api/prof/2fa/setup')          return handle2faSetup(request, env);
-      if (url.pathname === '/api/prof/2fa/setup/confirm')  return handle2faSetupConfirm(request, env);
-      if (url.pathname === '/api/prof/2fa/email/request')  return handle2faEmailRequest(request, env);
-      if (url.pathname === '/api/prof/2fa/verify')         return handle2faVerify(request, env);
-      if (url.pathname === '/api/prof/token/refresh')      return handleRefresh(request, env);
-      if (url.pathname === '/api/prof/logout')             return handleLogout(request, env);
-      if (url.pathname === '/api/prof/me')                 return handleMe(request, env);
-      if (url.pathname === '/api/prof/dek/upgrade')        return handleDekUpgrade(request, env);
+      // Rate limit strict sur tous les endpoints d'authentification.
+      const ip = getClientIp(request);
+
+      if (url.pathname === '/api/prof/signup') {
+        const rl = await checkRateLimit(env, `signup:ip:${ip}`, RL_SIGNUP);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleSignup(request, env);
+      }
+      if (url.pathname === '/api/prof/signup/confirm') {
+        const rl = await checkRateLimit(env, `signup-confirm:ip:${ip}`, RL_AUTH_STRICT);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleSignupConfirm(request, env);
+      }
+      if (url.pathname === '/api/prof/login') {
+        const rl = await checkRateLimit(env, `login:ip:${ip}`, RL_AUTH_STRICT);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleLogin(request, env);
+      }
+      if (url.pathname === '/api/prof/2fa/setup') {
+        const rl = await checkRateLimit(env, `2fa-setup:ip:${ip}`, RL_AUTH_STRICT);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handle2faSetup(request, env);
+      }
+      if (url.pathname === '/api/prof/2fa/setup/confirm') {
+        const rl = await checkRateLimit(env, `2fa-setup-confirm:ip:${ip}`, RL_AUTH_STRICT);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handle2faSetupConfirm(request, env);
+      }
+      if (url.pathname === '/api/prof/2fa/email/request') {
+        const rl = await checkRateLimit(env, `2fa-email:ip:${ip}`, RL_2FA_EMAIL);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handle2faEmailRequest(request, env);
+      }
+      if (url.pathname === '/api/prof/2fa/verify') {
+        const rl = await checkRateLimit(env, `2fa-verify:ip:${ip}`, RL_AUTH_STRICT);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handle2faVerify(request, env);
+      }
+      if (url.pathname === '/api/prof/token/refresh') {
+        return handleRefresh(request, env);
+      }
+      if (url.pathname === '/api/prof/logout') {
+        return handleLogout(request, env);
+      }
+      if (url.pathname === '/api/prof/me') {
+        return handleMe(request, env);
+      }
+      if (url.pathname === '/api/prof/dek/upgrade') {
+        const rl = await checkRateLimit(env, `dek-upgrade:ip:${ip}`, RL_AUTH_STRICT);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleDekUpgrade(request, env);
+      }
 
       // ===== Sprint D3 : CRUD élèves chiffré =====
       if (url.pathname === '/api/prof/eleves') {
