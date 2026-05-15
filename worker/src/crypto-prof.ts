@@ -301,6 +301,121 @@ export async function dechiffrerDek(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// HKDF-SHA256 — Dérivation de clés contextuelles (Sprint D5)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Dérive une clé symétrique 32 octets via HKDF-SHA256.
+ *
+ * Usage : K_stats par licence pour chiffrer payload_json at-rest.
+ *
+ *   K = HKDF(ikm=MASTER_ENCRYPTION_KEY, salt="mathequete-stats-v1", info=licence_id)
+ *
+ * Pourquoi HKDF et pas juste SHA256(master||licence_id) ?
+ *   - HKDF est conçu pour la dérivation de clé (extract + expand)
+ *   - Salt distinct par usage permet de dériver plusieurs sous-clés sans collision
+ *   - RFC 5869, standard accepté pour KDF à partir d'IKM haute entropie
+ */
+export async function hkdfSha256(
+	ikm: Uint8Array,
+	salt: string,
+	info: string,
+	lengthBytes: number = 32
+): Promise<Uint8Array> {
+	if (ikm.length === 0) {
+		throw new Error('HKDF ikm vide');
+	}
+	const baseKey = await crypto.subtle.importKey(
+		'raw',
+		ikm,
+		'HKDF',
+		false,
+		['deriveBits']
+	);
+	const bits = await crypto.subtle.deriveBits(
+		{
+			name: 'HKDF',
+			hash: 'SHA-256',
+			salt: encoder.encode(salt),
+			info: encoder.encode(info)
+		},
+		baseKey,
+		lengthBytes * 8
+	);
+	return new Uint8Array(bits);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHIFFREMENT STATS PAYLOAD — Sprint D5
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Identifiant du KDF/scheme utilisé pour chiffrer payload_json.
+ * Stocké dans stats_eleves.payload_kdf pour migrations futures.
+ */
+export const STATS_KDF_V1 = 'hkdf_sha256_master_v1';
+
+/**
+ * Dérive la clé de chiffrement des stats pour une licence donnée.
+ *   K_stats(licence_id) = HKDF(MASTER_ENCRYPTION_KEY, "mathequete-stats-v1", licence_id)
+ */
+export async function deriverKStats(
+	masterKeyHex: string,
+	licenceId: string
+): Promise<Uint8Array> {
+	const ikm = hexToBytes(masterKeyHex);
+	if (ikm.length !== 32) {
+		throw new Error('MASTER_ENCRYPTION_KEY doit être 64 caractères hex (32 octets)');
+	}
+	return await hkdfSha256(ikm, 'mathequete-stats-v1', licenceId, 32);
+}
+
+/**
+ * Chiffre le payload_json d'une ligne stats_eleves.
+ * Retourne ciphertext + IV en Uint8Array prêts à binder en BLOB D1.
+ */
+export async function chiffrerStatsPayload(
+	payloadJson: string,
+	masterKeyHex: string,
+	licenceId: string
+): Promise<{ ciphertext: Uint8Array; iv: Uint8Array; kdf: string }> {
+	const kStats = await deriverKStats(masterKeyHex, licenceId);
+	const key = await importAesKey(kStats, ['encrypt']);
+	const iv = crypto.getRandomValues(new Uint8Array(AES_IV_LEN));
+	const ct = await crypto.subtle.encrypt(
+		{ name: 'AES-GCM', iv },
+		key,
+		encoder.encode(payloadJson)
+	);
+	return {
+		ciphertext: new Uint8Array(ct),
+		iv,
+		kdf: STATS_KDF_V1
+	};
+}
+
+/**
+ * Déchiffre le payload_json d'une ligne stats_eleves.
+ * Throw si tag GCM invalide (corruption ou mauvaise clé).
+ */
+export async function dechiffrerStatsPayload(
+	ciphertext: Uint8Array,
+	iv: Uint8Array,
+	masterKeyHex: string,
+	licenceId: string,
+	kdf: string
+): Promise<string> {
+	if (kdf !== STATS_KDF_V1) {
+		throw new Error('KDF stats inconnu : ' + kdf);
+	}
+	const kStats = await deriverKStats(masterKeyHex, licenceId);
+	const key = await importAesKey(kStats, ['decrypt']);
+	const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+	return decoder.decode(pt);
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
 // JWT HS256 — Tokens d'accès courts (8h)
 // ═══════════════════════════════════════════════════════════════════════════
 

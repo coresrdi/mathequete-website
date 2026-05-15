@@ -1,20 +1,27 @@
 /**
- * Mathéquête — Endpoints stats élèves (Sprint C)
+ * Mathéquête — Endpoints stats élèves (Sprint C + D5 chiffrement at-rest)
  *
  * POST /api/stats/push
  *   Body: { code_brut, device_hash, eleves: [...] }
  *   Action: UPSERT batch dans stats_eleves (ON CONFLICT DO UPDATE)
  *   Auth: HMAC via verifierCodeBrut + vérif device_hash lié à la licence
+ *   D5: payload est chiffré at-rest (AES-GCM avec K_stats = HKDF(MASTER, licence_id))
  *   Retour: { success: true, count: number }
  *
  * GET /api/stats/classe/:licence_id?code_brut=XXX&device_hash=YYY
  *   Action: SELECT * FROM stats_eleves WHERE licence_id = ? ORDER BY derniere_session_at DESC LIMIT 500
  *   Auth: même vérif HMAC + device_hash + cross-check licence_id vs code_brut
+ *   D5: déchiffre payload_chiffre si présent, sinon utilise payload_json legacy
  *   Retour: { success: true, eleves: [...] }
  */
 
 import type { Env } from './types';
 import { verifierCodeBrut } from './generate-codes';
+import {
+	chiffrerStatsPayload,
+	dechiffrerStatsPayload,
+	STATS_KDF_V1
+} from './crypto-prof';
 
 /* ===== Types ===== */
 
@@ -92,11 +99,19 @@ export async function handleStatsPush(
 		return jsonResponse({ success: false, raison: 'db_error' }, 500);
 	}
 
-	// 3. UPSERT batch
+	// 3. Vérifier que MASTER_ENCRYPTION_KEY est dispo (D5)
+	if (!env.MASTER_ENCRYPTION_KEY || env.MASTER_ENCRYPTION_KEY.length < 32) {
+		console.error('[stats/push] MASTER_ENCRYPTION_KEY manquant — chiffrement at-rest impossible');
+		return jsonResponse({ success: false, raison: 'server_misconfigured' }, 500);
+	}
+
+	// 4. Préparer les UPSERT (chiffrement at-rest du payload)
 	const now = Math.floor(Date.now() / 1000);
-	const statements = eleves.map((eleve) => {
+	const statements: D1PreparedStatement[] = [];
+
+	for (const eleve of eleves) {
 		const eleveId = String(eleve.eleve_id ?? '').trim();
-		if (!eleveId) return null;
+		if (!eleveId) continue;
 
 		const prenom = eleve.prenom ? String(eleve.prenom).slice(0, 80) : null;
 		const totalExamens = Math.max(0, Number(eleve.total_examens) || 0);
@@ -106,16 +121,36 @@ export async function handleStatsPush(
 		const derniereSessionAt = eleve.derniere_session_at
 			? Number(eleve.derniere_session_at)
 			: null;
-		const payloadJson = eleve.payload != null
-			? JSON.stringify(eleve.payload)
-			: null;
 
-		return env.DB.prepare(`
+		// D5 : chiffrer le payload si présent
+		let payloadChiffre: Uint8Array | null = null;
+		let payloadIv: Uint8Array | null = null;
+		let payloadKdf: string | null = null;
+
+		if (eleve.payload != null) {
+			const payloadJson = JSON.stringify(eleve.payload);
+			try {
+				const enc = await chiffrerStatsPayload(
+					payloadJson,
+					env.MASTER_ENCRYPTION_KEY,
+					licenceId
+				);
+				payloadChiffre = enc.ciphertext;
+				payloadIv = enc.iv;
+				payloadKdf = enc.kdf;
+			} catch (err) {
+				console.error('[stats/push] erreur chiffrement payload :', err);
+				return jsonResponse({ success: false, raison: 'crypto_error' }, 500);
+			}
+		}
+
+		statements.push(env.DB.prepare(`
 			INSERT INTO stats_eleves (
 				licence_id, eleve_id, prenom,
 				total_examens, total_reussites, total_echecs, iles_completees,
-				derniere_session_at, push_at, payload_json
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				derniere_session_at, push_at,
+				payload_json, payload_chiffre, payload_iv, payload_kdf
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)
 			ON CONFLICT(licence_id, eleve_id) DO UPDATE SET
 				prenom              = excluded.prenom,
 				total_examens       = excluded.total_examens,
@@ -124,13 +159,17 @@ export async function handleStatsPush(
 				iles_completees     = excluded.iles_completees,
 				derniere_session_at = excluded.derniere_session_at,
 				push_at             = excluded.push_at,
-				payload_json        = excluded.payload_json
+				payload_json        = NULL,
+				payload_chiffre     = excluded.payload_chiffre,
+				payload_iv          = excluded.payload_iv,
+				payload_kdf         = excluded.payload_kdf
 		`).bind(
 			licenceId, eleveId, prenom,
 			totalExamens, totalReussites, totalEchecs, ilesCompletees,
-			derniereSessionAt, now, payloadJson
-		);
-	}).filter((s): s is D1PreparedStatement => s !== null);
+			derniereSessionAt, now,
+			payloadChiffre, payloadIv, payloadKdf
+		));
+	}
 
 	if (statements.length === 0) {
 		return jsonError('Aucun élève valide dans le payload', 400);
@@ -147,6 +186,22 @@ export async function handleStatsPush(
 }
 
 /* ===== GET /api/stats/classe/:licence_id ===== */
+
+interface StatsRow {
+	id: number;
+	eleve_id: string;
+	prenom: string | null;
+	total_examens: number;
+	total_reussites: number;
+	total_echecs: number;
+	iles_completees: number;
+	derniere_session_at: number | null;
+	push_at: number;
+	payload_json: string | null;
+	payload_chiffre: ArrayBuffer | null;
+	payload_iv: ArrayBuffer | null;
+	payload_kdf: string | null;
+}
 
 export async function handleStatsClasseGet(
 	request: Request,
@@ -198,35 +253,68 @@ export async function handleStatsClasseGet(
 		return jsonResponse({ success: false, raison: 'db_error' }, 500);
 	}
 
-	// 4. Récupérer les stats
+	// 4. Récupérer les stats (avec colonnes chiffrement)
+	let rows: StatsRow[];
 	try {
 		const { results } = await env.DB.prepare(`
 			SELECT
 				id, eleve_id, prenom,
 				total_examens, total_reussites, total_echecs, iles_completees,
-				derniere_session_at, push_at, payload_json
+				derniere_session_at, push_at,
+				payload_json, payload_chiffre, payload_iv, payload_kdf
 			FROM stats_eleves
 			WHERE licence_id = ?
 			ORDER BY derniere_session_at DESC
 			LIMIT 500
-		`).bind(licenceId).all<{
-			id: number;
-			eleve_id: string;
-			prenom: string | null;
-			total_examens: number;
-			total_reussites: number;
-			total_echecs: number;
-			iles_completees: number;
-			derniere_session_at: number | null;
-			push_at: number;
-			payload_json: string | null;
-		}>();
-
-		return jsonResponse({ success: true, eleves: results });
+		`).bind(licenceId).all<StatsRow>();
+		rows = results;
 	} catch (err) {
 		console.error('[stats/classe] erreur SELECT :', err);
 		return jsonResponse({ success: false, raison: 'db_error' }, 500);
 	}
+
+	// 5. Déchiffrer les payloads chiffrés (D5)
+	// Backward-compat : si payload_chiffre IS NULL → retourner payload_json legacy
+	const eleves: Array<Record<string, unknown>> = [];
+	for (const row of rows) {
+		let payloadJson: string | null = row.payload_json;
+
+		if (row.payload_chiffre && row.payload_iv && row.payload_kdf) {
+			if (!env.MASTER_ENCRYPTION_KEY || env.MASTER_ENCRYPTION_KEY.length < 32) {
+				console.error('[stats/classe] MASTER_ENCRYPTION_KEY manquant pour déchiffrer');
+				return jsonResponse({ success: false, raison: 'server_misconfigured' }, 500);
+			}
+			try {
+				payloadJson = await dechiffrerStatsPayload(
+					new Uint8Array(row.payload_chiffre),
+					new Uint8Array(row.payload_iv),
+					env.MASTER_ENCRYPTION_KEY,
+					licenceId,
+					row.payload_kdf
+				);
+			} catch (err) {
+				console.error('[stats/classe] erreur déchiffrement payload eleve', row.eleve_id, ':', err);
+				// On ne fait pas planter toute la requête : on retourne null pour ce payload
+				payloadJson = null;
+			}
+		}
+
+		eleves.push({
+			id: row.id,
+			eleve_id: row.eleve_id,
+			prenom: row.prenom,
+			total_examens: row.total_examens,
+			total_reussites: row.total_reussites,
+			total_echecs: row.total_echecs,
+			iles_completees: row.iles_completees,
+			derniere_session_at: row.derniere_session_at,
+			push_at: row.push_at,
+			payload_json: payloadJson,
+			payload_encrypted: row.payload_chiffre != null
+		});
+	}
+
+	return jsonResponse({ success: true, eleves });
 }
 
 /* ===== Helpers locaux (dupliqués pour isolation module) ===== */
