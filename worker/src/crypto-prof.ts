@@ -27,18 +27,25 @@
  * HACHAGE MOT DE PASSE
  * ───────────────────────────────────────────────────────────────────────────
  *
- * PBKDF2-SHA512 avec 600 000 itérations (recommandation OWASP 2023).
+ * PBKDF2-SHA512 avec 100 000 itérations.
  * Format de sortie compatible PHC :
  *
- *   $pbkdf2-sha512$i=600000$<base64sel>$<base64hash>
+ *   $pbkdf2-sha512$i=100000$<base64sel>$<base64hash>
  *
- * Pourquoi pas Argon2id ?
+ * Pourquoi 100 000 et pas 600 000 ?
+ *   - Cloudflare Workers limite PBKDF2 à 100 000 itérations max (anti-DDoS plateforme).
+ *   - 100 000 reste robuste (OWASP 2021 minimum recommandé pour PBKDF2-SHA512).
+ *   - Le format PHC inclut le nombre d'itérations → migration future transparente.
+ *
+ * TODO Sprint D4 : migrer vers Argon2id via WASM lib (~200 KB tolérable).
+ *   - Ajouter colonne profs.hash_version (1=PBKDF2, 2=Argon2id)
+ *   - Stratégie : re-hash au prochain login (rolling migration, zéro perturbation)
+ *   - Cf. Plan-Phase35 §D4.5
+ *
+ * Pourquoi pas Argon2id tout de suite ?
  *   - Workers V8 n'a pas de binaire natif Argon2
- *   - Les libs WASM Argon2 (~200 KB) explosent le bundle worker
- *   - PBKDF2-SHA512 600k est OWASP-approved équivalent (2023)
+ *   - Pas critique pour MVP (PBKDF2 100k SHA-512 = OWASP-approved 2021)
  *   - SubtleCrypto.deriveBits natif = constant time = sécurisé
- *
- * Migration future Argon2 possible : on stocke le préfixe d'algo dans le hash.
  */
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -128,16 +135,18 @@ export function constantTimeEqualStr(a: string, b: string): boolean {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MOT DE PASSE — PBKDF2-SHA512 600k itérations
+// MOT DE PASSE — PBKDF2-SHA512 100k itérations (limite Cloudflare Workers)
 // ═══════════════════════════════════════════════════════════════════════════
 
-const PBKDF2_ITERATIONS = 600_000;
+// Cloudflare Workers limite PBKDF2 à 100 000 itérations max.
+// TODO Sprint D4 : migrer vers Argon2id (cf. doc en haut de fichier).
+const PBKDF2_ITERATIONS = 100_000;
 const PBKDF2_HASH_LEN = 64;     // 512 bits
 const PBKDF2_SALT_LEN = 16;     // 128 bits
 
 /**
  * Hache un mot de passe en format PHC-like :
- *   $pbkdf2-sha512$i=600000$<base64salt>$<base64hash>
+ *   $pbkdf2-sha512$i=100000$<base64salt>$<base64hash>
  */
 export async function hashPassword(password: string): Promise<string> {
 	const salt = crypto.getRandomValues(new Uint8Array(PBKDF2_SALT_LEN));

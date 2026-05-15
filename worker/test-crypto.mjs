@@ -67,7 +67,7 @@ try {
 	{
 		const pwd = 'MotDePasse-Super-Solide-2026!';
 		const h = await mod.hashPassword(pwd);
-		assert(h.startsWith('$pbkdf2-sha512$i=600000$'), 'format PHC');
+		assert(h.startsWith('$pbkdf2-sha512$i=100000$'), 'format PHC');
 		assert(await mod.verifyPassword(pwd, h), 'mot de passe correct accepte');
 		assert(!await mod.verifyPassword(pwd + 'X', h), 'mot de passe modifie refuse');
 		assert(!await mod.verifyPassword('', h), 'mot de passe vide refuse');
