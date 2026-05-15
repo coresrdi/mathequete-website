@@ -645,6 +645,150 @@ export async function handleMe(request: Request, env: Env): Promise<Response> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ROUTE : POST /api/prof/dek/upgrade  (Sprint D4)
+// ═══════════════════════════════════════════════════════════════════════════
+// Re-wrap la DEK avec un nouveau KDF (typiquement passage PBKDF2 → Argon2id).
+// Le client envoie un nouveau wrap dérivé du mdp avec le KDF cible. Le serveur
+// stocke en CAS-style (WHERE dek_user_version = ?) pour éviter races.
+//
+// Anti-downgrade : on refuse Argon2id → PBKDF2.
+//
+// Body :
+//   {
+//     dek_wrap_user: string,   // base64
+//     dek_iv_user: string,     // base64 (IV AES-GCM 12 octets)
+//     dek_salt_user: string,   // base64
+//     dek_kdf: string,         // 'argon2id_m64_t3_p1' ou 'pbkdf2_sha256_100k'
+//     dek_kdf_params?: number, // PBKDF2 : iterations ; Argon2id : ignoré
+//     expected_version: number // version courante (CAS)
+//   }
+// Réponse : { ok: true, new_version: number }
+
+interface DekUpgradeBody {
+	dek_wrap_user?: string;
+	dek_iv_user?: string;
+	dek_salt_user?: string;
+	dek_kdf?: string;
+	dek_kdf_params?: number;
+	expected_version?: number;
+}
+
+// KDFs reconnus, du plus faible au plus fort. Index = niveau de sécurité.
+const KDF_RANK: Record<string, number> = {
+	'pbkdf2_sha256_100k': 1,
+	'argon2id_m64_t3_p1': 2,
+};
+
+export async function handleDekUpgrade(request: Request, env: Env): Promise<Response> {
+	const cfg = verifierConfig(env);
+	if (cfg) return cfg;
+	if (request.method !== 'POST') return jsonErr('Méthode non autorisée', 405);
+
+	const auth = await authentifier(request, env, true);
+	if (auth instanceof Response) return auth;
+	const { prof } = auth;
+
+	let body: DekUpgradeBody;
+	try { body = await request.json(); }
+	catch { return jsonErr('JSON invalide', 400); }
+
+	// Validation champs obligatoires
+	if (
+		typeof body.dek_wrap_user !== 'string' ||
+		typeof body.dek_iv_user !== 'string' ||
+		typeof body.dek_salt_user !== 'string' ||
+		typeof body.dek_kdf !== 'string' ||
+		typeof body.expected_version !== 'number'
+	) {
+		return jsonErr('Champs manquants', 400, 'BAD_BODY');
+	}
+
+	// Validation base64 + longueurs (mêmes limites que signup)
+	const B64 = /^[A-Za-z0-9+/=]+$/;
+	if (!B64.test(body.dek_wrap_user) || body.dek_wrap_user.length > 256) return jsonErr('dek_wrap_user invalide', 400, 'BAD_WRAP');
+	if (!B64.test(body.dek_iv_user) || body.dek_iv_user.length > 64) return jsonErr('dek_iv_user invalide', 400, 'BAD_IV');
+	if (!B64.test(body.dek_salt_user) || body.dek_salt_user.length > 64) return jsonErr('dek_salt_user invalide', 400, 'BAD_SALT');
+
+	// Validation KDF connu
+	const newRank = KDF_RANK[body.dek_kdf];
+	if (!newRank) return jsonErr('KDF inconnu', 400, 'BAD_KDF');
+
+	// Anti-downgrade : interdit de passer à un KDF plus faible.
+	// dek_kdf=NULL en DB = legacy (équivalent rang 0) → tout upgrade OK.
+	const currentKdf = prof.dek_kdf;
+	if (currentKdf) {
+		const currentRank = KDF_RANK[currentKdf] ?? 0;
+		if (newRank < currentRank) {
+			return jsonErr('Downgrade KDF interdit', 400, 'KDF_DOWNGRADE');
+		}
+	}
+
+	// Validation paramètres spécifiques (PBKDF2 only)
+	let iterUser: number | null = null;
+	if (body.dek_kdf === 'pbkdf2_sha256_100k') {
+		if (
+			typeof body.dek_kdf_params !== 'number' ||
+			!Number.isInteger(body.dek_kdf_params) ||
+			body.dek_kdf_params < 50_000 ||
+			body.dek_kdf_params > 1_000_000
+		) {
+			return jsonErr('dek_kdf_params invalide pour PBKDF2', 400, 'BAD_PARAMS');
+		}
+		iterUser = body.dek_kdf_params;
+	} else if (body.dek_kdf === 'argon2id_m64_t3_p1') {
+		// Paramètres figés dans le nom du KDF. iter_user devient inutilisé
+		// mais on garde la colonne non-NULL pour rester cohérent : on stocke 0.
+		iterUser = 0;
+	}
+
+	// Mise à jour CAS-style — on incrémente la version pour invalider tout autre
+	// onglet/session qui tenterait un upgrade en parallèle.
+	const newVersion = body.expected_version + 1;
+
+	const result = await env.DB.prepare(
+		`UPDATE profs
+		   SET dek_wrap_user = ?,
+		       dek_iv_user = ?,
+		       dek_salt_user = ?,
+		       dek_iter_user = ?,
+		       dek_kdf = ?,
+		       dek_user_version = ?
+		 WHERE id = ? AND dek_user_version = ?`
+	)
+		.bind(
+			body.dek_wrap_user,
+			body.dek_iv_user,
+			body.dek_salt_user,
+			iterUser,
+			body.dek_kdf,
+			newVersion,
+			prof.id,
+			body.expected_version
+		)
+		.run();
+
+	if (!result.success || (result.meta?.changes ?? 0) === 0) {
+		// CAS a échoué : la version a changé entre temps (autre client). Le client
+		// doit refaire /me et retenter.
+		return jsonErr('Version DEK obsolète, rafraîchir et réessayer', 409, 'VERSION_MISMATCH');
+	}
+
+	// Audit (best-effort)
+	try {
+		await ecrireAudit(env, {
+			prof_id: prof.id,
+			action: 'dek_kdf_upgrade',
+			cible: prof.id,
+			meta: { from: currentKdf ?? null, to: body.dek_kdf, new_version: newVersion }
+		});
+	} catch (e) {
+		console.error('[audit dek_kdf_upgrade]', e);
+	}
+
+	return jsonOk({ ok: true, new_version: newVersion });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // EMAILS — Templates
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -777,6 +921,7 @@ function wrapUserPayload(prof: ProfRow): {
 	dek_salt_user: string | null;
 	dek_iter_user: number | null;
 	dek_user_version: number;
+	dek_kdf: string | null;
 } {
 	return {
 		dek_wrap_user: prof.dek_wrap_user,
@@ -784,5 +929,6 @@ function wrapUserPayload(prof: ProfRow): {
 		dek_salt_user: prof.dek_salt_user,
 		dek_iter_user: prof.dek_iter_user,
 		dek_user_version: prof.dek_user_version,
+		dek_kdf: prof.dek_kdf,
 	};
 }

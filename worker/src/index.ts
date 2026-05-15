@@ -35,7 +35,8 @@ import {
   handle2faVerify,
   handleRefresh,
   handleLogout,
-  handleMe
+  handleMe,
+  handleDekUpgrade
 } from './prof-routes';
 import {
   handleEleveCreate,
@@ -111,6 +112,7 @@ export default {
       if (url.pathname === '/api/prof/token/refresh')      return handleRefresh(request, env);
       if (url.pathname === '/api/prof/logout')             return handleLogout(request, env);
       if (url.pathname === '/api/prof/me')                 return handleMe(request, env);
+      if (url.pathname === '/api/prof/dek/upgrade')        return handleDekUpgrade(request, env);
 
       // ===== Sprint D3 : CRUD élèves chiffré =====
       if (url.pathname === '/api/prof/eleves') {

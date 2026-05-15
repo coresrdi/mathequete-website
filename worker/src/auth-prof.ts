@@ -49,6 +49,10 @@ export interface ProfRow {
 	dek_salt_user: string | null;
 	dek_iter_user: number | null;
 	dek_user_version: number;
+	// D4 : identifie le KDF utilisé pour dériver K_user.
+	// NULL = legacy (pas encore wrappé côté client) ou wrap absent.
+	// 'pbkdf2_sha256_100k' (D3) ou 'argon2id_m64_t3_p1' (D4+).
+	dek_kdf: string | null;
 	consentement_parental_atteste: number;
 	cgu_acceptees_le: number | null;
 	politique_version: string | null;
@@ -187,6 +191,7 @@ export async function creerProf(
 		dek_iv_user?: string;
 		dek_salt_user?: string;
 		dek_iter_user?: number;
+		dek_kdf?: string;
 	}
 ): Promise<{ id: string; code_classe: string }> {
 	const id = genererId('p', 16);
@@ -205,10 +210,10 @@ export async function creerProf(
 			id, email, password_hash, nom_affiche, nom_ecole, ville, pays,
 			twofa_methode, code_classe,
 			dek_chiffree, dek_iv, dek_version,
-			dek_wrap_user, dek_iv_user, dek_salt_user, dek_iter_user, dek_user_version,
+			dek_wrap_user, dek_iv_user, dek_salt_user, dek_iter_user, dek_user_version, dek_kdf,
 			consentement_parental_atteste, cgu_acceptees_le, politique_version,
 			created_at, statut, failed_login_count
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	)
 		.bind(
 			id,
@@ -228,6 +233,7 @@ export async function creerProf(
 			hasWrapUser ? params.dek_salt_user : null,
 			hasWrapUser ? params.dek_iter_user : null,
 			hasWrapUser ? 1 : 0,
+			hasWrapUser ? (params.dek_kdf ?? 'pbkdf2_sha256_100k') : null,
 			params.consentement_parental_atteste ? 1 : 0,
 			now,
 			params.politique_version,
