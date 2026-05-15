@@ -144,8 +144,11 @@ interface SignupBody {
 	// avec K_user = PBKDF2(mdp). Ces champs sont optionnels pour rétro-compat.
 	dek_wrap_user?: string;     // base64(AES-GCM(DEK, K_user))
 	dek_iv_user?: string;       // base64 IV
-	dek_salt_user?: string;     // base64 sel PBKDF2 (16 octets)
-	dek_iter_user?: number;     // nombre d'itérations PBKDF2
+	dek_salt_user?: string;     // base64 sel (16 octets)
+	dek_iter_user?: number;     // PBKDF2 : iterations ; Argon2id : 0
+	// Sprint D4 : nom du KDF utilisé par le client.
+	// Si absent, fallback 'pbkdf2_sha256_100k' pour rétro-compat.
+	dek_kdf?: string;
 }
 
 export async function handleSignup(request: Request, env: Env): Promise<Response> {
@@ -210,6 +213,7 @@ export async function handleSignup(request: Request, env: Env): Promise<Response
 		dek_iv_user: body.dek_iv_user,
 		dek_salt_user: body.dek_salt_user,
 		dek_iter_user: body.dek_iter_user,
+		dek_kdf: body.dek_kdf,
 	});
 
 	// Magic link de confirmation email
@@ -899,12 +903,24 @@ function validerWrapUserSignup(body: SignupBody): boolean {
 	if (!B64.test(body.dek_wrap_user) || body.dek_wrap_user.length > 256) return false;
 	if (!B64.test(body.dek_iv_user) || body.dek_iv_user.length > 64) return false;
 	if (!B64.test(body.dek_salt_user) || body.dek_salt_user.length > 64) return false;
-	if (
-		typeof body.dek_iter_user !== 'number' ||
-		!Number.isInteger(body.dek_iter_user) ||
-		body.dek_iter_user < 50000 ||      // anti-attaque par réduction
-		body.dek_iter_user > 1_000_000     // anti-DoS
-	) return false;
+
+	// Sprint D4 : tolère dek_iter_user = 0 si KDF Argon2id (params figes
+	// dans le nom). Pour PBKDF2 ou KDF absent, on impose >= 50000.
+	if (typeof body.dek_iter_user !== 'number' || !Number.isInteger(body.dek_iter_user)) return false;
+	const kdf = body.dek_kdf;
+	if (kdf === 'argon2id_m64_t3_p1') {
+		if (body.dek_iter_user !== 0) return false; // strict pour eviter abus
+	} else {
+		// PBKDF2 ou KDF absent (legacy = PBKDF2)
+		if (
+			body.dek_iter_user < 50000 ||      // anti-attaque par réduction
+			body.dek_iter_user > 1_000_000     // anti-DoS
+		) return false;
+	}
+
+	// Si dek_kdf est présent, il doit être dans la liste connue
+	if (kdf !== undefined && kdf !== 'pbkdf2_sha256_100k' && kdf !== 'argon2id_m64_t3_p1') return false;
+
 	return true;
 }
 
