@@ -19,6 +19,13 @@ export interface Env {
   STRIPE_WEBHOOK_SECRET: string;
   RESEND_API_KEY: string;
   HMAC_SECRET_KEY: string;
+
+  // Sprint D1 — Master Encryption Key (32 octets hex = 64 caractères)
+  // Génération : openssl rand -hex 32
+  // Pose : npx wrangler secret put MASTER_ENCRYPTION_KEY
+  // Chiffre les DEK par prof et les secrets TOTP au repos.
+  // ⚠️ NE JAMAIS PERDRE : sa perte rend illisibles toutes les données chiffrées.
+  MASTER_ENCRYPTION_KEY: string;
 }
 
 /* Paliers tarifaires côté serveur — DOIT correspondre au front

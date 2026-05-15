@@ -25,6 +25,18 @@ import {
   handleAdminDecideSubmit
 } from './manual-activation';
 import { handleStatsPush, handleStatsClasseGet } from './stats';
+import {
+  handleSignup,
+  handleSignupConfirm,
+  handleLogin,
+  handle2faSetup,
+  handle2faSetupConfirm,
+  handle2faEmailRequest,
+  handle2faVerify,
+  handleRefresh,
+  handleLogout,
+  handleMe
+} from './prof-routes';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -81,6 +93,18 @@ export default {
         if (request.method === 'POST') return handleAdminDecideSubmit(request, env);
       }
 
+      // ===== Sprint D1 : Auth prof (app de gestion enseignant) =====
+      if (url.pathname === '/api/prof/signup')             return handleSignup(request, env);
+      if (url.pathname === '/api/prof/signup/confirm')     return handleSignupConfirm(request, env);
+      if (url.pathname === '/api/prof/login')              return handleLogin(request, env);
+      if (url.pathname === '/api/prof/2fa/setup')          return handle2faSetup(request, env);
+      if (url.pathname === '/api/prof/2fa/setup/confirm')  return handle2faSetupConfirm(request, env);
+      if (url.pathname === '/api/prof/2fa/email/request')  return handle2faEmailRequest(request, env);
+      if (url.pathname === '/api/prof/2fa/verify')         return handle2faVerify(request, env);
+      if (url.pathname === '/api/prof/token/refresh')      return handleRefresh(request, env);
+      if (url.pathname === '/api/prof/logout')             return handleLogout(request, env);
+      if (url.pathname === '/api/prof/me')                 return handleMe(request, env);
+
       if (url.pathname === '/verify-license' && request.method === 'POST') {
         const body = await request.json() as { code_brut?: string };
         if (!body.code_brut) return jsonError('code_brut requis', 400);
@@ -103,7 +127,7 @@ function corsHeaders(): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Stripe-Signature'
+    'Access-Control-Allow-Headers': 'Content-Type, Stripe-Signature, Authorization'
   };
 }
 

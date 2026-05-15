@@ -3,6 +3,7 @@ node_modules/
 .wrangler/
 .dev.vars
 worker/dist/
+worker/dist-test/
 *.log
 
 # Build artifacts

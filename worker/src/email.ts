@@ -188,6 +188,51 @@ export function genererCSV(d: DonneesLicenceEmise): string {
   return lignes.join('\n');
 }
 
+/* ===== Sprint D1 : Envoi générique pour emails auth prof ===== */
+
+export interface EnvoyerEmailParams {
+  destinataire: string;
+  sujet: string;
+  html: string;
+  cc?: string[];
+}
+
+/**
+ * Envoi générique d'email via Resend. Utilisé par prof-routes.ts pour :
+ *   - confirmation signup
+ *   - magic links (login, reset password)
+ *   - codes 2FA par email
+ *
+ * Le destinataire et le sujet sont obligatoires. Pas de pièce jointe ici.
+ */
+export async function envoyerEmail(
+  env: Env,
+  params: EnvoyerEmailParams
+): Promise<ResendResponse> {
+  const body = {
+    from: `${env.RESEND_FROM_NAME} <${env.RESEND_FROM_EMAIL}>`,
+    to: [params.destinataire],
+    cc: params.cc,
+    subject: params.sujet,
+    html: params.html
+  };
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+
+  const data = await res.json() as ResendResponse;
+  if (!res.ok) {
+    console.error('[Resend envoyerEmail] echec :', data);
+  }
+  return data;
+}
+
 /* ===== Sprint S2 : Email notification admin pour demande d'activation manuelle ===== */
 
 export interface DonneesNotificationAdmin {
