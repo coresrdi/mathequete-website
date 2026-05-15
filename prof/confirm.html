@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmation du compte enseignant — Mathéquête</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <header class="mq-header">
+    <nav>
+      <a href="/" class="mq-logo">★ Mathéquête</a>
+    </nav>
+  </header>
+
+  <section class="mq-hero">
+    <h1>Confirmation du compte enseignant</h1>
+  </section>
+
+  <section class="mq-section">
+    <div class="mq-card" style="max-width: 700px; margin: 0 auto;">
+
+      <!-- État: en cours -->
+      <div id="state-loading">
+        <p class="lead">Vérification du lien en cours...</p>
+        <progress></progress>
+      </div>
+
+      <!-- État: succès -->
+      <div id="state-success" hidden>
+        <h3 style="color: #2e7d32;">★ Compte confirmé</h3>
+        <p>Votre adresse courriel a été confirmée avec succès.</p>
+        <p>Vous pouvez maintenant ouvrir l'<strong>application Mathéquête Prof</strong> sur votre ordinateur et vous connecter avec vos identifiants pour configurer la double authentification.</p>
+        <p style="margin-top: 1.5rem;">
+          Une question ? Écrivez à
+          <a href="mailto:contact@mathequete.com">contact@mathequete.com</a>.
+        </p>
+      </div>
+
+      <!-- État: erreur (lien invalide ou expiré) -->
+      <div id="state-error" hidden>
+        <h3 style="color: #c62828;">Lien invalide ou expiré</h3>
+        <p id="error-message">Ce lien de confirmation n'est plus valide. Cela peut arriver si :</p>
+        <ul>
+          <li>Le lien a déjà été utilisé.</li>
+          <li>Le lien a expiré (durée de validité : 24 heures).</li>
+          <li>Le lien a été tronqué dans votre courriel.</li>
+        </ul>
+        <p>Pour recevoir un nouveau lien, ouvrez l'application Mathéquête Prof et utilisez l'option « Renvoyer le lien de confirmation » sur l'écran de connexion (à venir), ou contactez
+          <a href="mailto:contact@mathequete.com">contact@mathequete.com</a>.
+        </p>
+      </div>
+
+      <!-- État: token manquant dans l'URL -->
+      <div id="state-no-token" hidden>
+        <h3 style="color: #c62828;">Lien incomplet</h3>
+        <p>Le lien que vous avez utilisé ne contient pas de jeton de confirmation. Assurez-vous d'avoir copié le lien complet depuis votre courriel.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var API_BASE = 'https://mathequete-api.coresrdi.workers.dev';
+      var ENDPOINT = '/api/prof/signup/confirm';
+
+      function show(id) {
+        var ids = ['state-loading', 'state-success', 'state-error', 'state-no-token'];
+        for (var i = 0; i < ids.length; i++) {
+          var el = document.getElementById(ids[i]);
+          if (el) el.hidden = (ids[i] !== id);
+        }
+      }
+
+      function getTokenFromUrl() {
+        // Le worker envoie ?t=<token>. On accepte aussi ?token= par sécurité.
+        var params = new URLSearchParams(window.location.search);
+        return params.get('t') || params.get('token');
+      }
+
+      async function confirmerCompte(token) {
+        try {
+          var response = await fetch(API_BASE + ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: token })
+          });
+
+          var data = null;
+          try { data = await response.json(); } catch (e) { /* tolère body non-JSON */ }
+
+          if (response.ok && data && data.ok) {
+            show('state-success');
+            return;
+          }
+
+          // Lien invalide / expiré
+          if (data && data.message) {
+            var msg = document.getElementById('error-message');
+            if (msg) msg.textContent = data.message;
+          }
+          show('state-error');
+        } catch (err) {
+          console.error('[confirm] erreur réseau:', err);
+          var msg2 = document.getElementById('error-message');
+          if (msg2) msg2.textContent = 'Connexion impossible. Vérifiez votre lien internet et rechargez la page.';
+          show('state-error');
+        }
+      }
+
+      // Point d'entrée
+      var token = getTokenFromUrl();
+      if (!token) {
+        show('state-no-token');
+        return;
+      }
+      confirmerCompte(token);
+    })();
+  </script>
+
+</body>
+</html>
