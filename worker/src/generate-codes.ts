@@ -194,10 +194,31 @@ export function nbElevesPourTier(tier: string): number {
   return map[tier] ?? 30;
 }
 
-/* Sprint S3.C — Pack 5 : nombre de codes indépendants émis par achat. */
+/* Sprint S3.C — Pack 5 : nombre de codes HMAC `licences` indépendants
+ * émis par achat. Pour les paliers école, on n'émet qu'1 seul code HMAC
+ * « licence-parent » qui sert d'identité Stripe, et N clés QR distinctes
+ * (voir `nbClesQrPourTier`) sont rattachées dans `licences_qr`. */
 export function nbCodesPourTier(tier: string): number {
   const map: Record<string, number> = {
     'pack_5_continent_1':  5
+  };
+  return map[tier] ?? 1;
+}
+
+/* Sprint PB1 (D4) — nombre de clés QR Crockford Base32 distinctes générées
+ * dans `licences_qr` à l'achat. Égale à `nb_eleves` pour les paliers école,
+ * à `nb_codes` (1 ou 5) pour les paliers individuels.
+ * 1 QR = 1 licence = 1 continent = 1 appareil. */
+export function nbClesQrPourTier(tier: string): number {
+  const map: Record<string, number> = {
+    'continent_1':         1,
+    'pack_5_continent_1':  5,
+    'classe_petite':       30,
+    'classe_moyenne':      100,
+    'petite_ecole':        300,
+    'ecole_standard':      500,
+    'grande_ecole':        1000,
+    'mega_ecole':          1300
   };
   return map[tier] ?? 1;
 }
