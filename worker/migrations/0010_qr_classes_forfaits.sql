@@ -1,8 +1,15 @@
 -- Migration 0010 — Sprint PB1
 -- Pont prof ↔ jeu : forfaits école + licences QR distinctes + classes
 --
--- Ajoute les tables nécessaires au modèle « 1 QR = 1 licence = 1 continent
--- = 1 appareil, code classe partagé » (décision D4 validée 15 mai 2026).
+-- Décisions validées 15 mai 2026 (cf. plan_pont_prof_jeu.md) :
+--   D4  : 1 QR = 1 licence = 1 continent = 1 appareil, code classe partagé.
+--   D7  : approche additive — 1 ligne `licences` HMAC parent + N lignes
+--         `licences_qr` (pas de mutation du webhook existant).
+--   D9  : rachat anniversaire + multi-achat autorisés pour même email_admin
+--         dans une fenêtre de 180 jours, sinon proposer alternatives.
+--         → PAS de UNIQUE strict sur `code_court`, contrôlé en code.
+--   D10 : codes commissions scolaires 2 chars Crockford pour isoler les
+--         écoles homonymes inter-CS.
 --
 -- Coexiste avec la table `licences` existante (HMAC-coded) qui reste
 -- l'identifiant principal des achats. Le pont vers ce nouveau système est
@@ -11,15 +18,35 @@
 -- la compatibilité ascendante (Pack 5 et achats individuels existants).
 
 -- ============================================================================
+-- TABLE commissions_scolaires — attribution séquentielle d'un code 2 chars
+-- (D10) Permet d'isoler les écoles homonymes dans des CS différentes.
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS commissions_scolaires (
+  code                   TEXT PRIMARY KEY,         -- '01', '02', ..., '0A', ..., 'ZZ' (Crockford 2 chars)
+  nom                    TEXT NOT NULL,            -- 'CS des Découvreurs' ou '(Privée: École St-Joseph)'
+  type                   TEXT NOT NULL,            -- 'publique' | 'privee'
+  date_creation          INTEGER NOT NULL,
+  premier_email_admin    TEXT NOT NULL             -- traçabilité création
+);
+
+-- Index pour autocomplete par nom (search by prefix).
+CREATE INDEX IF NOT EXISTS idx_commissions_nom ON commissions_scolaires(nom);
+
+-- ============================================================================
 -- TABLE forfaits_ecole — un achat école groupé
 -- ============================================================================
+-- IMPORTANT : pas de UNIQUE sur code_court — plusieurs forfaits actifs avec
+-- le même code_court sont autorisés pour le même email_admin (multi-achat,
+-- upgrade, rachat anniversaire) ainsi que d'une commission à l'autre (D9+D10).
+-- L'unicité opérationnelle est garantie par la logique du webhook.
 CREATE TABLE IF NOT EXISTS forfaits_ecole (
   id                       INTEGER PRIMARY KEY AUTOINCREMENT,
   stripe_session_id        TEXT UNIQUE NOT NULL,
   stripe_payment_id        TEXT,
   licence_id_hmac          TEXT NOT NULL,            -- FK vers licences(id) historique
+  commission_code          TEXT NOT NULL,            -- D10 : '01', '02', ..., '0A', ..., 'ZZ'
   ecole_nom                TEXT NOT NULL,
-  code_court               TEXT UNIQUE NOT NULL,     -- ex: 'vjolie' (4-12 chars)
+  code_court               TEXT NOT NULL,            -- ex: 'vjolie' (4-12 chars), unicité logique via D9
   produit_id               TEXT NOT NULL,            -- 'continent_1' par défaut, futur: 'anglais_continent_1'
   tier                     TEXT NOT NULL,            -- 'classe_petite', 'grande_ecole', etc.
   nb_licences_total        INTEGER NOT NULL,
@@ -29,12 +56,17 @@ CREATE TABLE IF NOT EXISTS forfaits_ecole (
   date_achat               INTEGER NOT NULL,
   pdf_r2_path              TEXT,
   pdf_genere_date          INTEGER,
-  FOREIGN KEY (licence_id_hmac) REFERENCES licences(id)
+  pdf_statut               TEXT NOT NULL DEFAULT 'en_attente', -- 'en_attente' | 'genere' | 'manuel_requis' (D8)
+  FOREIGN KEY (licence_id_hmac)  REFERENCES licences(id),
+  FOREIGN KEY (commission_code)  REFERENCES commissions_scolaires(code)
 );
 
-CREATE INDEX IF NOT EXISTS idx_forfaits_code_court ON forfaits_ecole(code_court);
-CREATE INDEX IF NOT EXISTS idx_forfaits_stripe ON forfaits_ecole(stripe_session_id);
-CREATE INDEX IF NOT EXISTS idx_forfaits_licence ON forfaits_ecole(licence_id_hmac);
+-- Index pour la requête D9 « forfaits actifs sur (commission_code, code_court) ».
+CREATE INDEX IF NOT EXISTS idx_forfaits_code_unicite ON forfaits_ecole(commission_code, code_court, date_achat);
+CREATE INDEX IF NOT EXISTS idx_forfaits_code_court  ON forfaits_ecole(code_court);
+CREATE INDEX IF NOT EXISTS idx_forfaits_stripe      ON forfaits_ecole(stripe_session_id);
+CREATE INDEX IF NOT EXISTS idx_forfaits_licence     ON forfaits_ecole(licence_id_hmac);
+CREATE INDEX IF NOT EXISTS idx_forfaits_email_admin ON forfaits_ecole(email_admin);
 
 -- ============================================================================
 -- TABLE classes — un groupe d'élèves rattaché à un prof
