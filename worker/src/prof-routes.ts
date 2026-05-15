@@ -110,7 +110,7 @@ async function emettreJwt(env: Env, prof_id: string, twofa: boolean): Promise<{ 
  * Vérifie le JWT et retourne le prof_id.
  * @param require2fa true = exige que le JWT soit post-2FA (sinon refuse)
  */
-async function authentifier(
+export async function authentifier(
 	request: Request,
 	env: Env,
 	require2fa: boolean
@@ -140,6 +140,12 @@ interface SignupBody {
 	ville?: string;
 	consentement_parental_atteste?: boolean;
 	cgu_acceptees?: boolean;
+	// Sprint D3 — hybride : si fournis, le client a déjà wrappé la DEK
+	// avec K_user = PBKDF2(mdp). Ces champs sont optionnels pour rétro-compat.
+	dek_wrap_user?: string;     // base64(AES-GCM(DEK, K_user))
+	dek_iv_user?: string;       // base64 IV
+	dek_salt_user?: string;     // base64 sel PBKDF2 (16 octets)
+	dek_iter_user?: number;     // nombre d'itérations PBKDF2
 }
 
 export async function handleSignup(request: Request, env: Env): Promise<Response> {
@@ -185,6 +191,11 @@ export async function handleSignup(request: Request, env: Env): Promise<Response
 		});
 	}
 
+	// Validation légère des wraps côté client si fournis.
+	if (!validerWrapUserSignup(body)) {
+		return jsonErr('Wrap DEK client invalide', 400, 'BAD_WRAP');
+	}
+
 	// Crée le compte (statut "pending 2FA")
 	const password_hash = await hashPassword(body.password);
 	const { id, code_classe } = await creerProf(env, {
@@ -194,7 +205,11 @@ export async function handleSignup(request: Request, env: Env): Promise<Response
 		nom_ecole: body.nom_ecole,
 		ville: body.ville,
 		consentement_parental_atteste: Boolean(body.consentement_parental_atteste),
-		politique_version: POLITIQUE_VERSION_ACTUELLE
+		politique_version: POLITIQUE_VERSION_ACTUELLE,
+		dek_wrap_user: body.dek_wrap_user,
+		dek_iv_user: body.dek_iv_user,
+		dek_salt_user: body.dek_salt_user,
+		dek_iter_user: body.dek_iter_user,
 	});
 
 	// Magic link de confirmation email
@@ -441,7 +456,8 @@ export async function handle2faSetupConfirm(request: Request, env: Env): Promise
 		ok: true,
 		access_token,
 		refresh_token: session.refresh_token,
-		expire_in
+		expire_in,
+		...wrapUserPayload(prof)
 	});
 }
 
@@ -533,7 +549,8 @@ export async function handle2faVerify(request: Request, env: Env): Promise<Respo
 		ok: true,
 		access_token,
 		refresh_token: session.refresh_token,
-		expire_in
+		expire_in,
+		...wrapUserPayload(prof)
 	});
 }
 
@@ -569,7 +586,7 @@ export async function handleRefresh(request: Request, env: Env): Promise<Respons
 		.bind(Math.floor(Date.now() / 1000), session.id)
 		.run();
 
-	return jsonOk({ ok: true, access_token, expire_in });
+	return jsonOk({ ok: true, access_token, expire_in, ...wrapUserPayload(prof) });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -706,4 +723,66 @@ function escapeHtml(s: string): string {
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;')
 		.replace(/'/g, '&#39;');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Helpers Sprint D3 — wrap DEK côté client (hybride)
+// ════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Valide les 4 champs dek_*_user du SignupBody si présents.
+ * Retourne true si valides, true si absents (optionnels), false si invalides.
+ *
+ * Coté wire on attend du base64 standard (chars [A-Za-z0-9+/=]).
+ */
+function validerWrapUserSignup(body: SignupBody): boolean {
+	const present =
+		body.dek_wrap_user !== undefined ||
+		body.dek_iv_user !== undefined ||
+		body.dek_salt_user !== undefined ||
+		body.dek_iter_user !== undefined;
+	if (!present) return true; // rétro-compat : client ancien sans wrap
+
+	// Si l'un est présent, les 4 doivent être présents et valides
+	if (
+		body.dek_wrap_user === undefined ||
+		body.dek_iv_user === undefined ||
+		body.dek_salt_user === undefined ||
+		body.dek_iter_user === undefined
+	) return false;
+
+	const B64 = /^[A-Za-z0-9+/=]+$/;
+	if (!B64.test(body.dek_wrap_user) || body.dek_wrap_user.length > 256) return false;
+	if (!B64.test(body.dek_iv_user) || body.dek_iv_user.length > 64) return false;
+	if (!B64.test(body.dek_salt_user) || body.dek_salt_user.length > 64) return false;
+	if (
+		typeof body.dek_iter_user !== 'number' ||
+		!Number.isInteger(body.dek_iter_user) ||
+		body.dek_iter_user < 50000 ||      // anti-attaque par réduction
+		body.dek_iter_user > 1_000_000     // anti-DoS
+	) return false;
+	return true;
+}
+
+/**
+ * Construit le sous-objet renvoyé au client après login complet pour qu'il
+ * puisse déchiffrer sa DEK avec K_user dérivée du mdp. Si le prof a été créé
+ * avant la migration 0006 ou n'a pas encore wrappé côté client, on renvoie
+ * dek_user_version = 0 pour signaler au client qu'il doit faire un wrap
+ * transparent au premier login.
+ */
+function wrapUserPayload(prof: ProfRow): {
+	dek_wrap_user: string | null;
+	dek_iv_user: string | null;
+	dek_salt_user: string | null;
+	dek_iter_user: number | null;
+	dek_user_version: number;
+} {
+	return {
+		dek_wrap_user: prof.dek_wrap_user,
+		dek_iv_user: prof.dek_iv_user,
+		dek_salt_user: prof.dek_salt_user,
+		dek_iter_user: prof.dek_iter_user,
+		dek_user_version: prof.dek_user_version,
+	};
 }

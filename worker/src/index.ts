@@ -37,6 +37,13 @@ import {
   handleLogout,
   handleMe
 } from './prof-routes';
+import {
+  handleEleveCreate,
+  handleEleveList,
+  handleEleveGet,
+  handleEleveUpdate,
+  handleEleveDelete
+} from './eleves-routes';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -104,6 +111,21 @@ export default {
       if (url.pathname === '/api/prof/token/refresh')      return handleRefresh(request, env);
       if (url.pathname === '/api/prof/logout')             return handleLogout(request, env);
       if (url.pathname === '/api/prof/me')                 return handleMe(request, env);
+
+      // ===== Sprint D3 : CRUD élèves chiffré =====
+      if (url.pathname === '/api/prof/eleves') {
+        if (request.method === 'POST') return handleEleveCreate(request, env);
+        if (request.method === 'GET')  return handleEleveList(request, env);
+        return jsonError('Méthode non autorisée', 405);
+      }
+      const eleveByIdMatch = url.pathname.match(/^\/api\/prof\/eleves\/([a-zA-Z0-9_]+)$/);
+      if (eleveByIdMatch) {
+        const id = eleveByIdMatch[1];
+        if (request.method === 'GET')    return handleEleveGet(request, env, id);
+        if (request.method === 'PATCH')  return handleEleveUpdate(request, env, id);
+        if (request.method === 'DELETE') return handleEleveDelete(request, env, id);
+        return jsonError('Méthode non autorisée', 405);
+      }
 
       if (url.pathname === '/verify-license' && request.method === 'POST') {
         const body = await request.json() as { code_brut?: string };

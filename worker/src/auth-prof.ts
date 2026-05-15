@@ -42,6 +42,13 @@ export interface ProfRow {
 	dek_chiffree: string;
 	dek_iv: string;
 	dek_version: number;
+	// Hybride D3 : wrap côté client (PBKDF2 du mdp). NULL pour profs créés
+	// avant migration 0006 ; remplis au premier login post-migration.
+	dek_wrap_user: string | null;
+	dek_iv_user: string | null;
+	dek_salt_user: string | null;
+	dek_iter_user: number | null;
+	dek_user_version: number;
 	consentement_parental_atteste: number;
 	cgu_acceptees_le: number | null;
 	politique_version: string | null;
@@ -160,6 +167,12 @@ export async function genererCodeClasseUnique(env: Env): Promise<string> {
  * Crée un prof en DB avec une DEK fraîche chiffrée.
  * Le mot de passe doit déjà être haché (hashPassword) AVANT l'appel.
  */
+/**
+ * Hybride D3 : si le client fournit dek_wrap_user (DEK chiffrée par K_user
+ * dérivée du mdp prof), on les stocke en plus du wrap KEK serveur.
+ * Si non fourni, dek_user_version reste 0 et le client devra wrapper
+ * après le premier login.
+ */
 export async function creerProf(
 	env: Env,
 	params: {
@@ -170,6 +183,10 @@ export async function creerProf(
 		ville?: string;
 		consentement_parental_atteste: boolean;
 		politique_version: string;
+		dek_wrap_user?: string;
+		dek_iv_user?: string;
+		dek_salt_user?: string;
+		dek_iter_user?: number;
 	}
 ): Promise<{ id: string; code_classe: string }> {
 	const id = genererId('p', 16);
@@ -178,14 +195,20 @@ export async function creerProf(
 	const code_classe = await genererCodeClasseUnique(env);
 	const now = Math.floor(Date.now() / 1000);
 
+	// Si le client a fourni un wrap, on le stocke. Sinon les colonnes restent NULL
+	// et dek_user_version = 0 (sera rempli au prochain login réussi).
+	const hasWrapUser =
+		params.dek_wrap_user && params.dek_iv_user && params.dek_salt_user && params.dek_iter_user;
+
 	await env.DB.prepare(
 		`INSERT INTO profs (
 			id, email, password_hash, nom_affiche, nom_ecole, ville, pays,
 			twofa_methode, code_classe,
 			dek_chiffree, dek_iv, dek_version,
+			dek_wrap_user, dek_iv_user, dek_salt_user, dek_iter_user, dek_user_version,
 			consentement_parental_atteste, cgu_acceptees_le, politique_version,
 			created_at, statut, failed_login_count
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	)
 		.bind(
 			id,
@@ -200,6 +223,11 @@ export async function creerProf(
 			dek_chiffree_b64,
 			dek_iv_b64,
 			1,
+			hasWrapUser ? params.dek_wrap_user : null,
+			hasWrapUser ? params.dek_iv_user : null,
+			hasWrapUser ? params.dek_salt_user : null,
+			hasWrapUser ? params.dek_iter_user : null,
+			hasWrapUser ? 1 : 0,
 			params.consentement_parental_atteste ? 1 : 0,
 			now,
 			params.politique_version,
