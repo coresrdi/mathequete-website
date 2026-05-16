@@ -32,6 +32,12 @@ import {
   handleAdminRenvoyerEmail,
   handleAdminDashboardHtml
 } from './admin-forfaits';
+import {
+  handleAdminQrGenerer,
+  handleAdminQrLister,
+  handleAdminQrRevoquer,
+  handleAdminQrDashboardHtml
+} from './admin-qr-manuel';
 import { verifierCodeBrut } from './generate-codes';
 import { handleReleaseDevice } from './release-device';
 import {
@@ -164,6 +170,24 @@ export default {
       const getMatch = url.pathname.match(/^\/api\/admin\/forfaits\/(\d+)$/);
       if (getMatch) {
         return handleAdminGetForfait(request, env, parseInt(getMatch[1], 10));
+      }
+
+      // ===== Sprint A admin QR manuel (16 mai 2026) =====
+      // GET /admin/qr : dashboard HTML pour generer/lister/revoquer QR isoles
+      if (url.pathname === '/admin/qr') {
+        return handleAdminQrDashboardHtml(request);
+      }
+      // POST /api/admin/qr/generer : genere N QR (1-50) avec source + produit
+      if (url.pathname === '/api/admin/qr/generer' && request.method === 'POST') {
+        return handleAdminQrGenerer(request, env);
+      }
+      // GET /api/admin/qr/lister : liste les QR manuels (forfait_ecole_id IS NULL)
+      if (url.pathname === '/api/admin/qr/lister') {
+        return handleAdminQrLister(request, env);
+      }
+      // POST /api/admin/qr/revoquer : marque un QR comme revoque
+      if (url.pathname === '/api/admin/qr/revoquer' && request.method === 'POST') {
+        return handleAdminQrRevoquer(request, env);
       }
 
       if (url.pathname === '/api/release-device') {
