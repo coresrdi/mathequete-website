@@ -24,6 +24,19 @@ import type { Env } from './types'
 
 const CLE_REGEX = /^[0-9A-HJKMNP-TV-Z]{12}$/
 
+// ── Item 13 PB1 — Constantes politique transfert D2 enrichi ──────────────────
+// Aligné sur DEC-45 (release-device.ts) + DEC-63 (activations_appareil).
+//
+// SIX_MOIS_SECONDES : fenêtre de transfert automatique post-1ère activation.
+//   Choisi pour matcher la fenêtre release-device DEC-45 et la promesse
+//   commerciale "changement d'appareil libre dans les 6 mois".
+//
+// MAX_TRANSFERTS_AUTO : limite anti-abus côté élève. Au-delà, validation prof
+//   requise pour bloquer le passage de QR entre amis. Le compteur reste sur
+//   `licences_qr.nb_transferts_auto` (champ existant migration 0010).
+const SIX_MOIS_SECONDES = 6 * 30 * 24 * 3600 // = 15 552 000 s, identique à release-device.ts
+const MAX_TRANSFERTS_AUTO = 3
+
 function jsonResp(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
@@ -425,18 +438,97 @@ export async function handleJeuActiverQr(request: Request, env: Env): Promise<Re
   const memeDevice = lqr.device_fingerprint === body.device_fingerprint
   const transfertRequis = !premiereActivation && !memeDevice
 
+  // ──────────────────────────────────────────────────────────────────────────
+  // Item 13 PB1 — Transfert D2 enrichi (16 mai 2026)
+  // ──────────────────────────────────────────────────────────────────────────
+  // 4 cas pour un transfert (device courant != device enregistré) :
+  //   A) <= 6 mois & nb_transferts_auto < MAX  → AUTO_TRANSFER (succès)
+  //   B) <= 6 mois & nb_transferts_auto >= MAX → QUOTA_AUTO_DEPASSE (409)
+  //   C) >  6 mois                              → VALIDATION_PROF_REQUISE (409)
+  //   D) licence révoquée                       → déjà géré ci-dessus (410)
+  //
+  // L'élève (Godot) reçoit un code stable + un message FR clair pour l'UI.
+  // En cas B/C, l'élève doit contacter son prof ; un futur endpoint Tauri
+  // `POST /api/prof/approuver-transfert-qr` (PB1 item 13.bis ou Phase 2)
+  // permettra au prof d'incrémenter `nb_transferts_prof` et de débloquer.
+
   if (transfertRequis) {
-    // Item 13 PB1 : logique transfert D2 — pas encore implémentée en détail.
-    // Pour l'instant on bloque et on demande au prof / support de gérer.
+    const eval_ = evaluerTransfert({
+      activation_initiale_date: lqr.activation_initiale_date,
+      nb_transferts_auto: lqr.nb_transferts_auto,
+      now
+    })
+
+    if (!eval_.autorise) {
+      return jsonResp({
+        ok: false,
+        code: eval_.code,
+        message: eval_.message,
+        transfert: {
+          jours_depuis_activation: eval_.jours_depuis_activation,
+          nb_transferts_auto: lqr.nb_transferts_auto,
+          max_transferts_auto: MAX_TRANSFERTS_AUTO,
+          fenetre_jours: 180
+        }
+      }, 409)
+    }
+
+    // Cas A — AUTO_TRANSFER autorisé.
+    // 1) Révoquer toutes les activations actives sur l'ancien device pour ce QR.
+    //    (en pratique il n'y en a qu'une seule, mais on est défensif)
+    // 2) Insérer une nouvelle activation pour le nouveau device.
+    // 3) Mettre à jour licences_qr : nouveau device + nb_transferts_auto + dates.
+    //
+    // Batch atomique pour éviter une activation orpheline si l'une des écritures
+    // échoue (D1 batch est all-or-nothing).
+    await env.DB.batch([
+      env.DB.prepare(
+        `UPDATE activations_appareil
+            SET date_revocation = ?,
+                motif_revocation = 'transfer_auto'
+          WHERE cle_qr = ?
+            AND date_revocation IS NULL`
+      ).bind(now, cleNorm),
+      env.DB.prepare(
+        `INSERT INTO activations_appareil
+           (cle_qr, device_fingerprint, profil_joueur_id, produit_id,
+            date_activation, date_revocation, motif_revocation)
+         VALUES (?, ?, NULL, ?, ?, NULL, NULL)`
+      ).bind(cleNorm, body.device_fingerprint, lqr.produit_id, now),
+      env.DB.prepare(
+        `UPDATE licences_qr
+            SET device_fingerprint = ?,
+                derniere_activation_date = ?,
+                nb_transferts_auto = nb_transferts_auto + 1,
+                eleve_pseudo = COALESCE(?, eleve_pseudo)
+          WHERE cle_qr = ?
+            AND nb_transferts_auto = ?` // garde-fou anti-race : si un autre transfert
+                                          // a incrémenté entre SELECT et UPDATE, on annule
+      ).bind(
+        body.device_fingerprint,
+        now,
+        body.eleve_pseudo ?? null,
+        cleNorm,
+        lqr.nb_transferts_auto
+      )
+    ])
+
     return jsonResp({
-      ok: false,
-      code: 'TRANSFER_REQUIRED',
-      message: 'Cette licence est deja active sur un autre appareil. Contactez votre enseignant ou le support.',
-      nb_transferts_auto: lqr.nb_transferts_auto
-    }, 409)
+      ok: true,
+      produit_id: lqr.produit_id,
+      premiere_activation: false,
+      transfert: {
+        type: 'auto',
+        jours_depuis_activation: eval_.jours_depuis_activation,
+        nb_transferts_auto: lqr.nb_transferts_auto + 1,
+        max_transferts_auto: MAX_TRANSFERTS_AUTO
+      }
+    })
   }
 
-  // UPDATE : activation initiale OU re-confirm même device
+  // ─── Pas de transfert : activation initiale OU re-confirm même device ────
+
+  // UPDATE licences_qr
   if (premiereActivation) {
     await env.DB.prepare(
       `UPDATE licences_qr
@@ -495,6 +587,74 @@ export async function handleJeuActiverQr(request: Request, env: Env): Promise<Re
     produit_id: lqr.produit_id,
     premiere_activation: premiereActivation
   })
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Helper : evaluerTransfert (item 13 PB1)
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// Fonction PURE — décision uniquement, aucun side-effect. Permet de tester
+// la politique en isolation sans toucher la DB.
+//
+// Entrée :  l'état actuel du QR + l'horloge `now` (epoch s).
+// Sortie :  { autorise: true } si auto-transfert OK,
+//           sinon { autorise: false, code: 'QUOTA_AUTO_DEPASSE'|'VALIDATION_PROF_REQUISE', message, ... }
+
+type EvalTransfertInput = {
+  activation_initiale_date: number | null
+  nb_transferts_auto: number
+  now: number
+}
+
+type EvalTransfertOk = {
+  autorise: true
+  jours_depuis_activation: number
+}
+
+type EvalTransfertKo = {
+  autorise: false
+  code: 'QUOTA_AUTO_DEPASSE' | 'VALIDATION_PROF_REQUISE'
+  message: string
+  jours_depuis_activation: number
+}
+
+export function evaluerTransfert(input: EvalTransfertInput): EvalTransfertOk | EvalTransfertKo {
+  // Garde-fou : un transfert n'a de sens que si la 1ère activation est passée.
+  // Si activation_initiale_date est NULL, ce n'est pas un transfert mais une
+  // 1ère activation — l'appelant n'aurait pas dû passer ici.
+  const ref = input.activation_initiale_date ?? input.now
+  const delta_s = Math.max(0, input.now - ref)
+  const jours_depuis_activation = Math.floor(delta_s / 86400)
+
+  // Cas C — > 6 mois : validation prof requise (peu importe le compteur).
+  // Raison métier : un QR de >6 mois qui change d'appareil = probablement
+  // un don, une revente, ou un cas particulier qui mérite vérification.
+  if (delta_s > SIX_MOIS_SECONDES) {
+    return {
+      autorise: false,
+      code: 'VALIDATION_PROF_REQUISE',
+      message: 'Cette licence a plus de 6 mois. Demande a ton enseignant de valider le transfert sur un nouvel appareil.',
+      jours_depuis_activation
+    }
+  }
+
+  // Cas B — quota auto atteint dans la fenêtre 6 mois.
+  // Raison métier : 3 transferts auto en <6 mois = comportement suspect
+  // (partage de QR entre amis). On force la validation prof.
+  if (input.nb_transferts_auto >= MAX_TRANSFERTS_AUTO) {
+    return {
+      autorise: false,
+      code: 'QUOTA_AUTO_DEPASSE',
+      message: 'Le nombre maximum de transferts automatiques est atteint. Demande a ton enseignant de valider ce transfert.',
+      jours_depuis_activation
+    }
+  }
+
+  // Cas A — auto-transfert autorisé.
+  return {
+    autorise: true,
+    jours_depuis_activation
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
