@@ -559,6 +559,12 @@ interface MesQrLigne {
   date_attribution: number | null
   derniere_activation_date: number | null
   eleve_pre_cree_id: number | null
+  // Item 13.bis : champs ajoutés pour permettre à l'UI Tauri de filtrer
+  // les QR éligibles à l'approbation manuelle de transfert
+  activation_initiale_date: number | null
+  nb_transferts_auto: number
+  nb_transferts_prof: number
+  device_fingerprint: string | null
 }
 
 export async function handleProfMesQr(request: Request, env: Env): Promise<Response> {
@@ -631,7 +637,11 @@ export async function handleProfMesQr(request: Request, env: Env): Promise<Respo
       lq.est_revoquee,
       lq.date_attribution,
       lq.derniere_activation_date,
-      lq.eleve_pre_cree_id
+      lq.eleve_pre_cree_id,
+      lq.activation_initiale_date,
+      lq.nb_transferts_auto,
+      lq.nb_transferts_prof,
+      lq.device_fingerprint
     FROM licences_qr lq
     LEFT JOIN classes c ON c.id = lq.classe_id
     WHERE (${whereParts.join(' OR ')})
