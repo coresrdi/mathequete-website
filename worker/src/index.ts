@@ -62,6 +62,11 @@ import {
   handleDekUpgrade
 } from './prof-routes';
 import {
+  handleProfExport,
+  handleProfDelete,
+  handleProfAudit
+} from './prof-loi-25';
+import {
   handleEleveCreate,
   handleEleveList,
   handleEleveGet,
@@ -272,6 +277,17 @@ export default {
       }
       if (url.pathname === '/api/prof/me') {
         return handleMe(request, env);
+      }
+
+      // ===== Sprint D5 Loi 25 : export + suppression + audit =====
+      if (url.pathname === '/api/prof/me/export' && request.method === 'GET') {
+        return handleProfExport(request, env);
+      }
+      if (url.pathname === '/api/prof/me/delete' && request.method === 'DELETE') {
+        return handleProfDelete(request, env);
+      }
+      if (url.pathname === '/api/prof/me/audit' && request.method === 'GET') {
+        return handleProfAudit(request, env);
       }
       if (url.pathname === '/api/prof/dek/upgrade') {
         const rl = await checkRateLimit(env, `dek-upgrade:ip:${ip}`, RL_AUTH_STRICT);
