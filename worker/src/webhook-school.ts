@@ -237,11 +237,12 @@ export async function traiterAchatEcole(
 
   // ===== Étape 7 : Génération + INSERT batch des N clés QR =====
   const clesQr = await genererLotClesQrUniques(env, nbCles);
+  // DEC-59 : source = 'ecole' (achat forfait école via Stripe)
   const stmtsQr = clesQr.map((cle, idx) => env.DB.prepare(`
     INSERT INTO licences_qr
       (cle_qr, forfait_ecole_id, licence_id_hmac, produit_id,
-       numero_sequence, date_creation)
-    VALUES (?, ?, ?, 'continent_1', ?, ?)
+       numero_sequence, source, date_creation)
+    VALUES (?, ?, ?, 'continent_1', ?, 'ecole', ?)
   `).bind(cle, forfaitId, licenceParentId, idx + 1, now));
   await env.DB.batch(stmtsQr);
 
