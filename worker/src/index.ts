@@ -77,6 +77,11 @@ import {
 } from './admin-ecole';
 import { handleJeuInfoQr, handleJeuSaisieCodeClasse, handleJeuActiverQr, handleJeuMesLicences } from './jeu-routes';
 import {
+  handleJeuProfilCreer,
+  handleJeuProfilRecuperer,
+  handleJeuProfilLicences
+} from './profil-routes';
+import {
   handleProfClasseElevesImport,
   handleProfClasseElevesLister,
   handleProfClasseResoudreConflit
@@ -355,6 +360,32 @@ export default {
         const rl = await checkRateLimit(env, `mes-licences:ip:${getClientIp(request)}`, RL_INFO_QR);
         if (!rl.allowed) return rateLimitResponse(rl);
         return handleJeuMesLicences(request, env, mesLicencesMatch[1]);
+      }
+
+      // ===== DEC-63 phase 2 : création profil cloud joueur (recovery_code) =====
+      // PUBLIC + rate-limité RL_ACTIVATION (lent, anti-spam de création de profils)
+      if (url.pathname === '/api/jeu/profil-creer') {
+        const rl = await checkRateLimit(env, `profil-creer:ip:${getClientIp(request)}`, RL_ACTIVATION);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleJeuProfilCreer(request, env);
+      }
+
+      // ===== DEC-63 phase 2 : récupération cross-device =====
+      // PUBLIC + rate-limité RL_SAISIE (10/min anti-brute-force sur recovery_code)
+      if (url.pathname === '/api/jeu/profil-recuperer') {
+        const rl = await checkRateLimit(env, `profil-recuperer:ip:${getClientIp(request)}`, RL_SAISIE);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleJeuProfilRecuperer(request, env);
+      }
+
+      // ===== DEC-63 phase 2 : vue lecture seule des licences d'un profil =====
+      // PUBLIC + rate-limité RL_SAISIE (anti-brute-force aussi, même surface qu'au-dessus)
+      // Route avec paramètre PATH : /api/jeu/profil-licences/<recovery_code_raw>
+      const profilLicencesMatch = url.pathname.match(/^\/api\/jeu\/profil-licences\/([A-Za-z0-9_\-]+)$/);
+      if (profilLicencesMatch) {
+        const rl = await checkRateLimit(env, `profil-licences:ip:${getClientIp(request)}`, RL_SAISIE);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleJeuProfilLicences(request, env, profilLicencesMatch[1]);
       }
 
       if (url.pathname === '/verify-license' && request.method === 'POST') {
