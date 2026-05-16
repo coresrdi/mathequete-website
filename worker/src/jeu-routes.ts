@@ -5,9 +5,13 @@
  *
  *   GET  /api/jeu/info-qr/:cle_qr     → magie pré-remplissage code classe (DEC-56)
  *   POST /api/jeu/saisie-code-classe  → matching DEC-57 (item IE-3)
+ *   POST /api/jeu/activer-qr          → activation initiale (item 12 PB1)
+ *   GET  /api/jeu/mes-licences/:dev   → liste produits actifs (DEC-63)
  *
- * Endpoints futurs à ajouter dans ce fichier :
- *   POST /api/jeu/activer-qr  → activation initiale (item 12 PB1)
+ * Modèle DEC-63 (multi-licences hybride) :
+ *   - Source de vérité = table activations_appareil (1 rangée active par produit)
+ *   - licences_qr.device_fingerprint reste comme "vue actuelle" (rcompat)
+ *   - mes-licences agrège tous les produits actifs d'un device (cumulable)
  *
  * Conventions :
  *   - 2 espaces (jamais tabs)
@@ -457,9 +461,99 @@ export async function handleJeuActiverQr(request: Request, env: Env): Promise<Re
     ).bind(now, body.eleve_pseudo ?? null, cleNorm).run()
   }
 
+  // DEC-63 : double-écriture dans activations_appareil pour le modèle hybride.
+  // On garde licences_qr.device_fingerprint (rcompat) mais la source de vérité
+  // pour "quels produits sont actifs sur cet appareil" devient activations_appareil.
+  if (premiereActivation) {
+    await env.DB.prepare(
+      `INSERT INTO activations_appareil
+         (cle_qr, device_fingerprint, profil_joueur_id, produit_id,
+          date_activation, date_revocation, motif_revocation)
+       VALUES (?, ?, NULL, ?, ?, NULL, NULL)`
+    ).bind(cleNorm, body.device_fingerprint, lqr.produit_id, now).run()
+  }
+  // Cas "même device" : pas besoin de créer une nouvelle activation (la précédente est
+  // toujours active). Si elle a été révoquée (rare), on en crée une nouvelle.
+  else {
+    const dejaActive = await env.DB.prepare(
+      `SELECT 1 FROM activations_appareil
+        WHERE cle_qr = ? AND device_fingerprint = ? AND date_revocation IS NULL
+        LIMIT 1`
+    ).bind(cleNorm, body.device_fingerprint).first()
+    if (!dejaActive) {
+      await env.DB.prepare(
+        `INSERT INTO activations_appareil
+           (cle_qr, device_fingerprint, profil_joueur_id, produit_id,
+            date_activation, date_revocation, motif_revocation)
+         VALUES (?, ?, NULL, ?, ?, NULL, NULL)`
+      ).bind(cleNorm, body.device_fingerprint, lqr.produit_id, now).run()
+    }
+  }
+
   return jsonResp({
     ok: true,
     produit_id: lqr.produit_id,
     premiere_activation: premiereActivation
+  })
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ROUTE : GET /api/jeu/mes-licences/:device_fingerprint  (DEC-63)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Appelé par Godot au démarrage du jeu (et après chaque activation réussie)
+// pour savoir quels produits sont actuellement débloqués sur cet appareil.
+//
+// L'état "version gratuite" est CALCULÉ : si `produits_actifs` est vide, le jeu
+// affiche Continent 1 (toujours gratuit) et bloque tout le reste.
+//
+// Réponse :
+//   {
+//     ok: true,
+//     device_fingerprint: string,
+//     est_gratuit: boolean,           // = (produits_actifs.length === 0)
+//     produits_actifs: string[],      // ex: ["continent_1"] ou ["continent_1","continent_2"]
+//     activations: [                  // détail pour UI optionnelle ("mes codes")
+//       { cle_qr_masque: "K7P2-...", produit_id: "continent_1", date_activation: 1234 }
+//     ]
+//   }
+//
+// Endpoint PUBLIC (pas de JWT) mais rate-limité par device_fingerprint côté index.ts.
+// Aucun PII exposé : on masque la cle_qr (4 premiers chars + "...") au cas où.
+
+export async function handleJeuMesLicences(request: Request, env: Env, deviceFp: string): Promise<Response> {
+  if (request.method !== 'GET') {
+    return jsonResp({ ok: false, code: 'METHOD_NOT_ALLOWED' }, 405)
+  }
+  if (typeof deviceFp !== 'string' || deviceFp.length < 8 || deviceFp.length > 128) {
+    return jsonResp({ ok: false, code: 'BAD_DEVICE' }, 400)
+  }
+
+  const rows = await env.DB.prepare(
+    `SELECT cle_qr, produit_id, date_activation
+       FROM activations_appareil
+      WHERE device_fingerprint = ? AND date_revocation IS NULL
+      ORDER BY date_activation ASC`
+  ).bind(deviceFp).all<{
+    cle_qr: string;
+    produit_id: string;
+    date_activation: number
+  }>()
+
+  const activations = (rows.results ?? []).map(r => ({
+    cle_qr_masque: r.cle_qr.slice(0, 4) + '...',
+    produit_id: r.produit_id,
+    date_activation: r.date_activation
+  }))
+  // Dédoublonnage des produits (un device pourrait avoir 2 QR débloquant le même produit ;
+  // rare mais possible, ex: 1 QR école + 1 QR cadeau pour le même continent).
+  const produitsActifs = Array.from(new Set(activations.map(a => a.produit_id)))
+
+  return jsonResp({
+    ok: true,
+    device_fingerprint: deviceFp,
+    est_gratuit: produitsActifs.length === 0,
+    produits_actifs: produitsActifs,
+    activations
   })
 }

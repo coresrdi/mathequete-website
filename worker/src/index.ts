@@ -75,7 +75,7 @@ import {
   handleProfMeLierEcole,
   handleProfValiderMembre
 } from './admin-ecole';
-import { handleJeuInfoQr, handleJeuSaisieCodeClasse, handleJeuActiverQr } from './jeu-routes';
+import { handleJeuInfoQr, handleJeuSaisieCodeClasse, handleJeuActiverQr, handleJeuMesLicences } from './jeu-routes';
 import {
   handleProfClasseElevesImport,
   handleProfClasseElevesLister,
@@ -344,6 +344,17 @@ export default {
         const rl = await checkRateLimit(env, `activer-qr:ip:${getClientIp(request)}`, RL_ACTIVATION);
         if (!rl.allowed) return rateLimitResponse(rl);
         return handleJeuActiverQr(request, env);
+      }
+
+      // ===== DEC-63 : liste des produits actifs sur cet appareil (multi-licences) =====
+      // PUBLIC + rate-limité RL_INFO_QR (60/min, même profil que info-qr)
+      // Route avec paramètre PATH : /api/jeu/mes-licences/<device_fingerprint>
+      // device_fingerprint : 8-128 chars alphanum + - _ + . (validation côté handler)
+      const mesLicencesMatch = url.pathname.match(/^\/api\/jeu\/mes-licences\/([A-Za-z0-9_\-.]+)$/);
+      if (mesLicencesMatch) {
+        const rl = await checkRateLimit(env, `mes-licences:ip:${getClientIp(request)}`, RL_INFO_QR);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleJeuMesLicences(request, env, mesLicencesMatch[1]);
       }
 
       if (url.pathname === '/verify-license' && request.method === 'POST') {
