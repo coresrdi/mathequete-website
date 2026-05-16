@@ -65,7 +65,9 @@ import {
 import {
   handleProfClasseCreer,
   handleProfClasseLister,
-  handleProfClasseArchiver
+  handleProfClasseArchiver,
+  handleProfClasseAttribuerQr,
+  handleProfMesQr
 } from './prof-classes';
 import {
   handleProfMonEcole,
@@ -73,7 +75,12 @@ import {
   handleProfMeLierEcole,
   handleProfValiderMembre
 } from './admin-ecole';
-import { handleJeuInfoQr } from './jeu-routes';
+import { handleJeuInfoQr, handleJeuSaisieCodeClasse } from './jeu-routes';
+import {
+  handleProfClasseElevesImport,
+  handleProfClasseElevesLister,
+  handleProfClasseResoudreConflit
+} from './eleves-pre-crees';
 import {
   checkRateLimit,
   getClientIp,
@@ -83,7 +90,8 @@ import {
   RL_ACTIVATION,
   RL_STATS_PUSH,
   RL_2FA_EMAIL,
-  RL_INFO_QR
+  RL_INFO_QR,
+  RL_SAISIE
 } from './rate-limit';
 
 export default {
@@ -273,6 +281,28 @@ export default {
       if (classeArchiverMatch) {
         return handleProfClasseArchiver(request, env, parseInt(classeArchiverMatch[1], 10));
       }
+      // PB1 item 11.4 : attribuer N cles QR a une classe
+      const attribuerQrClasseMatch = url.pathname.match(/^\/api\/prof\/classes\/(\d+)\/attribuer-qr$/);
+      if (attribuerQrClasseMatch) {
+        return handleProfClasseAttribuerQr(request, env, parseInt(attribuerQrClasseMatch[1], 10));
+      }
+      // PB1 item 11.5 : lister mes QR (vue prof globale)
+      if (url.pathname === '/api/prof/mes-qr') {
+        return handleProfMesQr(request, env);
+      }
+      // Sprint IMPORT-ELEVES IE-2/IE-4 : eleves pre-crees + resolution conflit
+      const elevesImportMatch = url.pathname.match(/^\/api\/prof\/classes\/(\d+)\/eleves\/import$/);
+      if (elevesImportMatch) {
+        return handleProfClasseElevesImport(request, env, parseInt(elevesImportMatch[1], 10));
+      }
+      const elevesListerMatch = url.pathname.match(/^\/api\/prof\/classes\/(\d+)\/eleves$/);
+      if (elevesListerMatch) {
+        return handleProfClasseElevesLister(request, env, parseInt(elevesListerMatch[1], 10));
+      }
+      const resoudreMatch = url.pathname.match(/^\/api\/prof\/classes\/(\d+)\/resoudre-conflit$/);
+      if (resoudreMatch) {
+        return handleProfClasseResoudreConflit(request, env, parseInt(resoudreMatch[1], 10));
+      }
 
       // ===== Sprint PB1 items 11.1 + 11.2 : admin école + liaison prof↔école =====
       // Routes littérales AVANT regex (PB1-DEC-5)
@@ -298,6 +328,14 @@ export default {
         const rl = await checkRateLimit(env, `info-qr:ip:${getClientIp(request)}`, RL_INFO_QR);
         if (!rl.allowed) return rateLimitResponse(rl);
         return handleJeuInfoQr(request, env, infoQrMatch[1]);
+      }
+
+      // ===== Sprint IMPORT-ELEVES IE-3 : matching saisie code classe (DEC-57) =====
+      // PUBLIC + rate-limité anti-brute-force (10/min par IP)
+      if (url.pathname === '/api/jeu/saisie-code-classe') {
+        const rl = await checkRateLimit(env, `saisie-classe:ip:${getClientIp(request)}`, RL_SAISIE);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleJeuSaisieCodeClasse(request, env);
       }
 
       if (url.pathname === '/verify-license' && request.method === 'POST') {
