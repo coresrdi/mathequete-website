@@ -44,6 +44,28 @@ body {
   color: var(--encre);
 }
 
+/* ---------- WEB-DEBT-1 : coupure de mots saine ---------- */
+/* Empêche les mots longs (« individualisée », « personnalisée », URLs)
+   de déborder des cartes étroites en mobile. overflow-wrap casse seulement
+   si nécessaire (au contraire de word-break: break-all qui casse partout).
+   hyphens: auto active la césure typographique FR via la balise lang="fr-CA". */
+body, h1, h2, h3, h4, h5, h6, p, span, a, li, td, th, button, .carte, .etape, .tarif-carte, .sku-carte, .faq-question, .faq-reponse {
+  overflow-wrap: break-word;
+  word-wrap: break-word; /* fallback anciens navigateurs */
+}
+body {
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  -webkit-hyphenate-limit-before: 3;
+  -webkit-hyphenate-limit-after: 3;
+  hyphenate-limit-chars: 6 3 3;
+}
+/* Pas de césure dans les titres, boutons, codes, prix : préserver l'identité visuelle */
+h1, h2, h3, .titre-aventure, .btn-aventure, .btn-secondaire, .tarif-prix, .sku-prix, code, .badge-reco {
+  -webkit-hyphens: manual;
+  hyphens: manual;
+}
+
 /* ---------- Header / Nav ---------- */
 .site-nav {
   background: var(--aventure-bleu);
