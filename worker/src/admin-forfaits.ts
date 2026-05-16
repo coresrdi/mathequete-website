@@ -404,3 +404,299 @@ function escapeHtml(s: string): string {
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]!));
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * GET /api/admin/forfaits/en-attente
+ * File d'attente : forfaits dont le PDF doit être généré manuellement (>100 QR)
+ * OU dont la génération auto a échoué. Tri par date d'achat ASC (oldest first).
+ * ────────────────────────────────────────────────────────────────────────── */
+
+export async function handleAdminListerEnAttente(
+  request: Request, env: Env
+): Promise<Response> {
+  if (request.method !== 'GET') return jsonErr('Méthode non autorisée', 405);
+  if (!(await verifierAdminToken(request, env))) {
+    return jsonErr('Token admin invalide', 401);
+  }
+  const res = await env.DB.prepare(`
+    SELECT id, stripe_session_id, commission_code, ecole_nom, code_court, tier,
+           nb_licences_total, email_admin, nom_admin, date_achat, pdf_statut
+    FROM forfaits_ecole
+    WHERE pdf_statut IN ('en_attente', 'manuel_requis')
+    ORDER BY date_achat ASC
+    LIMIT 200
+  `).all<{
+    id: number; stripe_session_id: string; commission_code: string;
+    ecole_nom: string; code_court: string; tier: string;
+    nb_licences_total: number; email_admin: string; nom_admin: string | null;
+    date_achat: number; pdf_statut: string;
+  }>();
+
+  const lignes = (res.results ?? []).map(l => ({
+    ...l,
+    tier_nom: PRIX_TIERS_CENTS[l.tier]?.nom ?? l.tier,
+    age_jours: Math.floor((Math.floor(Date.now()/1000) - l.date_achat) / 86400)
+  }));
+  return jsonOk({ total: lignes.length, forfaits: lignes });
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * POST /api/admin/forfaits/{id}/renvoyer-email
+ * Re-génère un jeton 30j et renvoie l'email à l'admin du forfait.
+ * Utile si l'admin a perdu son email original ou si le lien a expiré.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+export async function handleAdminRenvoyerEmail(
+  request: Request, env: Env, ctx: ExecutionContext, forfaitId: number
+): Promise<Response> {
+  if (request.method !== 'POST') return jsonErr('Méthode non autorisée', 405);
+  if (!(await verifierAdminToken(request, env))) {
+    return jsonErr('Token admin invalide', 401);
+  }
+  const forfait = await chargerForfait(env, forfaitId);
+  if (!forfait) return jsonErr('Forfait introuvable', 404);
+  if (forfait.pdf_statut !== 'genere' || !forfait.pdf_r2_path) {
+    return jsonErr(`PDF pas encore généré (statut: ${forfait.pdf_statut})`, 409);
+  }
+
+  // Permet de personnaliser le destinataire (cas où l'admin a changé d'email)
+  let body: { email_alternatif?: string } = {};
+  try { body = await request.json(); } catch { /* body vide OK */ }
+  const destinataire = (body.email_alternatif ?? forfait.email_admin).trim();
+  if (!destinataire.includes('@')) {
+    return jsonErr('Email destinataire invalide', 400);
+  }
+
+  const jeton = await genererJetonPdf(env, forfait.id);
+  const urlPdf = urlTelechargementPdf(env, forfait.id, jeton);
+
+  // Réutilise envoyerEmailLienFrais mais avec un destinataire potentiellement différent
+  const forfaitMod: LigneForfait = {
+    ...forfait,
+    email_admin: destinataire  // écrase pour l'envoi
+  };
+  ctx.waitUntil(envoyerEmailLienFrais(env, forfaitMod, urlPdf));
+  await ecrireAudit(env, 'renvoyer_email_pdf', forfait.id, {
+    destinataire,
+    destinataire_original: forfait.email_admin,
+    alternatif: destinataire !== forfait.email_admin
+  }, request);
+
+  return jsonOk({
+    ok: true,
+    forfait_id: forfaitId,
+    destinataire,
+    url_pdf: urlPdf,
+    expire_dans_jours: 30
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * GET /admin/forfaits  →  mini dashboard HTML
+ * Page HTML autoportante (CSS + JS inline). Le token admin est demandé via
+ * prompt() côté navigateur et stocké dans sessionStorage (pas localStorage)
+ * pour ne PAS persister au-delà de la session.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+export function handleAdminDashboardHtml(request: Request): Response {
+  if (request.method !== 'GET') {
+    return new Response('Méthode non autorisée', { status: 405 });
+  }
+  // Pas de vérif token côté page : la page elle-même est inoffensive.
+  // C'est le JS qui demandera le token à l'utilisateur et appellera les API.
+  const html = DASHBOARD_HTML;
+  return new Response(html, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Referrer-Policy': 'no-referrer',
+      // Pas d'inline-script sans nonce dans une vraie prod, mais ici on accepte
+      // car la page est servie sur un endpoint admin avec accès contrôlé par token.
+      'Content-Security-Policy': "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'"
+    }
+  });
+}
+
+const DASHBOARD_HTML = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mathéquête — Admin forfaits école</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:0;background:#f5f7f9;color:#222}
+  header{background:#0a6;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+  header h1{margin:0;font-size:18px;font-weight:600}
+  header .actions button{background:#fff;color:#0a6;border:0;padding:6px 14px;border-radius:4px;cursor:pointer;font-weight:600}
+  header .actions button:hover{background:#e0f5ec}
+  main{max-width:1200px;margin:0 auto;padding:24px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+  .stat{background:#fff;padding:16px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .stat .v{font-size:28px;font-weight:700;color:#0a6}
+  .stat .l{font-size:13px;color:#666;margin-top:4px}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  th,td{padding:10px 12px;text-align:left;font-size:13px;border-bottom:1px solid #eef}
+  th{background:#f0f4f7;font-weight:600;color:#555}
+  tr:hover{background:#f9fbfc}
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+  .badge.en_attente{background:#fff8e0;color:#a67c00}
+  .badge.manuel_requis{background:#ffe8e0;color:#c84500}
+  .badge.genere{background:#e0f5ec;color:#0a6}
+  button.act{margin:0 2px;padding:4px 10px;border:1px solid #0a6;background:#fff;color:#0a6;border-radius:4px;cursor:pointer;font-size:12px}
+  button.act:hover{background:#0a6;color:#fff}
+  button.act:disabled{opacity:.4;cursor:not-allowed}
+  .empty{text-align:center;padding:40px;color:#999}
+  .err{background:#ffe8e0;color:#c84500;padding:12px;border-radius:4px;margin:16px 0}
+  .ok{background:#e0f5ec;color:#0a6;padding:12px;border-radius:4px;margin:16px 0}
+  details{margin-top:24px;background:#fff;padding:12px;border-radius:6px}
+  details summary{cursor:pointer;font-weight:600;color:#555}
+  code{background:#f0f4f7;padding:2px 6px;border-radius:3px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>✮ Mathéquête — Admin forfaits école</h1>
+  <div class="actions">
+    <button onclick="chargerEnAttente()">↻ Recharger</button>
+    <button onclick="deconnecter()">Déconnecter</button>
+  </div>
+</header>
+<main>
+  <div id="msg"></div>
+  <div class="stats" id="stats"></div>
+  <h2 style="margin-top:0;font-size:16px;color:#555">File d'attente PDF</h2>
+  <table>
+    <thead><tr>
+      <th>#</th><th>École</th><th>Code</th><th>Tier</th>
+      <th>Codes QR</th><th>Statut</th><th>Âge</th><th>Admin</th><th>Actions</th>
+    </tr></thead>
+    <tbody id="corps"><tr><td colspan="9" class="empty">Chargement…</td></tr></tbody>
+  </table>
+  <details>
+    <summary>Aide</summary>
+    <p><strong>Statuts :</strong></p>
+    <ul>
+      <li><span class="badge en_attente">en_attente</span> — la génération auto via <code>ctx.waitUntil()</code> a échoué ou est en cours.</li>
+      <li><span class="badge manuel_requis">manuel_requis</span> — forfait &gt;100 QR, à générer sur ton CPU local (D8).</li>
+      <li><span class="badge genere">genere</span> — PDF dispo dans R2.</li>
+    </ul>
+    <p><strong>Workflow CPU local :</strong> voir <code>worker/scripts/genere-pdf-local.mjs</code> + <code>upload-pdf-forfait.ps1</code>.</p>
+  </details>
+</main>
+<script>
+(function(){
+  const KEY = 'mq_admin_token';
+  function obtenirToken(){
+    let t = sessionStorage.getItem(KEY);
+    if(!t){
+      t = prompt('Token admin (X-Admin-Token) :');
+      if(t) sessionStorage.setItem(KEY, t.trim());
+    }
+    return t;
+  }
+  window.deconnecter = function(){
+    sessionStorage.removeItem(KEY);
+    location.reload();
+  };
+  function escapeHtml(s){
+    if(s===null||s===undefined) return '';
+    return String(s).replace(/[&<>\"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+  async function appel(method, path, body){
+    const token = obtenirToken();
+    if(!token) throw new Error('Token requis');
+    const init = {
+      method,
+      headers: { 'X-Admin-Token': token, 'Content-Type': 'application/json' }
+    };
+    if(body !== undefined) init.body = JSON.stringify(body);
+    const r = await fetch(path, init);
+    if(r.status === 401){
+      sessionStorage.removeItem(KEY);
+      throw new Error('Token invalide, recharge la page');
+    }
+    const data = await r.json().catch(()=>({error:'Réponse non-JSON'}));
+    if(!r.ok) throw new Error(data.error || ('HTTP '+r.status));
+    return data;
+  }
+  function showMsg(html, kind){
+    document.getElementById('msg').innerHTML = '<div class="'+(kind||'ok')+'">'+html+'</div>';
+    setTimeout(()=>{ document.getElementById('msg').innerHTML=''; }, 6000);
+  }
+  window.chargerEnAttente = async function(){
+    try{
+      const d = await appel('GET', '/api/admin/forfaits/en-attente');
+      const tbody = document.getElementById('corps');
+      const stats = document.getElementById('stats');
+      const enAtt = d.forfaits.filter(f => f.pdf_statut === 'en_attente').length;
+      const manuel = d.forfaits.filter(f => f.pdf_statut === 'manuel_requis').length;
+      const totalQr = d.forfaits.reduce((s,f) => s + f.nb_licences_total, 0);
+      stats.innerHTML =
+        '<div class="stat"><div class="v">'+d.total+'</div><div class="l">forfaits en attente</div></div>' +
+        '<div class="stat"><div class="v">'+enAtt+'</div><div class="l">en_attente (regen auto possible)</div></div>' +
+        '<div class="stat"><div class="v">'+manuel+'</div><div class="l">manuel_requis (CPU local)</div></div>' +
+        '<div class="stat"><div class="v">'+totalQr+'</div><div class="l">codes QR à livrer</div></div>';
+      if(d.forfaits.length === 0){
+        tbody.innerHTML = '<tr><td colspan="9" class="empty">✨ Aucun forfait en attente, tout est traité.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = d.forfaits.map(f => {
+        const peutRegenAuto = f.pdf_statut === 'en_attente' && f.nb_licences_total <= 100;
+        return '<tr>' +
+          '<td><code>#'+f.id+'</code></td>' +
+          '<td>'+escapeHtml(f.ecole_nom)+'</td>' +
+          '<td><code>'+escapeHtml(f.code_court)+'</code></td>' +
+          '<td>'+escapeHtml(f.tier_nom)+'</td>' +
+          '<td><strong>'+f.nb_licences_total+'</strong></td>' +
+          '<td><span class="badge '+f.pdf_statut+'">'+f.pdf_statut+'</span></td>' +
+          '<td>'+f.age_jours+' j</td>' +
+          '<td>'+escapeHtml(f.email_admin)+'</td>' +
+          '<td>' +
+            '<button class="act" onclick="voir('+f.id+')">Voir</button>' +
+            '<button class="act" onclick="regenAuto('+f.id+')" '+(peutRegenAuto?'':'disabled title="Trop de QR — utilise upload manuel"')+'>Regen auto</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }catch(e){ showMsg('Erreur : '+escapeHtml(e.message), 'err'); }
+  };
+  window.voir = async function(id){
+    try{
+      const d = await appel('GET', '/api/admin/forfaits/'+id);
+      const f = d.forfait, q = d.cles_qr;
+      let lien = d.url_pdf ? '<p><a href="'+d.url_pdf+'" target="_blank">📥 Télécharger PDF (lien 30j)</a></p>' : '<p><em>PDF pas encore disponible.</em></p>';
+      const html =
+        '<strong>Forfait #'+f.id+'</strong> — '+escapeHtml(f.ecole_nom)+' ('+escapeHtml(f.code_court)+')<br>'+
+        'Tier : '+escapeHtml(f.tier_nom)+' — '+f.nb_licences_total+' QR — '+escapeHtml(f.email_admin)+'<br>'+
+        'Statut PDF : <span class="badge '+f.pdf_statut+'">'+f.pdf_statut+'</span><br>'+
+        'Clés QR : total='+q.total+' • attribuées='+(q.attribuees||0)+' • activées='+(q.activees||0)+' • révoquées='+(q.revoquees||0)+
+        lien +
+        '<button class="act" onclick="renvoyer('+f.id+')">✉ Renvoyer email</button>';
+      showMsg(html, 'ok');
+    }catch(e){ showMsg('Erreur : '+escapeHtml(e.message), 'err'); }
+  };
+  window.regenAuto = async function(id){
+    if(!confirm('Lancer la régénération auto du forfait #'+id+' ?')) return;
+    try{
+      const d = await appel('POST', '/api/admin/forfaits/'+id+'/regenerer-pdf', { mode:'auto' });
+      showMsg('Régénération lancée (forfait #'+id+', '+d.nb_cles_qr+' QR). Revérifie le statut dans ~30s.', 'ok');
+    }catch(e){ showMsg('Erreur : '+escapeHtml(e.message), 'err'); }
+  };
+  window.renvoyer = async function(id){
+    const alt = prompt('Email destinataire (laisse vide pour utiliser celui du forfait) :', '');
+    const body = alt ? { email_alternatif: alt } : {};
+    try{
+      const d = await appel('POST', '/api/admin/forfaits/'+id+'/renvoyer-email', body);
+      showMsg('Email envoyé à <code>'+escapeHtml(d.destinataire)+'</code> (lien 30j).', 'ok');
+    }catch(e){ showMsg('Erreur : '+escapeHtml(e.message), 'err'); }
+  };
+  chargerEnAttente();
+})();
+</script>
+</body>
+</html>`;
+

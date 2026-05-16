@@ -27,7 +27,10 @@ import { servirPdfR2, verifierJetonPdf } from './r2-upload';
 import {
   handleAdminRegenererPdf,
   handleAdminUploadPdf,
-  handleAdminGetForfait
+  handleAdminGetForfait,
+  handleAdminListerEnAttente,
+  handleAdminRenvoyerEmail,
+  handleAdminDashboardHtml
 } from './admin-forfaits';
 import { verifierCodeBrut } from './generate-codes';
 import { handleReleaseDevice } from './release-device';
@@ -111,10 +114,25 @@ export default {
       }
 
       // ===== Sprint PB1 : admin forfaits école (D8) =====
+      // GET /admin/forfaits : mini dashboard HTML (token via prompt JS)
+      if (url.pathname === '/admin/forfaits') {
+        return handleAdminDashboardHtml(request);
+      }
+      // GET /api/admin/forfaits/en-attente : file d'attente (PDF non générés)
+      // ⚠ IMPORTANT : tester AVANT les regex /(\d+) pour ne pas se faire griffer
+      // (même si \d+ ne matche pas 'en-attente', on rend l'ordre explicite).
+      if (url.pathname === '/api/admin/forfaits/en-attente') {
+        return handleAdminListerEnAttente(request, env);
+      }
       // POST /api/admin/forfaits/{id}/regenerer-pdf : regen auto via Worker
       const regenMatch = url.pathname.match(/^\/api\/admin\/forfaits\/(\d+)\/regenerer-pdf$/);
       if (regenMatch) {
         return handleAdminRegenererPdf(request, env, ctx, parseInt(regenMatch[1], 10));
+      }
+      // POST /api/admin/forfaits/{id}/renvoyer-email : re-envoie l'email lien frais
+      const renvMatch = url.pathname.match(/^\/api\/admin\/forfaits\/(\d+)\/renvoyer-email$/);
+      if (renvMatch) {
+        return handleAdminRenvoyerEmail(request, env, ctx, parseInt(renvMatch[1], 10));
       }
       // PUT /api/admin/forfaits/{id}/pdf : upload manuel du PDF (CPU local)
       const uploadMatch = url.pathname.match(/^\/api\/admin\/forfaits\/(\d+)\/pdf$/);
