@@ -631,6 +631,16 @@ export async function handleMe(request: Request, env: Env): Promise<Response> {
 	if (auth instanceof Response) return auth;
 	const { prof } = auth;
 
+	// Sprint PB1 item 11.1 (PB1-DEC-10 option A) : auto-création des liens
+	// admin pour les forfaits achetés avec cet email. Best-effort, ne casse
+	// pas /me si échec.
+	try {
+		const { autoCreerLiensAdmin } = await import('./admin-ecole');
+		await autoCreerLiensAdmin(env, prof.id, prof.email);
+	} catch (err) {
+		console.error('[handleMe] autoCreerLiensAdmin echec :', err);
+	}
+
 	return jsonOk({
 		ok: true,
 		prof: {

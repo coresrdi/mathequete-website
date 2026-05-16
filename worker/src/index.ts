@@ -68,6 +68,13 @@ import {
   handleProfClasseArchiver
 } from './prof-classes';
 import {
+  handleProfMonEcole,
+  handleProfAssignerQr,
+  handleProfMeLierEcole,
+  handleProfValiderMembre
+} from './admin-ecole';
+import { handleJeuInfoQr } from './jeu-routes';
+import {
   checkRateLimit,
   getClientIp,
   rateLimitResponse,
@@ -75,7 +82,8 @@ import {
   RL_SIGNUP,
   RL_ACTIVATION,
   RL_STATS_PUSH,
-  RL_2FA_EMAIL
+  RL_2FA_EMAIL,
+  RL_INFO_QR
 } from './rate-limit';
 
 export default {
@@ -264,6 +272,32 @@ export default {
       const classeArchiverMatch = url.pathname.match(/^\/api\/prof\/classes\/(\d+)\/archiver$/);
       if (classeArchiverMatch) {
         return handleProfClasseArchiver(request, env, parseInt(classeArchiverMatch[1], 10));
+      }
+
+      // ===== Sprint PB1 items 11.1 + 11.2 : admin école + liaison prof↔école =====
+      // Routes littérales AVANT regex (PB1-DEC-5)
+      if (url.pathname === '/api/prof/mon-ecole') {
+        return handleProfMonEcole(request, env);
+      }
+      if (url.pathname === '/api/prof/mon-ecole/assigner-qr') {
+        return handleProfAssignerQr(request, env);
+      }
+      if (url.pathname === '/api/prof/me-lier-ecole') {
+        return handleProfMeLierEcole(request, env);
+      }
+      // POST /api/prof/mon-ecole/valider-prof/:prof_membre_id
+      const validerMembreMatch = url.pathname.match(/^\/api\/prof\/mon-ecole\/valider-prof\/([a-zA-Z0-9_-]+)$/);
+      if (validerMembreMatch) {
+        return handleProfValiderMembre(request, env, validerMembreMatch[1]);
+      }
+
+      // ===== Sprint IMPORT-ELEVES IE-3bis : magie pré-remplissage code classe =====
+      // PUBLIC + rate-limité par IP (60/min)
+      const infoQrMatch = url.pathname.match(/^\/api\/jeu\/info-qr\/([A-Z0-9-]+)$/i);
+      if (infoQrMatch) {
+        const rl = await checkRateLimit(env, `info-qr:ip:${getClientIp(request)}`, RL_INFO_QR);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleJeuInfoQr(request, env, infoQrMatch[1]);
       }
 
       if (url.pathname === '/verify-license' && request.method === 'POST') {
