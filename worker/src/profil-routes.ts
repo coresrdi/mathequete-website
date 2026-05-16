@@ -470,3 +470,262 @@ export async function handleJeuProfilLicences(request: Request, env: Env, recove
     }))
   })
 }
+
+// ═════════════════════════════════════════════════════════════════════════
+// DEC-63 phase 3 — endpoints additionnels (item 20)
+// ═════════════════════════════════════════════════════════════════════════
+//
+// 1. POST /api/jeu/profil-archiver       — droit à l'oubli Loi 25
+// 2. POST /api/jeu/profil-detacher-activation — revente d'1 QR sans casser le profil
+//
+// Les deux exigent une **preuve de possession** : recovery_code + device qui
+// a au moins une activation active liée au profil. Ça évite qu'un attaquant
+// qui aurait deviné le code (à 80 bits c'est très improbable mais possible
+// avec un brute-force long terme) ne puisse archiver ou détacher à distance.
+
+// ROUTE : POST /api/jeu/profil-archiver
+//
+// Soft-delete volontaire du profil cloud joueur (Loi 25 droit à l'oubli).
+//
+// Body :
+//   { recovery_code, device_fingerprint }
+//
+// Action :
+//   1. Vérifie recovery_code → profil non archivé
+//   2. Vérifie qu'au moins une activation active du device est liée au profil
+//      (preuve de possession)
+//   3. Marque profils_joueur.est_archive = 1
+//   4. Détache toutes les activations actives du profil (profil_joueur_id = NULL)
+//      → les licences restent fonctionnelles sur leurs devices respectifs,
+//        elles ne sont juste plus rattachées à un profil cloud.
+//
+// Réponse 200 :
+//   { ok: true, nb_activations_detachees: number }
+//
+// Erreurs :
+//   400 BAD_RECOVERY_CODE | BAD_DEVICE | BAD_JSON
+//   403 NO_OWNERSHIP_PROOF  — device courant n'a aucune activation active liée au profil
+//   404 PROFIL_NOT_FOUND    — code introuvable ou déjà archivé
+
+interface ProfilArchiverBody {
+  recovery_code?: string
+  device_fingerprint?: string
+}
+
+export async function handleJeuProfilArchiver(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') {
+    return jsonResp({ ok: false, code: 'METHOD_NOT_ALLOWED' }, 405)
+  }
+
+  let body: ProfilArchiverBody
+  try { body = await request.json() }
+  catch { return jsonResp({ ok: false, code: 'BAD_JSON' }, 400) }
+
+  if (typeof body.recovery_code !== 'string') {
+    return jsonResp({ ok: false, code: 'BAD_RECOVERY_CODE' }, 400)
+  }
+  const codeNorm = normaliserRecoveryCode(body.recovery_code)
+  if (!codeNorm) {
+    return jsonResp({
+      ok: false,
+      code: 'BAD_RECOVERY_CODE',
+      message: 'Format du code de recuperation invalide.'
+    }, 400)
+  }
+  if (typeof body.device_fingerprint !== 'string' || body.device_fingerprint.length < 8 || body.device_fingerprint.length > 128) {
+    return jsonResp({ ok: false, code: 'BAD_DEVICE' }, 400)
+  }
+  const deviceFp = body.device_fingerprint
+
+  // 1. Cherche le profil non archivé
+  const profil = await env.DB.prepare(
+    `SELECT id FROM profils_joueur WHERE recovery_code = ? AND est_archive = 0`
+  ).bind(codeNorm).first<{ id: number }>()
+
+  if (!profil) {
+    return jsonResp({
+      ok: false,
+      code: 'PROFIL_NOT_FOUND',
+      message: 'Aucun profil ne correspond a ce code ou il est deja archive.'
+    }, 404)
+  }
+
+  // 2. Preuve de possession : le device appelant doit avoir au moins une
+  //    activation active liée à ce profil. Sinon, c'est un attaquant qui
+  //    a juste deviné le code.
+  const preuve = await env.DB.prepare(
+    `SELECT 1 FROM activations_appareil
+      WHERE profil_joueur_id = ?
+        AND device_fingerprint = ?
+        AND date_revocation IS NULL
+      LIMIT 1`
+  ).bind(profil.id, deviceFp).first()
+
+  if (!preuve) {
+    return jsonResp({
+      ok: false,
+      code: 'NO_OWNERSHIP_PROOF',
+      message: 'Cet appareil n\'est pas associe au profil. L\'archivage est refuse.'
+    }, 403)
+  }
+
+  // 3 + 4. Batch atomique : archive profil + détache toutes les activations actives
+  const now = Math.floor(Date.now() / 1000)
+
+  const results = await env.DB.batch([
+    env.DB.prepare(
+      `UPDATE profils_joueur
+          SET est_archive = 1,
+              date_derniere_act = ?
+        WHERE id = ?`
+    ).bind(now, profil.id),
+    env.DB.prepare(
+      `UPDATE activations_appareil
+          SET profil_joueur_id = NULL
+        WHERE profil_joueur_id = ?
+          AND date_revocation IS NULL`
+    ).bind(profil.id)
+  ])
+
+  // meta.changes du 2e UPDATE = nb d'activations détachées
+  const nbDetachees = typeof results[1]?.meta?.changes === 'number' ? results[1].meta.changes : 0
+
+  return jsonResp({
+    ok: true,
+    nb_activations_detachees: nbDetachees,
+    message: 'Profil archive. Vos licences restent actives sur leurs appareils respectifs, mais ne sont plus liees a un profil cloud.'
+  })
+}
+
+// ROUTE : POST /api/jeu/profil-detacher-activation
+//
+// Détache UNE seule activation du profil cloud sans archiver le profil.
+// Cas d'usage : l'utilisateur revend ou donne un QR à un ami, et veut le
+// retirer de son profil cloud sans casser les autres.
+//
+// Important : cet endpoint **NE RÉVOQUE PAS** l'activation. Le QR reste
+// actif sur son appareil courant (potentiellement celui de l'ami qui
+// l'a récupéré). Pour transférer effectivement la licence vers un autre
+// appareil, l'élève destinataire doit ensuite scanner le QR sur son propre
+// appareil via /api/jeu/activer-qr (qui déclenchera la politique D2 enrichi
+// item 13 : transfert auto si ≤ 6 mois et quota OK).
+//
+// Body :
+//   { recovery_code, device_fingerprint, cle_qr }
+//
+// Action :
+//   1. Vérifie recovery_code → profil non archivé
+//   2. Vérifie qu'une activation active de cle_qr est liée au profil ET
+//      au device courant (double preuve : possession + propriété du QR)
+//   3. UPDATE activations_appareil.profil_joueur_id = NULL pour cette activation
+//
+// Réponse 200 :
+//   {
+//     ok: true,
+//     cle_qr_masque,
+//     produits_actifs_restants: string[],  // pour rafraîchir l'UI Godot
+//     nb_activations_restantes: number
+//   }
+//
+// Erreurs :
+//   400 BAD_RECOVERY_CODE | BAD_DEVICE | BAD_CLE_QR | BAD_CLE_FORMAT | BAD_JSON
+//   403 NO_OWNERSHIP_PROOF  — activation introuvable pour ce profil+device+cle
+//   404 PROFIL_NOT_FOUND
+
+interface ProfilDetacherBody {
+  recovery_code?: string
+  device_fingerprint?: string
+  cle_qr?: string
+}
+
+const CLE_REGEX_PHASE3 = /^[0-9A-HJKMNP-TV-Z]{12}$/
+
+export async function handleJeuProfilDetacherActivation(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') {
+    return jsonResp({ ok: false, code: 'METHOD_NOT_ALLOWED' }, 405)
+  }
+
+  let body: ProfilDetacherBody
+  try { body = await request.json() }
+  catch { return jsonResp({ ok: false, code: 'BAD_JSON' }, 400) }
+
+  if (typeof body.recovery_code !== 'string') {
+    return jsonResp({ ok: false, code: 'BAD_RECOVERY_CODE' }, 400)
+  }
+  const codeNorm = normaliserRecoveryCode(body.recovery_code)
+  if (!codeNorm) {
+    return jsonResp({
+      ok: false,
+      code: 'BAD_RECOVERY_CODE',
+      message: 'Format du code de recuperation invalide.'
+    }, 400)
+  }
+  if (typeof body.device_fingerprint !== 'string' || body.device_fingerprint.length < 8 || body.device_fingerprint.length > 128) {
+    return jsonResp({ ok: false, code: 'BAD_DEVICE' }, 400)
+  }
+  const deviceFp = body.device_fingerprint
+
+  if (typeof body.cle_qr !== 'string') {
+    return jsonResp({ ok: false, code: 'BAD_CLE_QR' }, 400)
+  }
+  const cleNorm = body.cle_qr.toUpperCase().replace(/-/g, '')
+  if (!CLE_REGEX_PHASE3.test(cleNorm)) {
+    return jsonResp({ ok: false, code: 'BAD_CLE_FORMAT' }, 400)
+  }
+
+  // 1. Profil
+  const profil = await env.DB.prepare(
+    `SELECT id FROM profils_joueur WHERE recovery_code = ? AND est_archive = 0`
+  ).bind(codeNorm).first<{ id: number }>()
+
+  if (!profil) {
+    return jsonResp({
+      ok: false,
+      code: 'PROFIL_NOT_FOUND',
+      message: 'Aucun profil ne correspond a ce code ou il est deja archive.'
+    }, 404)
+  }
+
+  // 2. Triple vérification (preuve de possession + propriété du QR)
+  const activation = await env.DB.prepare(
+    `SELECT id FROM activations_appareil
+      WHERE profil_joueur_id = ?
+        AND device_fingerprint = ?
+        AND cle_qr = ?
+        AND date_revocation IS NULL
+      LIMIT 1`
+  ).bind(profil.id, deviceFp, cleNorm).first<{ id: number }>()
+
+  if (!activation) {
+    return jsonResp({
+      ok: false,
+      code: 'NO_OWNERSHIP_PROOF',
+      message: 'Cette licence n\'est pas associee a votre profil sur cet appareil. Le detachement est refuse.'
+    }, 403)
+  }
+
+  // 3. Détache l'activation (UPDATE 1 ligne)
+  await env.DB.prepare(
+    `UPDATE activations_appareil
+        SET profil_joueur_id = NULL
+      WHERE id = ?`
+  ).bind(activation.id).run()
+
+  // 4. Vue restante du profil pour rafraîchir l'UI Godot
+  const restantes = await env.DB.prepare(
+    `SELECT cle_qr, produit_id FROM activations_appareil
+      WHERE profil_joueur_id = ? AND date_revocation IS NULL
+      ORDER BY date_activation ASC`
+  ).bind(profil.id).all<{ cle_qr: string; produit_id: string }>()
+
+  const lignes = restantes.results ?? []
+  const produitsRestants = Array.from(new Set(lignes.map(r => r.produit_id)))
+
+  return jsonResp({
+    ok: true,
+    cle_qr_masque: cleNorm.slice(0, 4) + '...',
+    produits_actifs_restants: produitsRestants,
+    nb_activations_restantes: lignes.length,
+    message: 'Licence detachee du profil. Elle reste active sur l\'appareil courant mais n\'est plus liee au profil cloud.'
+  })
+}

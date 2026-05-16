@@ -79,7 +79,9 @@ import { handleJeuInfoQr, handleJeuSaisieCodeClasse, handleJeuActiverQr, handleJ
 import {
   handleJeuProfilCreer,
   handleJeuProfilRecuperer,
-  handleJeuProfilLicences
+  handleJeuProfilLicences,
+  handleJeuProfilArchiver,
+  handleJeuProfilDetacherActivation
 } from './profil-routes';
 import {
   handleProfClasseElevesImport,
@@ -386,6 +388,22 @@ export default {
         const rl = await checkRateLimit(env, `profil-licences:ip:${getClientIp(request)}`, RL_SAISIE);
         if (!rl.allowed) return rateLimitResponse(rl);
         return handleJeuProfilLicences(request, env, profilLicencesMatch[1]);
+      }
+
+      // ===== DEC-63 phase 3 (item 20) : archivage profil cloud (Loi 25) =====
+      // PUBLIC + rate-limité RL_ACTIVATION (action destructive, on protège agressivement)
+      if (url.pathname === '/api/jeu/profil-archiver') {
+        const rl = await checkRateLimit(env, `profil-archiver:ip:${getClientIp(request)}`, RL_ACTIVATION);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleJeuProfilArchiver(request, env);
+      }
+
+      // ===== DEC-63 phase 3 (item 20) : détachement d'1 activation (revente) =====
+      // PUBLIC + rate-limité RL_ACTIVATION (même profil, action sensible)
+      if (url.pathname === '/api/jeu/profil-detacher-activation') {
+        const rl = await checkRateLimit(env, `profil-detacher:ip:${getClientIp(request)}`, RL_ACTIVATION);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleJeuProfilDetacherActivation(request, env);
       }
 
       if (url.pathname === '/verify-license' && request.method === 'POST') {
