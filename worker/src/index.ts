@@ -76,6 +76,7 @@ import {
   handleProfValiderMembre
 } from './admin-ecole';
 import { handleJeuInfoQr, handleJeuSaisieCodeClasse, handleJeuActiverQr, handleJeuMesLicences } from './jeu-routes';
+import { handleProfApprouverTransfertQr } from './prof-transferts';
 import {
   handleProfClasseElevesImport,
   handleProfClasseElevesLister,
@@ -289,6 +290,12 @@ export default {
       // PB1 item 11.5 : lister mes QR (vue prof globale)
       if (url.pathname === '/api/prof/mes-qr') {
         return handleProfMesQr(request, env);
+      }
+      // PB1 item 13.bis : approuver manuellement un transfert QR bloqué par
+      // la politique automatique (cas QUOTA_AUTO_DEPASSE ou VALIDATION_PROF_REQUISE).
+      // JWT prof requis (géré dans le handler).
+      if (url.pathname === '/api/prof/approuver-transfert-qr') {
+        return handleProfApprouverTransfertQr(request, env);
       }
       // Sprint IMPORT-ELEVES IE-2/IE-4 : eleves pre-crees + resolution conflit
       const elevesImportMatch = url.pathname.match(/^\/api\/prof\/classes\/(\d+)\/eleves\/import$/);
