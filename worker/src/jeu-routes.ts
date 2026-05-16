@@ -332,3 +332,134 @@ export async function handleJeuSaisieCodeClasse(request: Request, env: Env): Pro
 
   return jsonResp(reponse)
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ROUTE : POST /api/jeu/activer-qr  (item 12 PB1)
+// ══════════════════════════════════════════════════════════════════════════════
+//
+// 1ère activation d'un QR sur un appareil. Cas d'usage :
+//   - Licences individuelles achetées par les parents (pas de prof / classe)
+//   - Licences école où l'élève veut juste utiliser le QR sans encore saisir
+//     son identifiant école (qui peut être fait plus tard via saisie-code-classe)
+//
+// Bloc 11 du QUESTIONS-POUR-JEFF : Jeff doit confirmer si cet endpoint reste
+// (option B) ou si on fusionne avec saisie-code-classe (option A).
+// Codé ici pour le cas (B) qui couvre le plus de scénarios.
+//
+// Body :
+//   {
+//     cle_qr: string,
+//     device_fingerprint: string,
+//     eleve_pseudo?: string   // facultatif à cette étape
+//   }
+//
+// Réponse :
+//   {
+//     ok: true,
+//     produit_id: string,
+//     premiere_activation: boolean,  // false si déjà activé ailleurs
+//     transfert_requis?: boolean     // si device != device_existant, signal transfert
+//   }
+
+interface ActiverQrBody {
+  cle_qr?: string
+  device_fingerprint?: string
+  eleve_pseudo?: string
+}
+
+export async function handleJeuActiverQr(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') {
+    return jsonResp({ ok: false, code: 'METHOD_NOT_ALLOWED' }, 405)
+  }
+
+  let body: ActiverQrBody
+  try { body = await request.json() }
+  catch { return jsonResp({ ok: false, code: 'BAD_JSON' }, 400) }
+
+  if (typeof body.cle_qr !== 'string') {
+    return jsonResp({ ok: false, code: 'BAD_CLE_QR' }, 400)
+  }
+  const cleNorm = body.cle_qr.toUpperCase().replace(/-/g, '')
+  if (!CLE_REGEX.test(cleNorm)) {
+    return jsonResp({ ok: false, code: 'BAD_CLE_FORMAT' }, 400)
+  }
+  if (typeof body.device_fingerprint !== 'string' || body.device_fingerprint.length < 8) {
+    return jsonResp({ ok: false, code: 'BAD_DEVICE' }, 400)
+  }
+  if (body.eleve_pseudo !== undefined) {
+    if (typeof body.eleve_pseudo !== 'string' || body.eleve_pseudo.length === 0 || body.eleve_pseudo.length > 64) {
+      return jsonResp({ ok: false, code: 'BAD_PSEUDO' }, 400)
+    }
+  }
+
+  // Vérifier la cle_qr
+  const lqr = await env.DB.prepare(
+    `SELECT cle_qr, produit_id, est_revoquee,
+            device_fingerprint, activation_initiale_date,
+            nb_transferts_auto
+     FROM licences_qr WHERE cle_qr = ?`
+  ).bind(cleNorm).first<{
+    cle_qr: string;
+    produit_id: string;
+    est_revoquee: number;
+    device_fingerprint: string | null;
+    activation_initiale_date: number | null;
+    nb_transferts_auto: number
+  }>()
+
+  if (!lqr) return jsonResp({ ok: false, code: 'CLE_NOT_FOUND' }, 404)
+  if (lqr.est_revoquee === 1) {
+    return jsonResp({
+      ok: false,
+      code: 'REVOKED',
+      message: 'Ce code QR a ete desactive.'
+    }, 410)
+  }
+
+  const now = Math.floor(Date.now() / 1000)
+  const premiereActivation = lqr.activation_initiale_date === null
+  const memeDevice = lqr.device_fingerprint === body.device_fingerprint
+  const transfertRequis = !premiereActivation && !memeDevice
+
+  if (transfertRequis) {
+    // Item 13 PB1 : logique transfert D2 — pas encore implémentée en détail.
+    // Pour l'instant on bloque et on demande au prof / support de gérer.
+    return jsonResp({
+      ok: false,
+      code: 'TRANSFER_REQUIRED',
+      message: 'Cette licence est deja active sur un autre appareil. Contactez votre enseignant ou le support.',
+      nb_transferts_auto: lqr.nb_transferts_auto
+    }, 409)
+  }
+
+  // UPDATE : activation initiale OU re-confirm même device
+  if (premiereActivation) {
+    await env.DB.prepare(
+      `UPDATE licences_qr
+       SET device_fingerprint = ?,
+           activation_initiale_date = ?,
+           derniere_activation_date = ?,
+           eleve_pseudo = COALESCE(?, eleve_pseudo)
+       WHERE cle_qr = ?`
+    ).bind(
+      body.device_fingerprint,
+      now, now,
+      body.eleve_pseudo ?? null,
+      cleNorm
+    ).run()
+  } else {
+    // Même device, on update juste derniere_activation_date
+    await env.DB.prepare(
+      `UPDATE licences_qr
+       SET derniere_activation_date = ?,
+           eleve_pseudo = COALESCE(?, eleve_pseudo)
+       WHERE cle_qr = ?`
+    ).bind(now, body.eleve_pseudo ?? null, cleNorm).run()
+  }
+
+  return jsonResp({
+    ok: true,
+    produit_id: lqr.produit_id,
+    premiere_activation: premiereActivation
+  })
+}

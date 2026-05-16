@@ -75,7 +75,7 @@ import {
   handleProfMeLierEcole,
   handleProfValiderMembre
 } from './admin-ecole';
-import { handleJeuInfoQr, handleJeuSaisieCodeClasse } from './jeu-routes';
+import { handleJeuInfoQr, handleJeuSaisieCodeClasse, handleJeuActiverQr } from './jeu-routes';
 import {
   handleProfClasseElevesImport,
   handleProfClasseElevesLister,
@@ -336,6 +336,14 @@ export default {
         const rl = await checkRateLimit(env, `saisie-classe:ip:${getClientIp(request)}`, RL_SAISIE);
         if (!rl.allowed) return rateLimitResponse(rl);
         return handleJeuSaisieCodeClasse(request, env);
+      }
+
+      // ===== PB1 item 12 : 1ère activation QR (cas licence individuelle + cas école step 1) =====
+      // PUBLIC + rate-limité RL_ACTIVATION (déjà utilisé par /verify-license)
+      if (url.pathname === '/api/jeu/activer-qr') {
+        const rl = await checkRateLimit(env, `activer-qr:ip:${getClientIp(request)}`, RL_ACTIVATION);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleJeuActiverQr(request, env);
       }
 
       if (url.pathname === '/verify-license' && request.method === 'POST') {
