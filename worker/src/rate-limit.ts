@@ -169,3 +169,8 @@ export const RL_2FA_EMAIL: RateLimitConfig = { max: 3, windowSec: 900 };
 
 /** Endpoints généraux authentifiés (me, eleves CRUD) : 120/min/prof */
 export const RL_API_AUTHENTICATED: RateLimitConfig = { max: 120, windowSec: 60 };
+
+// Sprint IMPORT-ELEVES IE-3bis : endpoint public /api/jeu/info-qr/:cle_qr
+// 60 req/min par IP = 1 par seconde, ample pour un élève qui scanne mais
+// prévient les abuses de scan en boucle.
+export const RL_INFO_QR: RateLimitConfig = { max: 60, windowSec: 60 };
