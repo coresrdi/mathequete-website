@@ -7,6 +7,11 @@ export interface Env {
   // ===== Bindings =====
   DB: D1Database;
 
+  // Sprint PB1 — R2 bucket pour stockage des PDFs de QR école (D5 + D8).
+  // À créer en prod : `wrangler r2 bucket create mathequete-pdfs`
+  // Binding configuré dans wrangler.toml section [[r2_buckets]].
+  R2_PDFS: R2Bucket;
+
   // ===== Variables publiques (wrangler.toml [vars]) =====
   ENVIRONMENT: 'production' | 'development';
   STRIPE_API_VERSION: string;
@@ -26,6 +31,11 @@ export interface Env {
   // Chiffre les DEK par prof et les secrets TOTP au repos.
   // ⚠️ NE JAMAIS PERDRE : sa perte rend illisibles toutes les données chiffrées.
   MASTER_ENCRYPTION_KEY: string;
+
+  // Sprint PB1 — Admin token pour endpoints /api/admin/* (D8 régénération PDF
+  // manuel pour gros forfaits). À poser : `wrangler secret put ADMIN_API_TOKEN`.
+  // Comparaison constant-time côté endpoint.
+  ADMIN_API_TOKEN: string;
 }
 
 /* Paliers tarifaires côté serveur — DOIT correspondre au front

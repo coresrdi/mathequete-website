@@ -17,6 +17,13 @@ import {
   handleStripeWebhook,
   handleCreateCheckoutSession
 } from './stripe-webhook';
+import {
+  rechercherCommissionsAutocomplete,
+  verifierDisponibiliteCodeEcole,
+  obtenirOuCreerCommission,
+  validerFormatCodeCourt
+} from './commissions';
+import { servirPdfR2, verifierJetonPdf } from './r2-upload';
 import { verifierCodeBrut } from './generate-codes';
 import { handleReleaseDevice } from './release-device';
 import {
@@ -81,7 +88,21 @@ export default {
       }
 
       if (url.pathname === '/stripe-webhook') {
-        return handleStripeWebhook(request, env);
+        return handleStripeWebhook(request, env, ctx);
+      }
+
+      // ===== Sprint PB1 : commissions scolaires + dispo code école =====
+      if (url.pathname === '/api/commissions/autocomplete') {
+        return handleCommissionsAutocomplete(request, env);
+      }
+      if (url.pathname === '/api/commissions/disponibilite-code') {
+        return handleDisponibiliteCodeEcole(request, env);
+      }
+
+      // ===== Sprint PB1 : téléchargement PDF forfait école (jeton HMAC) =====
+      const pdfMatch = url.pathname.match(/^\/api\/pdf\/(\d+)$/);
+      if (pdfMatch) {
+        return handlePdfDownload(request, env, parseInt(pdfMatch[1], 10));
       }
 
       if (url.pathname === '/api/release-device') {
@@ -226,4 +247,81 @@ function jsonResponse(data: unknown, status = 200): Response {
 
 function jsonError(message: string, status: number): Response {
   return jsonResponse({ error: message }, status);
+}
+
+/* ===== Sprint PB1 : handlers commissions + PDF école ===== */
+
+async function handleCommissionsAutocomplete(
+  request: Request, env: Env
+): Promise<Response> {
+  if (request.method !== 'GET') return jsonError('Méthode non autorisée', 405);
+  const url = new URL(request.url);
+  const q = (url.searchParams.get('q') ?? '').trim();
+  if (q.length < 2) return jsonResponse({ resultats: [] });
+  const resultats = await rechercherCommissionsAutocomplete(env, q, 10);
+  return jsonResponse({ resultats });
+}
+
+async function handleDisponibiliteCodeEcole(
+  request: Request, env: Env
+): Promise<Response> {
+  if (request.method !== 'POST') return jsonError('Méthode non autorisée', 405);
+  let body: {
+    code_court?: string;
+    email_admin?: string;
+    commission_type?: 'publique' | 'privee';
+    commission_nom?: string;
+    ecole_nom?: string;
+  };
+  try { body = await request.json(); } catch { return jsonError('JSON invalide', 400); }
+  if (!body.code_court || !body.email_admin || !body.commission_type || !body.commission_nom) {
+    return jsonError('Champs requis : code_court, email_admin, commission_type, commission_nom', 400);
+  }
+  const fmt = validerFormatCodeCourt(body.code_court);
+  if (!fmt.ok) return jsonResponse({ disponible: false, erreur_format: fmt.erreur }, 200);
+
+  // Résout/crée la commission pour pouvoir tester la dispo D9.
+  const { code: commission_code } = await obtenirOuCreerCommission(env, {
+    nom: body.commission_nom,
+    type: body.commission_type,
+    email_admin: body.email_admin,
+    ecole_nom: body.ecole_nom
+  });
+  const dispo = await verifierDisponibiliteCodeEcole(env, {
+    commission_code,
+    code_court: body.code_court,
+    email_admin: body.email_admin
+  });
+  return jsonResponse({
+    disponible: dispo.disponible,
+    raison: dispo.raison,
+    alternatives: dispo.alternatives ?? [],
+    commission_code
+  });
+}
+
+async function handlePdfDownload(
+  request: Request, env: Env, forfaitId: number
+): Promise<Response> {
+  if (request.method !== 'GET') return jsonError('Méthode non autorisée', 405);
+  const url = new URL(request.url);
+  const jeton = url.searchParams.get('t');
+  if (!jeton) return new Response('Jeton manquant', { status: 401 });
+
+  const verif = await verifierJetonPdf(env, jeton);
+  if (!verif) return new Response('Jeton invalide ou expiré', { status: 403 });
+  if (verif.forfait_id !== forfaitId) {
+    return new Response('Jeton ne correspond pas au forfait', { status: 403 });
+  }
+
+  const ligne = await env.DB
+    .prepare('SELECT pdf_r2_path, pdf_statut FROM forfaits_ecole WHERE id = ?')
+    .bind(forfaitId)
+    .first<{ pdf_r2_path: string | null; pdf_statut: string }>();
+  if (!ligne || !ligne.pdf_r2_path) {
+    return new Response('PDF pas encore disponible (statut: ' + (ligne?.pdf_statut ?? 'inconnu') + ')', { status: 404 });
+  }
+  const resp = await servirPdfR2(env, ligne.pdf_r2_path);
+  if (!resp) return new Response('PDF introuvable en stockage', { status: 404 });
+  return resp;
 }

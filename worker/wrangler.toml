@@ -24,6 +24,16 @@ binding = "DB"
 database_name = "mathequete-db"
 database_id = "e3c52431-082b-463f-b6d3-bd777e76dc97"
 
+# ─── R2 (stockage objets — PDFs forfaits école) ─────────────────────────────
+# Bucket créé via `wrangler r2 bucket create mathequete-pdfs` le 15 mai 2026.
+# Utilisé pour stocker les PDFs de codes QR générés après achat école
+# (forfait_classe / forfait_petite_ecole). Liens signés 30 jours envoyés par
+# email à l'admin. Voir D5/D8 dans plan_pont_prof_jeu.md.
+
+[[r2_buckets]]
+binding = "R2_PDFS"
+bucket_name = "mathequete-pdfs"
+
 # ─── Variables publiques (non-sensibles) ────────────────────────────────────
 
 [vars]

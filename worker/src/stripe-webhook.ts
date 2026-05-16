@@ -23,10 +23,21 @@ import {
   nbCodesPourTier
 } from './generate-codes';
 import { envoyerLicenceEmise } from './email';
+import {
+  estTierEcole,
+  lireMetadataEcole,
+  traiterAchatEcole
+} from './webhook-school';
+import {
+  validerFormatCodeCourt,
+  verifierDisponibiliteCodeEcole,
+  obtenirOuCreerCommission
+} from './commissions';
 
 export async function handleStripeWebhook(
   request: Request,
-  env: Env
+  env: Env,
+  ctx: ExecutionContext
 ): Promise<Response> {
   const sig = request.headers.get('stripe-signature');
   if (!sig) return new Response('Missing stripe-signature', { status: 400 });
@@ -67,6 +78,19 @@ export async function handleStripeWebhook(
   if (!email) {
     console.error('[Webhook] email manquant dans session', session.id);
     return new Response('Email manquant', { status: 400 });
+  }
+
+  // ===== 2.5. Branche école (Sprint PB1, D7 additif) =====
+  // Si le tier est un palier école (>1 élève, pas un pack_5), on délègue
+  // à webhook-school.ts qui génère N clés QR + PDF + email. La branche
+  // individuelle existante (continent_1, pack_5_continent_1) reste intacte.
+  if (estTierEcole(tier)) {
+    const metaEcole = lireMetadataEcole(session);
+    if (!metaEcole) {
+      console.error('[Webhook] metadata école incomplète', session.id, session.metadata);
+      return new Response('Metadata école manquante', { status: 400 });
+    }
+    return traiterAchatEcole(env, ctx, session, metaEcole, event);
   }
 
   // ===== 3. Vérifier qu'on n'a pas déjà traité cette session (idempotence) =====
@@ -187,7 +211,14 @@ export async function handleCreateCheckoutSession(
     return new Response('Method not allowed', { status: 405 });
   }
 
-  let body: { tier?: string };
+  let body: {
+    tier?: string;
+    email_admin?: string;            // requis pour paliers école
+    ecole_nom?: string;
+    code_court?: string;
+    commission_type?: 'publique' | 'privee';
+    commission_nom?: string;
+  };
   try {
     body = await request.json();
   } catch {
@@ -199,6 +230,53 @@ export async function handleCreateCheckoutSession(
     return jsonError('Tier invalide', 400);
   }
   const tarif = PRIX_TIERS_CENTS[tier];
+
+  // ===== Branche école : validation + réservation atomique du code (D9+D10) =====
+  // On exige toute la metadata métier AVANT de créer la session Stripe pour
+  // éviter qu'un paiement valide soit bloqué en webhook par un code en conflit.
+  let metadataExtra: Record<string, string> = {};
+  if (estTierEcole(tier)) {
+    if (!body.email_admin || !body.ecole_nom || !body.code_court
+        || !body.commission_type || !body.commission_nom) {
+      return jsonError('Champs requis manquants pour palier école (email_admin, ecole_nom, code_court, commission_type, commission_nom)', 400);
+    }
+    const formatChk = validerFormatCodeCourt(body.code_court);
+    if (!formatChk.ok) return jsonError(formatChk.erreur ?? 'Code école invalide', 400);
+
+    // Résolution commission (création différée à webhook — ici on vérifie juste
+    // la dispo logique ; on ne touche pas la DB tant que Stripe n'a pas payé).
+    // EXCEPTION : on doit créer la commission pour pouvoir tester la dispo D9,
+    // car celle-ci s'exprime par (commission_code, code_court). On crée donc
+    // la commission ici — c'est sans impact même si l'achat est abandonné
+    // (la commission existe juste, elle ne consomme rien).
+    const { code: commission_code } = await obtenirOuCreerCommission(env, {
+      nom: body.commission_nom,
+      type: body.commission_type,
+      email_admin: body.email_admin,
+      ecole_nom: body.ecole_nom
+    });
+    const dispo = await verifierDisponibiliteCodeEcole(env, {
+      commission_code,
+      code_court: body.code_court,
+      email_admin: body.email_admin
+    });
+    if (!dispo.disponible) {
+      return new Response(
+        JSON.stringify({
+          error: 'Code école déjà utilisé par un autre administrateur dans les 180 derniers jours.',
+          raison: dispo.raison,
+          alternatives: dispo.alternatives ?? []
+        }),
+        { status: 409, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+      );
+    }
+    metadataExtra = {
+      ecole_nom: body.ecole_nom,
+      code_court: body.code_court,
+      commission_type: body.commission_type,
+      commission_nom: body.commission_nom
+    };
+  }
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: env.STRIPE_API_VERSION as Stripe.LatestApiVersion,
@@ -228,7 +306,8 @@ export async function handleCreateCheckoutSession(
       quantity: 1
     }],
     automatic_tax: { enabled: true },
-    metadata: { tier },
+    metadata: { tier, ...metadataExtra },
+    customer_email: body.email_admin,    // pré-remplit Stripe pour les paliers école
     success_url: `${env.PUBLIC_SITE_URL}/merci.html?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${env.PUBLIC_SITE_URL}/achat.html`
   });
