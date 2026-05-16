@@ -24,6 +24,11 @@ import {
   validerFormatCodeCourt
 } from './commissions';
 import { servirPdfR2, verifierJetonPdf } from './r2-upload';
+import {
+  handleAdminRegenererPdf,
+  handleAdminUploadPdf,
+  handleAdminGetForfait
+} from './admin-forfaits';
 import { verifierCodeBrut } from './generate-codes';
 import { handleReleaseDevice } from './release-device';
 import {
@@ -103,6 +108,23 @@ export default {
       const pdfMatch = url.pathname.match(/^\/api\/pdf\/(\d+)$/);
       if (pdfMatch) {
         return handlePdfDownload(request, env, parseInt(pdfMatch[1], 10));
+      }
+
+      // ===== Sprint PB1 : admin forfaits école (D8) =====
+      // POST /api/admin/forfaits/{id}/regenerer-pdf : regen auto via Worker
+      const regenMatch = url.pathname.match(/^\/api\/admin\/forfaits\/(\d+)\/regenerer-pdf$/);
+      if (regenMatch) {
+        return handleAdminRegenererPdf(request, env, ctx, parseInt(regenMatch[1], 10));
+      }
+      // PUT /api/admin/forfaits/{id}/pdf : upload manuel du PDF (CPU local)
+      const uploadMatch = url.pathname.match(/^\/api\/admin\/forfaits\/(\d+)\/pdf$/);
+      if (uploadMatch) {
+        return handleAdminUploadPdf(request, env, ctx, parseInt(uploadMatch[1], 10));
+      }
+      // GET /api/admin/forfaits/{id} : etat complet + lien signe frais
+      const getMatch = url.pathname.match(/^\/api\/admin\/forfaits\/(\d+)$/);
+      if (getMatch) {
+        return handleAdminGetForfait(request, env, parseInt(getMatch[1], 10));
       }
 
       if (url.pathname === '/api/release-device') {
@@ -230,8 +252,8 @@ export default {
 function corsHeaders(): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Stripe-Signature, Authorization'
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Stripe-Signature, Authorization, X-Admin-Token'
   };
 }
 
