@@ -63,6 +63,11 @@ import {
   handleEleveDelete
 } from './eleves-routes';
 import {
+  handleProfClasseCreer,
+  handleProfClasseLister,
+  handleProfClasseArchiver
+} from './prof-classes';
+import {
   checkRateLimit,
   getClientIp,
   rateLimitResponse,
@@ -247,6 +252,18 @@ export default {
         if (request.method === 'PATCH')  return handleEleveUpdate(request, env, id);
         if (request.method === 'DELETE') return handleEleveDelete(request, env, id);
         return jsonError('Méthode non autorisée', 405);
+      }
+
+      // ===== Sprint PB1 item 11.3 : classes prof (créer / lister / archiver) =====
+      // Routes littérales AVANT regex \d+ (pattern PB1-DEC-5)
+      if (url.pathname === '/api/prof/classes') {
+        if (request.method === 'POST') return handleProfClasseCreer(request, env);
+        if (request.method === 'GET')  return handleProfClasseLister(request, env);
+        return jsonError('Méthode non autorisée', 405);
+      }
+      const classeArchiverMatch = url.pathname.match(/^\/api\/prof\/classes\/(\d+)\/archiver$/);
+      if (classeArchiverMatch) {
+        return handleProfClasseArchiver(request, env, parseInt(classeArchiverMatch[1], 10));
       }
 
       if (url.pathname === '/verify-license' && request.method === 'POST') {
