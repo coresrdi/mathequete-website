@@ -174,3 +174,8 @@ export const RL_API_AUTHENTICATED: RateLimitConfig = { max: 120, windowSec: 60 }
 // 60 req/min par IP = 1 par seconde, ample pour un élève qui scanne mais
 // prévient les abuses de scan en boucle.
 export const RL_INFO_QR: RateLimitConfig = { max: 60, windowSec: 60 };
+
+// Sprint IMPORT-ELEVES IE-3 : endpoint public /api/jeu/saisie-code-classe
+// 10 req/min par IP : limite anti-brute-force (un élève n'envoie qu'une seule
+// saisie légitime, les essais répétés = devinette du code classe).
+export const RL_SAISIE: RateLimitConfig = { max: 10, windowSec: 60 };
