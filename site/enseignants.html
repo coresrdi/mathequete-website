@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Outils pour enseignants — Mathéquête</title>
+  <meta name="description" content="Page d'information sur le mode prof Mathéquête : application gratuite pour enseignants québécois du primaire. Tableau de bord, statistiques de classe, alignement curriculum PFEQ.">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <!-- Pico.css CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <!-- Google Fonts : Cinzel (titres aventure) + Caveat (manuscrit) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Styles custom -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Alpine.js CDN -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!--
+    ════════════════════════════════════════════════════════════════════════════
+    Page conforme DEC-61 (registre Mathéquête v4.15) — WEB-DEBT-5 + WEB-DEBT-6.
+
+    Cette page est la PAGE D'ARRIVÉE pointée depuis l'app mobile Mathéquête
+    (lien dans Paramètres > À propos > « Outils pour enseignants »).
+
+    Règles de conformité Apple App Review 3.1.1(a) + 3.1.3(f) + Google Play
+    steering rules (External Content Links Program) :
+
+      1. AUCUN bouton « Acheter » dans le contenu de cette page.
+      2. AUCUN lien direct vers /achat.html, /forfaits-ecole, /pack-familial,
+         /promo dans le contenu de cette page.
+      3. La nav supérieure ne contient qu'un retour à l'accueil — pas de menu
+         « Acheter » visible depuis cette page d'arrivée.
+      4. Aucune mention de prix (tarifs) dans le contenu textuel.
+      5. Le téléchargement de l'app prof Windows est gratuit (pas d'achat).
+
+    Voir AUDIT-DEC-61.md pour le détail des choix de conformité.
+    ════════════════════════════════════════════════════════════════════════════
+  -->
+</head>
+<body>
+
+<!-- ============ NAV MINIMALE (DEC-61) ============ -->
+<!-- Conformément à DEC-61, la nav sur cette page d'arrivée ne contient QUE
+     le retour à l'accueil. Les liens vers Acheter / Guide prof ne sont PAS
+     affichés ici. L'utilisateur doit cliquer Accueil pour atteindre le reste
+     du site via le menu principal complet. -->
+<nav class="site-nav">
+  <div class="container">
+    <a href="index.html" class="logo" aria-label="Accueil Mathéquête">
+      <img src="assets/logo.svg" alt="Mathéquête" height="44">
+    </a>
+    <div class="nav-links">
+      <a href="index.html">← Accueil</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero" style="padding: 3rem 1rem;">
+  <div class="hero-inner">
+    <img src="assets/logo.svg" alt="Mathéquête" style="height: 80px; margin: 0 auto;">
+    <h1>Outils pour enseignants</h1>
+    <p class="slogan">Mode prof intégré, statistiques de classe, alignement curriculum québécois.</p>
+  </div>
+</header>
+
+<!-- ============ DESCRIPTION DU MODE PROF ============ -->
+<section class="section">
+  <h2 class="section-titre">Le mode prof, en bref</h2>
+  <p class="section-sous-titre">Une application gratuite qui accompagne Mathéquête en classe.</p>
+
+  <div class="cartes-grid">
+    <article class="carte">
+      <span class="emoji" aria-hidden="true">📊</span>
+      <h3>Statistiques de classe</h3>
+      <p>Suivez la progression individuelle de vos élèves&nbsp;: questions réussies, temps moyen, points faibles repérés automatiquement. Tout reste chiffré et privé.</p>
+    </article>
+    <article class="carte">
+      <span class="emoji" aria-hidden="true">🎯</span>
+      <h3>Progression individualisée</h3>
+      <p>Le jeu adapte la difficulté à chaque élève. Les plus rapides avancent, les autres consolident — sans stigmatisation, sans pression.</p>
+    </article>
+    <article class="carte">
+      <span class="emoji" aria-hidden="true">🍁</span>
+      <h3>Curriculum Québec</h3>
+      <p>Contenu aligné avec le Programme de formation de l'école québécoise (PFEQ), cycles 1 à 3 du primaire. Conçu au Québec, par un enseignant.</p>
+    </article>
+    <article class="carte">
+      <span class="emoji" aria-hidden="true">📴</span>
+      <h3>Fonctionne hors-ligne</h3>
+      <p>Une fois activé, Mathéquête tourne sans Internet sur l'appareil élève. Parfait pour les classes sans wifi fiable ou les sorties scolaires.</p>
+    </article>
+    <article class="carte">
+      <span class="emoji" aria-hidden="true">🔒</span>
+      <h3>Conforme Loi 25</h3>
+      <p>Données élèves chiffrées de bout en bout (AES-256-GCM). Aucun renseignement nominatif n'est transmis à un serveur sans consentement. Nous sommes au Québec et nous respectons la loi.</p>
+    </article>
+    <article class="carte">
+      <span class="emoji" aria-hidden="true">🧩</span>
+      <h3>Îles bonus personnalisables</h3>
+      <p>Créez vos propres séries de questions adaptées au programme de vos élèves. Les îles bonus sont distribuées via QR codes ou liens directs.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ APPLICATION PROF WINDOWS (TÉLÉCHARGEMENT GRATUIT) ============ -->
+<section class="section-pro">
+  <div class="section">
+    <h2 class="section-titre">L'application enseignant&nbsp;: Windows</h2>
+    <p class="section-sous-titre">Une application compagnon gratuite pour gérer votre classe depuis votre poste.</p>
+
+    <div style="max-width: 780px; margin: 0 auto;">
+      <p style="text-align: center;">
+        L'application <strong>Mathéquête&nbsp;— Prof</strong> est un logiciel Windows léger qui vous permet de&nbsp;:
+      </p>
+      <ul>
+        <li>Créer vos classes et vos listes d'élèves (import depuis Excel ou Google Sheets)</li>
+        <li>Distribuer les codes d'activation à vos élèves (impression PDF ou courriel)</li>
+        <li>Consulter les statistiques anonymisées de votre classe en temps réel</li>
+        <li>Concevoir des îles bonus personnalisées avec vos propres questions</li>
+        <li>Gérer la rotation des appareils en cours d'année (tablette cassée, élève qui change d'école…)</li>
+      </ul>
+
+      <div style="text-align: center; margin-top: 2rem; padding: 1.5rem; background: #fff; border-radius: 0.6rem; border: 1px dashed #b9a36a;">
+        <p style="margin: 0 0 0.8rem; font-size: 1.05rem;"><strong>📦 Téléchargement de l'application Windows</strong></p>
+        <p style="margin: 0 0 1.2rem; opacity: 0.85;">L'application <code>.msi</code> signée numériquement est en cours de finalisation. Pour être averti·e dès qu'elle est disponible&nbsp;:</p>
+        <a href="mailto:coresrdi@gmail.com?subject=Application%20prof%20Math%C3%A9qu%C3%AAte%20Windows%20%E2%80%94%20m%27aviser&body=Bonjour%2C%0A%0AJe%20suis%20enseignant%C2%B7e%20et%20j'aimerais%20%C3%AAtre%20averti%C2%B7e%20d%C3%A8s%20que%20l'application%20Math%C3%A9qu%C3%AAte%20Prof%20pour%20Windows%20est%20disponible%20au%20t%C3%A9l%C3%A9chargement.%0A%0AMon%20%C3%A9cole%20(facultatif)%C2%A0%3A%0AMon%20cycle%C2%A0%3A%0A%0AMerci%20%21" class="btn-aventure">
+          M'aviser par courriel
+        </a>
+        <p style="margin: 1rem 0 0; font-size: 0.88rem; opacity: 0.7;">Aucun engagement, aucune carte de crédit. Nous vous écrirons une fois, quand l'app sera prête.</p>
+      </div>
+
+      <p style="text-align: center; margin-top: 1.5rem; font-size: 0.95rem; opacity: 0.8;">
+        🍎 Une version Mac et 🐧 une version Linux sont également prévues. Indiquez-le dans votre courriel si cela vous intéresse.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMMENT ÇA SE PASSE EN CLASSE ============ -->
+<section class="section">
+  <h2 class="section-titre">Comment ça se passe en classe</h2>
+  <p class="section-sous-titre">Du premier jour à la fin de l'année scolaire.</p>
+
+  <div class="etapes">
+    <div class="etape">
+      <h3>Préparation</h3>
+      <p>Installez l'application prof Windows (gratuite). Créez vos classes, importez vos listes d'élèves depuis Excel ou Google Sheets.</p>
+    </div>
+    <div class="etape">
+      <h3>Distribution</h3>
+      <p>Imprimez le PDF avec un QR code par élève, ou envoyez les codes par courriel aux parents. Les élèves activent eux-mêmes leur appareil.</p>
+    </div>
+    <div class="etape">
+      <h3>En classe</h3>
+      <p>Les élèves jouent sur leur appareil (Android, iPad, tablette de classe). Le jeu fonctionne hors-ligne. Pas besoin de wifi en permanence.</p>
+    </div>
+    <div class="etape">
+      <h3>Suivi</h3>
+      <p>De votre poste, vous consultez les statistiques chiffrées de la classe&nbsp;: temps passé, opérations maîtrisées, élèves qui peinent. Tout reste sur votre appareil.</p>
+    </div>
+    <div class="etape">
+      <h3>Adaptation</h3>
+      <p>Créez des îles bonus sur mesure pour vos élèves en difficulté ou en accélération. Distribuez-les via QR.</p>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 2rem; padding: 1.2rem; background: #fff; border-radius: 0.5rem; max-width: 700px; margin-left: auto; margin-right: auto; border: 1px dashed #ccc;">
+    <em style="opacity: 0.7;">📸 Captures d'écran de l'application enseignant à venir prochainement.</em>
+  </div>
+</section>
+
+<!-- ============ FAQ ENSEIGNANTS (informationnelle, sans mention de prix) ============ -->
+<section class="section-pro">
+  <div class="section">
+    <h2 class="section-titre">Questions fréquentes</h2>
+    <div class="faq" x-data="{ ouvert: null }">
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 1 ? null : 1)" :aria-expanded="ouvert === 1">
+          <span>L'application enseignant est-elle vraiment gratuite&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 1" x-transition x-cloak>
+          <p>Oui. L'application Mathéquête&nbsp;— Prof pour Windows est entièrement gratuite et le restera. Ce sont les codes d'activation distribués aux élèves qui financent le développement. Pas d'abonnement caché, pas de fonctionnalité « premium » bloquée.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 2 ? null : 2)" :aria-expanded="ouvert === 2">
+          <span>Mes élèves peuvent-ils utiliser leur propre appareil&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 2" x-transition x-cloak>
+          <p>Oui. Mathéquête fonctionne sur Android (téléphones et tablettes) et Windows. Vos élèves peuvent jouer sur leur appareil familial ou sur les tablettes de la classe. Une licence = un appareil, transférable en cas de changement.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 3 ? null : 3)" :aria-expanded="ouvert === 3">
+          <span>Les données des élèves restent-elles confidentielles&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 3" x-transition x-cloak>
+          <p>Oui. Conformément à la Loi 25 du Québec&nbsp;: aucune donnée nominative n'est transmise à nos serveurs sans votre consentement. Les statistiques de progression sont chiffrées (AES-256-GCM) sur le poste enseignant, jamais en clair en transit. Vous gardez le contrôle.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 4 ? null : 4)" :aria-expanded="ouvert === 4">
+          <span>Quels cycles du primaire sont couverts&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 4" x-transition x-cloak>
+          <p>Mathéquête couvre les cycles 1, 2 et 3 du primaire (1<sup>re</sup> à 6<sup>e</sup> année). Le mode Révision permet d'ajuster les plages numériques par opération pour s'adapter au niveau réel de chaque élève.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 5 ? null : 5)" :aria-expanded="ouvert === 5">
+          <span>Puis-je essayer avant de m'engager&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 5" x-transition x-cloak>
+          <p>Oui. Le tutoriel complet et la première île de Mathéquête sont jouables gratuitement, sans aucune information à fournir. Téléchargez le jeu sur l'appareil de votre choix et essayez. L'application enseignant Windows est également gratuite à télécharger.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="section">
+  <div style="max-width: 700px; margin: 0 auto; text-align: center;">
+    <h2 class="section-titre">Une question ?</h2>
+    <p>Écrivez directement à l'équipe Mathéquête. Réponses dans les 48 h, par un humain (souvent Jeff, le concepteur).</p>
+    <a href="mailto:coresrdi@gmail.com?subject=Mathéquête%20—%20Question%20enseignant·e" class="btn-aventure" style="margin-top: 1rem;">
+      ✉ Écrire à CORES RDI
+    </a>
+  </div>
+</section>
+
+<!-- ============ FOOTER (sans liens d'achat dans le contenu) ============ -->
+<!--
+  Note conformité DEC-61 : le footer affiche un lien vers l'accueil et la
+  politique de confidentialité. PAS de lien direct vers /achat.html ni vers
+  les pages d'achat depuis ce pied de page. L'utilisateur retrouve le menu
+  complet sur l'accueil.
+-->
+<footer class="site-footer">
+  <div class="container">
+    <div>
+      <h4>Mathéquête</h4>
+      <p>Un jeu éducatif québécois pour apprendre les maths en s'amusant. Conçu par <strong>CORES RDI</strong> à Québec.</p>
+    </div>
+    <div>
+      <h4>Navigation</h4>
+      <p>
+        <a href="index.html">Retour à l'accueil</a>
+      </p>
+    </div>
+    <div>
+      <h4>Légal &amp; contact</h4>
+      <p>
+        <a href="https://coresrdi.github.io/mathequete-privacy/" target="_blank" rel="noopener">Politique de confidentialité</a><br>
+        <a href="mailto:coresrdi@gmail.com">coresrdi@gmail.com</a>
+      </p>
+    </div>
+  </div>
+  <p class="copyright">© 2026 CORES RDI — Tous droits réservés. Fait au Québec.</p>
+</footer>
+
+<style>[x-cloak] { display: none !important; }</style>
+</body>
+</html>
