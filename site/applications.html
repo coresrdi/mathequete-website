@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Applications Mathéquête — Téléchargements Android / iOS / Windows</title>
+  <meta name="description" content="Téléchargez Mathéquête sur tous vos appareils : Android (Google Play), iOS (App Store), Windows (téléchargement direct). Plus l'application gratuite Tableau de bord pour enseignants.">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!--
+    WEB-DEBT-3 (registre Mathéquête v4.27) — Page consolidée de tous les
+    téléchargements de Mathéquête.
+
+    Stratégie :
+      1. Section JEU avec 3 plateformes : Android (Google Play), iOS (App
+         Store, futur), Windows (téléchargement direct .exe signé).
+      2. Section APP PROF (Tableau de bord) avec lien gratuit vers .msi
+         (cf. DEC-61 — companion app gratuite, conforme Apple 3.1.3(f) +
+         Google steering rules).
+      3. Détection automatique de plateforme via navigator.userAgent (JS)
+         pour mettre en avant la plateforme de l'utilisateur.
+
+    Cette page est accessible via la nav principale du site et peut être
+    référencée librement (pas de contrainte d'arrivée comme /enseignants).
+  -->
+
+  <style>
+    /* Spécifique applications.html */
+    .platforme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .platforme-carte {
+      background: #fff;
+      border: 2px solid var(--parchemin-fonce);
+      border-radius: 0.8rem;
+      padding: 1.5rem;
+      text-align: center;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+      display: flex;
+      flex-direction: column;
+    }
+    .platforme-carte:hover {
+      transform: translateY(-3px);
+      border-color: var(--aventure-or);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+    .platforme-carte.detectee {
+      border-color: var(--aventure-or);
+      box-shadow: 0 6px 20px rgba(212, 160, 23, 0.3);
+      position: relative;
+    }
+    .platforme-carte.detectee::before {
+      content: "★ Votre appareil";
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--aventure-or);
+      color: #fff;
+      padding: 0.3rem 0.8rem;
+      border-radius: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+    .platforme-icon {
+      font-size: 3.5rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .platforme-titre {
+      font-family: 'Cinzel', Georgia, serif;
+      color: var(--aventure-bleu);
+      margin: 0.5rem 0;
+      font-size: 1.3rem;
+    }
+    .platforme-statut {
+      font-size: 0.9rem;
+      color: var(--encre);
+      opacity: 0.75;
+      margin: 0.5rem 0 1rem;
+      flex: 1;
+    }
+    .badge-statut {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 0.3rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .badge-disponible {
+      background: #d4f1e0;
+      color: #06A77D;
+    }
+    .badge-bientot {
+      background: #fff3cd;
+      color: #a8761a;
+    }
+    .badge-beta {
+      background: #fde2e2;
+      color: #c1432b;
+    }
+    .platforme-action {
+      margin-top: auto;
+    }
+    .section-prof {
+      background: #f5f8fc;
+      border-top: 4px solid var(--aventure-bleu);
+      border-bottom: 4px solid var(--aventure-bleu);
+    }
+    .prof-bloc {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #fff;
+      border: 2px solid var(--aventure-bleu);
+      border-radius: 0.8rem;
+      padding: 2rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="index.html" class="logo" aria-label="Accueil Mathéquête">
+      <img src="assets/logo.svg" alt="Mathéquête" height="44">
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="achat.html">Acheter</a>
+      <a href="enseignants.html">Enseignants</a>
+      <a href="guide-prof.html">Guide école</a>
+      <a href="applications.html" style="color: var(--aventure-or); font-weight: 700;">Applications</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero" style="padding: 3rem 1rem;">
+  <div class="hero-inner">
+    <h1>Téléchargements</h1>
+    <p class="slogan">Mathéquête sur tous vos appareils.</p>
+  </div>
+</header>
+
+<!-- ============ SECTION JEU ============ -->
+<section class="section">
+  <h2 class="section-titre">Le jeu Mathéquête</h2>
+  <p class="section-sous-titre">Disponible sur Android, en développement sur iOS et Windows.</p>
+
+  <div class="platforme-grid" x-data="appsDetection">
+
+    <!-- Android (disponible) -->
+    <article class="platforme-carte" :class="{ detectee: plateforme === 'android' }">
+      <span class="platforme-icon" aria-hidden="true">🤖</span>
+      <h3 class="platforme-titre">Android</h3>
+      <span class="badge-statut badge-disponible">Disponible</span>
+      <p class="platforme-statut">
+        Téléchargement gratuit sur Google Play. Continent 1 jouable, achats intégrés pour débloquer les futurs continents (4,99&nbsp;$ CAD chacun).
+      </p>
+      <div class="platforme-action">
+        <a href="https://play.google.com/store/apps/details?id=com.coresrdi.mathequete"
+           class="btn-aventure" rel="noopener">Voir sur Google Play</a>
+      </div>
+    </article>
+
+    <!-- iOS (futur) -->
+    <article class="platforme-carte" :class="{ detectee: plateforme === 'ios' }">
+      <span class="platforme-icon" aria-hidden="true">🍏</span>
+      <h3 class="platforme-titre">iOS / iPad</h3>
+      <span class="badge-statut badge-bientot">Bientôt</span>
+      <p class="platforme-statut">
+        Version iOS en développement. Sortie prévue au cours de l'année 2026. Aucun frais supplémentaire pour les acheteurs Android existants.
+      </p>
+      <div class="platforme-action">
+        <a href="#notif-ios" class="btn-secondaire" @click.prevent="rejoindreNotifs('ios')">M'aviser à la sortie</a>
+      </div>
+    </article>
+
+    <!-- Windows (futur) -->
+    <article class="platforme-carte" :class="{ detectee: plateforme === 'windows' }">
+      <span class="platforme-icon" aria-hidden="true">🖥️</span>
+      <h3 class="platforme-titre">Windows</h3>
+      <span class="badge-statut badge-bientot">Bientôt</span>
+      <p class="platforme-statut">
+        Version Windows en développement (téléchargement direct, format à confirmer). Sortie prévue au cours de l'année 2026.
+      </p>
+      <div class="platforme-action">
+        <a href="#notif-windows" class="btn-secondaire" @click.prevent="rejoindreNotifs('windows')">M'aviser à la sortie</a>
+      </div>
+    </article>
+
+    <!-- macOS (futur) -->
+    <article class="platforme-carte" :class="{ detectee: plateforme === 'macos' }">
+      <span class="platforme-icon" aria-hidden="true">🍎</span>
+      <h3 class="platforme-titre">macOS</h3>
+      <span class="badge-statut badge-bientot">Bientôt</span>
+      <p class="platforme-statut">
+        Version macOS en développement, en parallèle de la sortie iOS. Téléchargement direct depuis ce site.
+      </p>
+      <div class="platforme-action">
+        <a href="#notif-macos" class="btn-secondaire" @click.prevent="rejoindreNotifs('macos')">M'aviser à la sortie</a>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ============ SECTION APP PROF ============ -->
+<section class="section-prof">
+  <div class="section">
+    <h2 class="section-titre">Application Tableau de bord enseignant</h2>
+    <p class="section-sous-titre">Application gratuite pour les enseignants québécois — gestion de classe + statistiques.</p>
+
+    <div class="prof-bloc">
+      <span class="platforme-icon" aria-hidden="true">📊</span>
+      <h3 class="platforme-titre">Tableau de bord prof — Windows</h3>
+      <span class="badge-statut badge-beta">Bêta</span>
+      <p style="margin: 1rem 0; line-height: 1.6;">
+        Application Windows native (Tauri + WebView2). Permet de gérer vos classes,
+        importer vos élèves, visualiser leurs progrès, créer des îles bonus personnalisées.
+        <br><br>
+        <strong>Gratuit, sans achat dans l'application.</strong>
+        Toutes les fonctionnalités payantes nécessitent une licence d'élève achetée séparément.
+      </p>
+
+      <p style="margin: 1rem 0; font-size: 0.9rem; opacity: 0.8;">
+        Compatible Windows 10 / 11 (64 bits). Prérequis : WebView2 Runtime (généralement déjà installé).
+      </p>
+
+      <div style="margin-top: 1.5rem;">
+        <a href="enseignants.html" class="btn-aventure">En savoir plus</a>
+      </div>
+
+      <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.7;">
+        Le lien de téléchargement direct est disponible sur la page « En savoir plus ».
+      </p>
+    </div>
+
+    <p class="screen-text" style="text-align: center; margin-top: 2rem; opacity: 0.7; font-size: 0.9rem;">
+      Versions macOS et Linux du tableau de bord en réflexion pour 2026-2027.
+    </p>
+  </div>
+</section>
+
+<!-- ============ FAQ COMPATIBILITE ============ -->
+<section class="section-pro">
+  <div class="section">
+    <h2 class="section-titre">Compatibilité</h2>
+    <div class="faq" x-data="{ ouvert: null }">
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 1 ? null : 1)" :aria-expanded="ouvert === 1">
+          <span>Mon achat sur Android fonctionne-t-il sur les futures versions iOS / Windows ?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 1" x-transition x-cloak>
+          <p>Oui. Vos codes d'activation Mathéquête sont multiplateformes. Une fois iOS et Windows disponibles, vous pourrez activer votre licence sur n'importe quelle plateforme avec le même code reçu après votre achat initial.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 2 ? null : 2)" :aria-expanded="ouvert === 2">
+          <span>Combien d'appareils par licence ?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 2" x-transition x-cloak>
+          <p>Une licence individuelle = 1 appareil à la fois. Vous pouvez transférer votre licence vers un nouvel appareil après 6 mois automatiquement (changement de téléphone, etc.), ou immédiatement avec validation prof si c'est une licence école.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 3 ? null : 3)" :aria-expanded="ouvert === 3">
+          <span>Le jeu fonctionne-t-il hors-ligne ?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 3" x-transition x-cloak>
+          <p>Oui. Une fois activé via une connexion Internet, le jeu fonctionne entièrement hors-ligne. Parfait pour les classes sans wifi fiable, les voyages, ou le chalet.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 4 ? null : 4)" :aria-expanded="ouvert === 4">
+          <span>L'application Tableau de bord prof nécessite-t-elle un achat ?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 4" x-transition x-cloak>
+          <p>Non, l'application Tableau de bord est entièrement gratuite. Elle vous permet de gérer vos classes et visualiser les progrès de vos élèves. Pour que vos élèves jouent au jeu Mathéquête en classe, une licence par élève doit être achetée séparément (forfaits école disponibles à partir de 30 élèves).</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="container">
+    <div>
+      <h4>Mathéquête</h4>
+      <p>Le jeu éducatif québécois d'arithmétique pour le primaire.</p>
+    </div>
+    <div>
+      <h4>Liens</h4>
+      <p>
+        <a href="index.html">Accueil</a><br>
+        <a href="achat.html">Acheter</a><br>
+        <a href="guide-prof.html">Enseignants</a><br>
+        <a href="applications.html">Applications</a>
+      </p>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p>
+        <a href="mailto:support@mathequete.com">support@mathequete.com</a>
+      </p>
+    </div>
+  </div>
+  <p class="copyright">
+    © 2026 Mathéquête — coresrdi inc. — Québec, Canada
+  </p>
+</footer>
+
+<!-- Détection plateforme et formulaire futur -->
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('appsDetection', () => ({
+      plateforme: null,
+      init() {
+        const ua = (navigator.userAgent || '').toLowerCase();
+        if (ua.includes('android')) this.plateforme = 'android';
+        else if (/iphone|ipad|ipod/.test(ua)) this.plateforme = 'ios';
+        else if (/mac os|macos|macintosh/.test(ua)) this.plateforme = 'macos';
+        else if (ua.includes('windows')) this.plateforme = 'windows';
+        else this.plateforme = null;
+      },
+      rejoindreNotifs(plateforme) {
+        // Stub : à connecter à un formulaire mailchimp / brevo / convertkit
+        // ou simple mailto: pour le MVP.
+        window.location.href = 'mailto:support@mathequete.com?subject=' +
+          encodeURIComponent('Notification sortie ' + plateforme) +
+          '&body=' + encodeURIComponent(
+            'Bonjour, je souhaite être avisé(e) de la sortie de la version ' +
+            plateforme + ' de Mathéquête. Merci !'
+          );
+      }
+    }));
+  });
+</script>
+
+</body>
+</html>
