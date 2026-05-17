@@ -559,21 +559,32 @@ export async function handleJeuMesLicences(request: Request, env: Env, deviceFp:
     return jsonResp({ ok: false, code: 'BAD_DEVICE' }, 400)
   }
 
+  // Sprint UNIFY-PHASE2 (17 mai 2026) : JOIN avec licences_qr pour filtrer
+  // les QR expirés ou révoqués + inclure expire_le dans la réponse.
+  const now_sec = Math.floor(Date.now() / 1000)
   const rows = await env.DB.prepare(
-    `SELECT cle_qr, produit_id, date_activation
-       FROM activations_appareil
-      WHERE device_fingerprint = ? AND date_revocation IS NULL
-      ORDER BY date_activation ASC`
-  ).bind(deviceFp).all<{
+    `SELECT aa.cle_qr, aa.produit_id, aa.date_activation,
+            lqr.expire_le, lqr.est_revoquee
+       FROM activations_appareil aa
+       JOIN licences_qr lqr ON lqr.cle_qr = aa.cle_qr
+      WHERE aa.device_fingerprint = ?
+        AND aa.date_revocation IS NULL
+        AND lqr.est_revoquee = 0
+        AND (lqr.expire_le IS NULL OR lqr.expire_le > ?)
+      ORDER BY aa.date_activation ASC`
+  ).bind(deviceFp, now_sec).all<{
     cle_qr: string;
     produit_id: string;
-    date_activation: number
+    date_activation: number;
+    expire_le: number | null;
+    est_revoquee: number;
   }>()
 
   const activations = (rows.results ?? []).map(r => ({
     cle_qr_masque: r.cle_qr.slice(0, 4) + '...',
     produit_id: r.produit_id,
-    date_activation: r.date_activation
+    date_activation: r.date_activation,
+    expire_le: r.expire_le
   }))
   // Dédoublonnage des produits (un device pourrait avoir 2 QR débloquant le même produit ;
   // rare mais possible, ex: 1 QR école + 1 QR cadeau pour le même continent).
