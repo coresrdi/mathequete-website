@@ -104,9 +104,19 @@ import {
   RL_INFO_QR,
   RL_SAISIE
 } from './rate-limit';
+import { evaluateSecurityFilter, buildBlockedResponse } from './security-filter';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    // ===== Security filter (anti-scanner) =====
+    // Bloque IP/CIDR connus malveillants + chemins de scan classiques
+    // (.env, .git, wp-login, xmlrpc, /administrator, /vendor, /laravel).
+    // Voir worker/src/security-filter.ts pour le contexte (incident 2026-05-16).
+    const filter = evaluateSecurityFilter(request);
+    if (filter.block) {
+      return buildBlockedResponse();
+    }
+
     const url = new URL(request.url);
 
     // ===== CORS preflight =====
