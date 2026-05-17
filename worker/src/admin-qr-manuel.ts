@@ -51,12 +51,14 @@ async function assurerLicenceParent(env: Env): Promise<void> {
   if (existe) return;
 
   const now = Math.floor(Date.now() / 1000);
-  // Type 'admin', tier 'manuel', pas d'email, pas d'expiration
+  // Type 'admin', tier 'manuel', pas d'email, pas d'expiration.
+  // FIX 17 mai 2026 : convention projet = expire_le = 0 (jamais expirer)
+  // au lieu de NULL. Le schéma D1 déclare expire_le INTEGER NOT NULL.
   await env.DB.prepare(`
     INSERT INTO licences
       (id, code, type, tier, nb_eleves_max, emis_le, expire_le,
        email_acheteur, nom_acheteur, stripe_session, source)
-    VALUES (?, ?, 'admin', 'manuel', 0, ?, NULL, NULL, 'Admin manuel', NULL, 'admin')
+    VALUES (?, ?, 'admin', 'manuel', 0, ?, 0, NULL, 'Admin manuel', NULL, 'admin')
   `).bind(LICENCE_PARENT_ID, LICENCE_PARENT_ID.toUpperCase(), now).run();
 
   console.log('[admin-qr-manuel] Licence parent créée :', LICENCE_PARENT_ID);
