@@ -400,7 +400,8 @@ export async function handleJeuActiverQr(request: Request, env: Env): Promise<Re
   const lqr = await env.DB.prepare(
     `SELECT cle_qr, produit_id, est_revoquee,
             device_fingerprint, activation_initiale_date,
-            nb_transferts_auto
+            nb_transferts_auto,
+            expire_le, duree_apres_activation_jours
      FROM licences_qr WHERE cle_qr = ?`
   ).bind(cleNorm).first<{
     cle_qr: string;
@@ -408,7 +409,9 @@ export async function handleJeuActiverQr(request: Request, env: Env): Promise<Re
     est_revoquee: number;
     device_fingerprint: string | null;
     activation_initiale_date: number | null;
-    nb_transferts_auto: number
+    nb_transferts_auto: number;
+    expire_le: number | null;
+    duree_apres_activation_jours: number | null;
   }>()
 
   if (!lqr) return jsonResp({ ok: false, code: 'CLE_NOT_FOUND' }, 404)
@@ -421,6 +424,19 @@ export async function handleJeuActiverQr(request: Request, env: Env): Promise<Re
   }
 
   const now = Math.floor(Date.now() / 1000)
+
+  // ───────────────────────────────────────────────────────────────────
+  // Sprint EXP-QR (17 mai 2026) : vérif expiration AVANT activation
+  // ───────────────────────────────────────────────────────────────────
+  if (lqr.expire_le !== null && now >= lqr.expire_le) {
+    return jsonResp({
+      ok: false,
+      code: 'EXPIRED',
+      message: 'Ce code a expire.',
+      expire_le: lqr.expire_le
+    }, 410)
+  }
+
   const premiereActivation = lqr.activation_initiale_date === null
   const memeDevice = lqr.device_fingerprint === body.device_fingerprint
   const transfertRequis = !premiereActivation && !memeDevice
@@ -438,17 +454,24 @@ export async function handleJeuActiverQr(request: Request, env: Env): Promise<Re
 
   // UPDATE : activation initiale OU re-confirm même device
   if (premiereActivation) {
+    // Sprint EXP-QR : si durée glissante définie, calculer expire_le maintenant
+    let expire_le_final = lqr.expire_le;
+    if (lqr.duree_apres_activation_jours !== null) {
+      expire_le_final = now + lqr.duree_apres_activation_jours * 86400;
+    }
     await env.DB.prepare(
       `UPDATE licences_qr
        SET device_fingerprint = ?,
            activation_initiale_date = ?,
            derniere_activation_date = ?,
-           eleve_pseudo = COALESCE(?, eleve_pseudo)
+           eleve_pseudo = COALESCE(?, eleve_pseudo),
+           expire_le = ?
        WHERE cle_qr = ?`
     ).bind(
       body.device_fingerprint,
       now, now,
       body.eleve_pseudo ?? null,
+      expire_le_final,
       cleNorm
     ).run()
   } else {
@@ -490,10 +513,17 @@ export async function handleJeuActiverQr(request: Request, env: Env): Promise<Re
     }
   }
 
+  // Renvoyer expire_le si applicable (mode B : on vient juste de le calculer)
+  let expire_le_response: number | null = lqr.expire_le;
+  if (premiereActivation && lqr.duree_apres_activation_jours !== null) {
+    expire_le_response = now + lqr.duree_apres_activation_jours * 86400;
+  }
+
   return jsonResp({
     ok: true,
     produit_id: lqr.produit_id,
-    premiere_activation: premiereActivation
+    premiere_activation: premiereActivation,
+    expire_le: expire_le_response
   })
 }
 

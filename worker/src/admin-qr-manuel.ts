@@ -152,27 +152,99 @@ export async function handleAdminQrGenerer(
 
   const note_interne = String(body.note_interne ?? '').slice(0, 200);
 
+  // ──────────────────────────────────────────────────────────────────────
+  // Sprint EXP-QR (17 mai 2026) : 3 modes d'expiration
+  // ──────────────────────────────────────────────────────────────────────
+  //
+  // body.expiration_mode :
+  //   'aucune'       → jamais expirer (legacy, par défaut)
+  //   'date_fixe'    → body.expire_le_iso : '2027-09-30' (interprété 23:59:59 ET)
+  //   'duree_jours'  → body.duree_jours : nombre, expire_le calculé à activation
+  //
+  // ──────────────────────────────────────────────────────────────────────
+  const expiration_mode = String(body.expiration_mode ?? 'aucune');
+  let expire_le: number | null = null;
+  let duree_jours: number | null = null;
+
+  if (expiration_mode === 'date_fixe') {
+    const iso = String(body.expire_le_iso ?? '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+      return new Response(
+        JSON.stringify({
+          error: "expire_le_iso invalide (format attendu : YYYY-MM-DD)",
+          recu: body.expire_le_iso
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    // Interprète comme fin de journée 23:59:59 UTC
+    // (l'admin choisit une date → on prend la fin de cette journée)
+    const d = new Date(`${iso}T23:59:59Z`);
+    if (Number.isNaN(d.getTime())) {
+      return new Response(
+        JSON.stringify({ error: "Date invalide", recu: iso }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    expire_le = Math.floor(d.getTime() / 1000);
+    const now_check = Math.floor(Date.now() / 1000);
+    if (expire_le <= now_check) {
+      return new Response(
+        JSON.stringify({
+          error: "La date d'expiration doit être dans le futur",
+          recu: iso
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  } else if (expiration_mode === 'duree_jours') {
+    const dj = Math.floor(Number(body.duree_jours ?? 0));
+    if (!Number.isFinite(dj) || dj < 1 || dj > 3650) {
+      return new Response(
+        JSON.stringify({
+          error: "duree_jours doit être entre 1 et 3650 (10 ans max)",
+          recu: body.duree_jours
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    duree_jours = dj;
+  } else if (expiration_mode !== 'aucune') {
+    return new Response(
+      JSON.stringify({
+        error: "expiration_mode invalide",
+        modes_valides: ['aucune', 'date_fixe', 'duree_jours']
+      }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
   // Étape 1 : assurer licence parent (idempotent)
   await assurerLicenceParent(env);
 
   // Étape 2 : générer N clés Crockford uniques (réutilise qr-gen.ts)
   const cles = await genererLotClesQrUniques(env, nb);
 
-  // Étape 3 : INSERT batch dans licences_qr
+  // Étape 3 : INSERT batch dans licences_qr (avec colonnes expiration EXP-QR)
   const now = Math.floor(Date.now() / 1000);
   const stmts = cles.map((cle, idx) =>
     env.DB.prepare(`
       INSERT INTO licences_qr
         (cle_qr, forfait_ecole_id, licence_id_hmac, produit_id,
-         numero_sequence, date_creation, source)
-      VALUES (?, NULL, ?, ?, ?, ?, ?)
-    `).bind(cle, LICENCE_PARENT_ID, produit_id, idx + 1, now, source)
+         numero_sequence, date_creation, source,
+         expire_le, duree_apres_activation_jours)
+      VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      cle, LICENCE_PARENT_ID, produit_id, idx + 1, now, source,
+      expire_le, duree_jours
+    )
   );
   await env.DB.batch(stmts);
 
   // Étape 4 : audit log
   await ecrireAuditQr(env, 'admin_qr_genere', cles, {
-    source, produit_id, nb, note_interne
+    source, produit_id, nb, note_interne,
+    expiration_mode, expire_le, duree_jours
   }, request);
 
   // Réponse : clés formatées avec tirets pour copier-coller facile
@@ -186,6 +258,9 @@ export async function handleAdminQrGenerer(
       produit_id,
       created_at: now,
       note_interne: note_interne || null,
+      expiration_mode,
+      expire_le,
+      duree_apres_activation_jours: duree_jours,
     }),
     { status: 200, headers: { 'Content-Type': 'application/json' } }
   );
@@ -221,7 +296,8 @@ export async function handleAdminQrLister(
 
   const res = await env.DB.prepare(`
     SELECT cle_qr, produit_id, source, date_creation, est_revoquee,
-           device_fingerprint, activation_initiale_date, eleve_pseudo
+           device_fingerprint, activation_initiale_date, eleve_pseudo,
+           expire_le, duree_apres_activation_jours
     FROM licences_qr
     ${where}
     ORDER BY date_creation DESC
@@ -235,6 +311,8 @@ export async function handleAdminQrLister(
     device_fingerprint: string | null;
     activation_initiale_date: number | null;
     eleve_pseudo: string | null;
+    expire_le: number | null;
+    duree_apres_activation_jours: number | null;
   }>();
 
   const totalRes = await env.DB.prepare(`
@@ -251,6 +329,8 @@ export async function handleAdminQrLister(
     est_active: r.device_fingerprint !== null,
     activation_date: r.activation_initiale_date,
     eleve: r.eleve_pseudo,
+    expire_le: r.expire_le,
+    duree_apres_activation_jours: r.duree_apres_activation_jours,
   }));
 
   return new Response(
@@ -389,6 +469,10 @@ export function handleAdminQrDashboardHtml(_request: Request): Response {
     tr:hover td { background: #fbf4e0; }
     .badge { padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.85rem;
              font-weight: 600; display: inline-block; }
+    .badge.expire-jamais { background: #eee; color: #555; }
+    .badge.expire-prochain { background: #fff3cd; color: #a8761a; }
+    .badge.expire-imminent { background: #ffe5d9; color: #c1432b; font-weight: 700; }
+    .badge.expire-deja { background: #fdecea; color: #c1432b; font-weight: 700; }
     .badge.cadeau { background: #d4f1e0; color: #06A77D; }
     .badge.promo { background: #fff3cd; color: #a8761a; }
     .badge.pack_familial { background: #ddeeff; color: #1e3a5f; }
@@ -443,6 +527,31 @@ export function handleAdminQrDashboardHtml(_request: Request): Response {
     <label>Note interne (optionnel, max 200 chars)</label>
     <input type="text" name="note_interne" placeholder="Ex: Test IE-5+6 Jeff 16 mai" maxlength="200">
 
+    <fieldset style="border: 1px solid #d4a017; padding: 0.8rem; margin-top: 1rem; border-radius: 4px;">
+      <legend style="padding: 0 0.5rem; font-weight: 600;">⏳ Expiration (optionnel)</legend>
+
+      <label style="margin-top: 0;">
+        <input type="radio" name="expiration_mode" value="aucune" checked>
+        Aucune (le QR ne expire jamais)
+      </label>
+      <label>
+        <input type="radio" name="expiration_mode" value="date_fixe">
+        Date fixe (ex: 30 sept 2027 pour année scolaire)
+      </label>
+      <div id="blocDateFixe" style="display: none; margin-left: 1.5rem; margin-top: 0.4rem;">
+        <label>Expire le</label>
+        <input type="date" name="expire_le_iso">
+      </div>
+      <label>
+        <input type="radio" name="expiration_mode" value="duree_jours">
+        Durée après 1ère activation (programme de test)
+      </label>
+      <div id="blocDureeJours" style="display: none; margin-left: 1.5rem; margin-top: 0.4rem;">
+        <label>Nombre de jours (1 à 3650)</label>
+        <input type="number" name="duree_jours" min="1" max="3650" value="30">
+      </div>
+    </fieldset>
+
     <button type="submit" id="btnGenerer">Générer les QR</button>
   </form>
 
@@ -486,6 +595,36 @@ export function handleAdminQrDashboardHtml(_request: Request): Response {
       return d.toLocaleString('fr-CA');
     }
 
+    function formatExpiration(q) {
+      // Mode A : expire_le déjà défini (date fixe absolue)
+      // Mode B activé : expire_le calculé à l'activation
+      // Mode B non-activé : duree_apres_activation_jours défini, expire_le NULL
+      // Aucune : tout NULL
+      if (q.expire_le === null && q.duree_apres_activation_jours === null) {
+        return '<span class="badge expire-jamais">Jamais</span>';
+      }
+      if (q.expire_le === null && q.duree_apres_activation_jours !== null) {
+        return '<span class="badge expire-jamais">' + q.duree_apres_activation_jours + 'j à activation</span>';
+      }
+      // expire_le défini : calculer combien de temps il reste
+      const now_sec = Math.floor(Date.now() / 1000);
+      const diff = q.expire_le - now_sec;
+      const d = new Date(q.expire_le * 1000);
+      const dateStr = d.toLocaleDateString('fr-CA');
+      if (diff < 0) {
+        const jours_passes = Math.floor(-diff / 86400);
+        return '<span class="badge expire-deja">Expiré (' + dateStr + ', il y a ' + jours_passes + 'j)</span>';
+      }
+      const jours_restants = Math.floor(diff / 86400);
+      if (jours_restants < 7) {
+        return '<span class="badge expire-imminent">' + dateStr + ' (dans ' + jours_restants + 'j)</span>';
+      }
+      if (jours_restants < 30) {
+        return '<span class="badge expire-prochain">' + dateStr + ' (dans ' + jours_restants + 'j)</span>';
+      }
+      return dateStr + ' (dans ' + jours_restants + 'j)';
+    }
+
     async function apiCall(url, opts = {}) {
       const headers = {
         'X-Admin-Token': token,
@@ -512,8 +651,20 @@ export function handleAdminQrDashboardHtml(_request: Request): Response {
           source: form.source.value,
           produit_id: form.produit_id.value,
           nb: Number(form.nb.value),
-          note_interne: form.note_interne.value
+          note_interne: form.note_interne.value,
+          expiration_mode: form.expiration_mode.value
         };
+        if (body.expiration_mode === 'date_fixe') {
+          body.expire_le_iso = form.expire_le_iso.value;
+          if (!body.expire_le_iso) {
+            throw new Error('Date d\\'expiration requise (mode date fixe).');
+          }
+        } else if (body.expiration_mode === 'duree_jours') {
+          body.duree_jours = Number(form.duree_jours.value);
+          if (!body.duree_jours || body.duree_jours < 1) {
+            throw new Error('Nombre de jours invalide (mode durée).');
+          }
+        }
         const data = await apiCall('/api/admin/qr/generer', {
           method: 'POST', body: JSON.stringify(body)
         });
@@ -548,7 +699,7 @@ export function handleAdminQrDashboardHtml(_request: Request): Response {
         let html = '<p>' + data.total + ' QR au total (affichés : ' + data.qrs.length + ')</p>';
         html += '<table><thead><tr>' +
           '<th>Clé</th><th>Source</th><th>Produit</th>' +
-          '<th>Créé le</th><th>État</th><th>Élève</th><th>Actions</th>' +
+          '<th>Créé le</th><th>État</th><th>Expiration</th><th>Élève</th><th>Actions</th>' +
           '</tr></thead><tbody>';
         for (const q of data.qrs) {
           let etat = '';
@@ -562,6 +713,7 @@ export function handleAdminQrDashboardHtml(_request: Request): Response {
             '<td>' + escapeHtml(q.produit_id) + '</td>' +
             '<td>' + formatDate(q.date_creation) + '</td>' +
             '<td>' + etat + '</td>' +
+            '<td>' + formatExpiration(q) + '</td>' +
             '<td>' + (q.eleve ? escapeHtml(q.eleve) : '—') + '</td>' +
             '<td class="actions">' +
               (q.est_revoquee ? '—' :
@@ -592,6 +744,18 @@ export function handleAdminQrDashboardHtml(_request: Request): Response {
 
     document.getElementById('btnRafraichir').addEventListener('click', chargerListe);
     document.getElementById('filtreSource').addEventListener('change', chargerListe);
+
+    // ───────────────────────────────────────────────────────────────────
+    // Toggle des blocs d'expiration selon le mode choisi
+    // ───────────────────────────────────────────────────────────────────
+    document.querySelectorAll('input[name="expiration_mode"]').forEach(radio => {
+      radio.addEventListener('change', e => {
+        document.getElementById('blocDateFixe').style.display =
+          e.target.value === 'date_fixe' ? 'block' : 'none';
+        document.getElementById('blocDureeJours').style.display =
+          e.target.value === 'duree_jours' ? 'block' : 'none';
+      });
+    });
 
     // Chargement initial
     chargerListe();
