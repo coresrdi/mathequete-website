@@ -15,7 +15,23 @@
 
 import type { Env } from './types';
 import { genererCode, genererId } from './generate-codes';
-import { envoyerEmailNotificationAdmin } from './email';
+import { envoyerEmailNotificationAdmin, envoyerEmail } from './email';
+import { genererCleQrBrute } from './qr-gen';
+
+// Sprint UNIFY-PHASE2 (17 mai 2026) : génération QR Crockford après approbation.
+// Les demandes manuelles approuvées génèrent maintenant un QR au format
+// XXXX-XXXX-XXXX (12 chars Crockford) inséré dans licences_qr, au lieu d'un
+// MQLIC HMAC legacy inséré dans licences. Permet :
+// - Anti-réutilisation par device_fingerprint (impossible avec MQLIC)
+// - Cohérence avec /admin/qr et /api/jeu/activer-qr
+// - Email au joueur avec image QR scannable directement
+const LICENCE_PARENT_ACTIVATION_MANUEL = 'admin_manuel_v1';
+const CONTINENT_PAR_DEFAUT = 'continent_1';
+
+function formaterCleQrAffichage(cle: string): string {
+  // XXXXXXXXXXXX -> XXXX-XXXX-XXXX
+  return cle.substring(0, 4) + '-' + cle.substring(4, 8) + '-' + cle.substring(8, 12);
+}
 
 /* ===== Constantes ===== */
 
@@ -252,9 +268,22 @@ export async function handleActivationRedeem(
     return jsonError('Demande expiree (7 jours apres creation)', 410);
   }
 
-  // Si deja redeem, on retourne le meme code (idempotent)
+  // Sprint UNIFY-PHASE2 : si code_affiche déjà set (= QR Crockford généré à
+  // l'approbation), on retourne le QR au lieu de regenerer un MQLIC.
+  // Le code_brut retourné = la clé brute Crockford (12 chars sans tirets)
+  // qui sera saisie tel quel dans /api/jeu/activer-qr par le LicenseDialog.
   if (row.code_affiche) {
-    // Regenerer le code_brut depuis la base licences pour le renvoyer au client
+    // Si format Crockford (12 chars sans 'MQ-' ou 'MQLIC:'), c'est le nouveau format.
+    if (/^[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/.test(row.code_affiche)) {
+      return jsonResponse({
+        code_affiche: row.code_affiche,
+        code_brut: row.code_affiche.replace(/-/g, ''),
+        type: row.licence_type,
+        expire_le: row.expire_le,
+        format: 'crockford'
+      });
+    }
+    // Sinon, c'est l'ancien format MQLIC HMAC : compat retroactive
     const licRow = await env.DB.prepare(
       'SELECT id FROM licences WHERE code = ?'
     ).bind(row.code_affiche).first<{ id: string }>();
@@ -264,7 +293,8 @@ export async function handleActivationRedeem(
       code_affiche: row.code_affiche,
       code_brut: codeBrut,
       type: row.licence_type,
-      expire_le: row.expire_le
+      expire_le: row.expire_le,
+      format: 'mqlic_legacy'
     });
   }
 
@@ -390,13 +420,58 @@ export async function handleAdminDecideSubmit(
 
   if (action === 'approve') {
     const dureeSecs = RESPONSES_DUREE[duree] ?? 0;
-    const expireLe = dureeSecs === 0 ? 0 : (now + dureeSecs);
-    await env.DB.prepare(`
-      UPDATE activation_requests
-      SET status = 'approved', licence_type = ?, expire_le = ?, decide_le = ?,
-          decide_par = 'coresrdi@gmail.com'
-      WHERE request_id = ?
-    `).bind(licenceType, expireLe, now, row.request_id).run();
+    const expireLe = dureeSecs === 0 ? null : (now + dureeSecs);
+
+    // Sprint UNIFY-PHASE2 : générer un QR Crockford et l'insérer dans
+    // licences_qr (plus tard recupéré par /redeem).
+    // Sécurité anti-réutilisation : ce QR ne pourra être activé que sur 1 appareil.
+    const cleBruteCrockford = genererCleQrBrute();
+    const cleAffichee = formaterCleQrAffichage(cleBruteCrockford);
+
+    // Récupérer email_joueur + nom_joueur pour l'email post-approbation
+    const rowJoueur = await env.DB.prepare(
+      'SELECT email_joueur, nom_joueur FROM activation_requests WHERE request_id = ?'
+    ).bind(row.request_id).first<{ email_joueur: string; nom_joueur: string }>();
+
+    await env.DB.batch([
+      env.DB.prepare(`
+        UPDATE activation_requests
+        SET status = 'approved', licence_type = ?, expire_le = ?, decide_le = ?,
+            decide_par = 'coresrdi@gmail.com',
+            code_affiche = ?
+        WHERE request_id = ?
+      `).bind(licenceType, expireLe ?? 0, now, cleAffichee, row.request_id),
+      env.DB.prepare(`
+        INSERT INTO licences_qr
+          (cle_qr, forfait_ecole_id, licence_id_hmac, produit_id,
+           numero_sequence, date_creation, source, expire_le)
+        VALUES (?, NULL, ?, ?, NULL, ?, 'cadeau', ?)
+      `).bind(
+        cleBruteCrockford,
+        LICENCE_PARENT_ACTIVATION_MANUEL,
+        CONTINENT_PAR_DEFAUT,
+        now,
+        expireLe
+      )
+    ]);
+
+    // Envoyer email au joueur avec le code QR + image QR scannable
+    if (rowJoueur && rowJoueur.email_joueur) {
+      try {
+        await envoyerEmailActivationApprouvee(
+          env,
+          rowJoueur.email_joueur,
+          rowJoueur.nom_joueur,
+          cleAffichee,
+          licenceType,
+          duree,
+          expireLe
+        );
+      } catch (err) {
+        console.error('[manual-activation] echec envoi email joueur :', err);
+        // On ne bloque pas l'approbation pour autant
+      }
+    }
 
     return htmlResponse(renderAdminConfirmation('approve', row.request_id, licenceType, duree));
   } else if (action === 'reject') {
@@ -479,6 +554,84 @@ function renderAdminDecidePage(row: any, token: string): string {
 </body>
 </html>`;
 }
+
+// Sprint UNIFY-PHASE2 : email envoyé au joueur après approbation,
+// avec le code QR Crockford + image QR scannable.
+async function envoyerEmailActivationApprouvee(
+  env: Env,
+  destinataire: string,
+  nomJoueur: string,
+  cleAffichee: string,
+  licenceType: string,
+  duree: string,
+  expireLeTs: number | null
+): Promise<void> {
+  // Image QR scannable via api.qrserver.com (service public gratuit).
+  // Le QR contient juste le code, l'utilisateur peut soit scanner avec
+  // une autre app pour le copier, soit le saisir manuellement.
+  const qrImageUrl =
+    'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' +
+    encodeURIComponent(cleAffichee);
+
+  const expireTexte = expireLeTs && expireLeTs > 0
+    ? `valide jusqu'au ${new Date(expireLeTs * 1000).toLocaleDateString('fr-CA')}`
+    : 'sans date limite';
+
+  const dureeTexte: Record<string, string> = {
+    'lifetime': 'permanente',
+    '1an': '1 an',
+    '6mois': '6 mois',
+    '3mois': '3 mois',
+  };
+  const dureeLabel = dureeTexte[duree] || duree;
+
+  const html = `<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<title>Activation Mathéquête approuvée</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #fbf4e0; color: #1e3a5f; padding: 20px; margin: 0;">
+  <div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1);">
+    <h1 style="color: #06A77D; margin-top: 0;">✅ Demande approuvée</h1>
+    <p>Bonjour <strong>${escapeHtml(nomJoueur)}</strong>,</p>
+    <p>Ta demande d'activation Mathéquête a été approuvée. Voici ton code :</p>
+
+    <div style="text-align: center; margin: 30px 0; padding: 20px; background: #fbf4e0; border-radius: 8px;">
+      <div style="font-family: 'Courier New', monospace; font-size: 28px; font-weight: 700; color: #1e3a5f; letter-spacing: 2px; margin-bottom: 15px;">
+        ${escapeHtml(cleAffichee)}
+      </div>
+      <img src="${escapeHtml(qrImageUrl)}" alt="Code QR ${escapeHtml(cleAffichee)}" style="width: 200px; height: 200px; border: 4px solid #fff; border-radius: 4px;">
+      <div style="font-size: 13px; color: #555; margin-top: 10px;">Type : <strong>${escapeHtml(licenceType)}</strong> • Durée : <strong>${escapeHtml(dureeLabel)}</strong> • ${escapeHtml(expireTexte)}</div>
+    </div>
+
+    <h2 style="color: #d4a017; font-size: 18px;">Comment activer ?</h2>
+    <ol style="line-height: 1.6;">
+      <li>Ouvre <strong>Mathéquête</strong> sur ton appareil.</li>
+      <li>Va dans <strong>Réglages</strong> → <strong>Activer ma licence</strong>.</li>
+      <li>Tape ou colle le code ci-dessus : <code style="background: #eee; padding: 2px 6px; border-radius: 3px;">${escapeHtml(cleAffichee)}</code></li>
+      <li>Clique sur <strong>Activer</strong>.</li>
+    </ol>
+
+    <p style="background: #ffe5d9; padding: 12px; border-radius: 6px; border-left: 4px solid #c1432b; font-size: 14px;">
+      <strong>Important :</strong> ce code ne peut être activé que sur <strong>un seul appareil</strong>. Après la première activation, il sera lié à ton téléphone ou tablette. Ne le partage pas.
+    </p>
+
+    <p style="color: #777; font-size: 13px; margin-top: 30px;">
+      Bon jeu !<br>
+      — L'équipe Mathéquête (Cores RDI)
+    </p>
+  </div>
+</body>
+</html>`;
+
+  await envoyerEmail(env, {
+    destinataire,
+    sujet: 'Mathéquête — Ton code d’activation : ' + cleAffichee,
+    html
+  });
+}
+
 
 function renderAdminConfirmation(action: string, requestId: string, licenceType: string, duree: string): string {
   const titre = action === 'approve' ? 'Approuvee' : 'Refusee';
