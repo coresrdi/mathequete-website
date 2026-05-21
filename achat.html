@@ -3,11 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acheter une licence Mathéquête</title>
-  <meta name="description" content="Choisissez votre licence Mathéquête : Classe Petite (35 $), Classe Moyenne (98 $), Petite École (265 $), École Standard (393 $), Grande École (650 $). Paiement Stripe sécurisé.">
+  <title>Acheter une licence individuelle — Mathéquête</title>
+  <meta name="description" content="Licences individuelles Mathéquête : 1,99$/an ou 9,99$ permanent. Pack 5 codes : 7,99$/an ou 39,99$ permanent. Activation par code QR sécurisé.">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <link rel="stylesheet" href="assets/css/styles.css">
   <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    .tabs { display:flex; gap:1rem; margin-bottom:2rem; justify-content:center; }
+    .tab-btn { padding:.75rem 2rem; border-radius:8px; border:2px solid var(--mq-gold,#f59e0b); background:transparent; color:var(--mq-gold,#f59e0b); font-size:1rem; cursor:pointer; transition:.2s; }
+    .tab-btn.active { background:var(--mq-gold,#f59e0b); color:#1e293b; font-weight:700; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+    .badge-annuel { background:#2563eb; color:#fff; font-size:.75rem; padding:.2rem .6rem; border-radius:20px; vertical-align:middle; margin-left:.5rem; }
+    .badge-perm { background:#16a34a; color:#fff; font-size:.75rem; padding:.2rem .6rem; border-radius:20px; vertical-align:middle; margin-left:.5rem; }
+    .price-duo { display:flex; gap:1rem; margin-bottom:1.5rem; }
+    .price-card { flex:1; border:2px solid #334155; border-radius:12px; padding:1.25rem; text-align:center; }
+    .price-card.featured-dur { border-color:var(--mq-gold,#f59e0b); }
+    .price-card .price { font-size:2rem; font-weight:800; color:#f1f5f9; margin:.5rem 0 0; }
+    .price-card .price-unit { color:#94a3b8; font-size:.85rem; }
+    .price-card .tag { font-size:.8rem; margin-bottom:.5rem; }
+    .note-activation { background:#1e293b; border-left:4px solid #2563eb; padding:1.25rem 1.5rem; border-radius:8px; margin-top:2.5rem; }
+    .sandbox-note { background:#1e293b; border-left:4px solid var(--mq-gold,#f59e0b); padding:1.25rem 1.5rem; border-radius:8px; margin-top:2rem; }
+  </style>
 </head>
 <body>
 
@@ -16,239 +33,221 @@
       <a href="/" class="mq-logo">★ Mathéquête</a>
       <ul class="mq-nav-links">
         <li><a href="index.html">Accueil</a></li>
+        <li><a href="ecole.html">Licences école</a></li>
         <li><a href="calculateur.html">Calculateur</a></li>
-        <li><a href="comparaison-prodigy.html">vs Prodigy</a></li>
       </ul>
     </nav>
   </header>
 
   <section class="mq-section">
-    <h2>Choisissez votre licence</h2>
-    <p class="text-center" style="color: var(--mq-muted); margin-bottom: 3rem;">
-      Toutes les licences sont valides 365 jours, renouvelables.<br>
-      Paiement sécurisé Stripe. Carte de crédit ou virement.
+    <h2>Licences individuelles et familiales</h2>
+    <p class="text-center" style="color:var(--mq-muted);margin-bottom:2rem;">
+      Un code QR livré par courriel. S'active sur 1 appareil, transférable (fenêtre 1 an).<br>
+      TPS et TVQ calculées au paiement Stripe.
     </p>
 
-    <div class="mq-pricing-grid">
-
-      <!-- ===== Tier 1 : Classe Petite ===== -->
-      <div class="mq-tier" id="classe-petite">
-        <h3>Classe Petite</h3>
-        <p class="students">Jusqu'à 30 élèves</p>
-        <p class="price">35 $</p>
-        <p class="price-unit">CAD/an + taxes</p>
-        <p class="per-student"><strong>1,17 $</strong>/élève/an</p>
-        <ul>
-          <li>1 prof, 30 élèves</li>
-          <li>Mode prof complet</li>
-          <li>Génération IA exercices</li>
-          <li>Support email</li>
-          <li>Renouvelable</li>
-        </ul>
-        <button class="mq-btn-primary stripe-btn" data-tier="classe_petite" style="width:100%;">
-          Acheter — 35 $
-        </button>
-      </div>
-
-      <!-- ===== Tier 2 : Classe Moyenne ===== -->
-      <div class="mq-tier" id="classe-moyenne">
-        <h3>Classe Moyenne</h3>
-        <p class="students">Jusqu'à 100 élèves</p>
-        <p class="price">98 $</p>
-        <p class="price-unit">CAD/an + taxes</p>
-        <p class="per-student"><strong>0,98 $</strong>/élève/an</p>
-        <ul>
-          <li>2-3 classes</li>
-          <li>Mode prof multi-classes</li>
-          <li>Génération IA exercices</li>
-          <li>Support email prioritaire</li>
-        </ul>
-        <button class="mq-btn-primary stripe-btn" data-tier="classe_moyenne" style="width:100%;">
-          Acheter — 98 $
-        </button>
-      </div>
-
-      <!-- ===== Tier 3 : Petite École (featured) ===== -->
-      <div class="mq-tier featured" id="petite-ecole">
-        <h3>Petite École</h3>
-        <p class="students">Jusqu'à 300 élèves</p>
-        <p class="price">265 $</p>
-        <p class="price-unit">CAD/an + taxes</p>
-        <p class="per-student"><strong>0,88 $</strong>/élève/an</p>
-        <ul>
-          <li>~10 classes</li>
-          <li>Tableau direction</li>
-          <li>Génération IA illimitée</li>
-          <li>Support prioritaire</li>
-          <li>Formation 1h incluse</li>
-        </ul>
-        <button class="mq-btn-primary stripe-btn" data-tier="petite_ecole" style="width:100%;">
-          Acheter — 265 $
-        </button>
-      </div>
-
-      <!-- ===== Tier 4 : École Standard ===== -->
-      <div class="mq-tier" id="ecole-standard">
-        <h3>École Standard</h3>
-        <p class="students">Jusqu'à 500 élèves</p>
-        <p class="price">393 $</p>
-        <p class="price-unit">CAD/an + taxes</p>
-        <p class="per-student"><strong>0,79 $</strong>/élève/an</p>
-        <ul>
-          <li>École moyenne</li>
-          <li>Dashboard direction</li>
-          <li>Génération IA illimitée</li>
-          <li>Formation 2h incluse</li>
-          <li>Hotline support</li>
-        </ul>
-        <button class="mq-btn-primary stripe-btn" data-tier="ecole_standard" style="width:100%;">
-          Acheter — 393 $
-        </button>
-      </div>
-
-      <!-- ===== Tier 5 : Grande École ===== -->
-      <div class="mq-tier" id="grande-ecole">
-        <h3>Grande École</h3>
-        <p class="students">Jusqu'à 1000 élèves</p>
-        <p class="price">650 $</p>
-        <p class="price-unit">CAD/an + taxes</p>
-        <p class="per-student"><strong>0,65 $</strong>/élève/an</p>
-        <ul>
-          <li>Toute l'école primaire</li>
-          <li>Dashboard CSS</li>
-          <li>Formation 4h incluse</li>
-          <li>Hotline 7j/7</li>
-          <li>Consultant dédié</li>
-        </ul>
-        <button class="mq-btn-primary stripe-btn" data-tier="grande_ecole" style="width:100%;">
-          Acheter — 650 $
-        </button>
-      </div>
-
-      <!-- ===== Sur devis ===== -->
-      <div class="mq-tier" id="sur-mesure">
-        <h3>Commission scolaire</h3>
-        <p class="students">> 1000 élèves</p>
-        <p class="price" style="font-size: 1.75rem;">Sur devis</p>
-        <p class="price-unit">tarif personnalisé</p>
-        <ul>
-          <li>Déploiement complet</li>
-          <li>Formation équipe</li>
-          <li>SLA support garanti</li>
-          <li>Intégration SSO école</li>
-          <li>Accompagnement annuel</li>
-        </ul>
-        <a href="mailto:contact@mathequete.com?subject=Demande%20de%20devis%20CSS" class="mq-btn-primary" style="width:100%; text-align:center; display:block;">
-          Demander un devis
-        </a>
-      </div>
-
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('solo')">1 licence</button>
+      <button class="tab-btn" onclick="switchTab('pack5')">Pack 5 licences</button>
     </div>
 
-    <div style="background: var(--mq-card-bg); padding: 2rem; border-radius: 12px; margin-top: 3rem; border-left: 4px solid var(--mq-gold);">
-      <h3>⚙ Mode démo (sandbox Stripe)</h3>
-      <p>
-        Cette page est connectée à Stripe en mode <strong>test</strong>. Pour essayer le flux d'achat
-        sans paiement réel, utilisez la carte de test Stripe : <code>4242 4242 4242 4242</code>,
-        n'importe quelle date future, n'importe quel CVC.
-      </p>
-      <p style="margin-bottom: 0;">
-        Pour un essai gratuit 30 jours (code ESSAI), écrivez à
-        <a href="mailto:contact@mathequete.com">contact@mathequete.com</a>.
+    <!-- ===== ONGLET 1 LICENCE ===== -->
+    <div id="tab-solo" class="tab-panel active">
+      <div class="price-duo">
+
+        <div class="price-card">
+          <p class="tag"><span class="badge-annuel">ANNUEL</span> Renouvelable</p>
+          <p class="price">1,99 $</p>
+          <p class="price-unit">CAD/an + taxes</p>
+          <p style="color:#94a3b8;font-size:.9rem;margin-top:.75rem;">
+            Accès 1 an aux îles premium du Continent 1.<br>
+            Vérification périodique requise (~30 jours).
+          </p>
+          <!-- TODO: remplacer PRICE_ID_ANNUEL_SOLO par l'ID Stripe réel après création du SKU -->
+          <button class="mq-btn-primary stripe-btn" data-price="PRICE_ID_ANNUEL_SOLO" style="width:100%;margin-top:1rem;">
+            Acheter — 1,99 $/an
+          </button>
+        </div>
+
+        <div class="price-card featured-dur">
+          <p class="tag"><span class="badge-perm">PERMANENT</span> À vie</p>
+          <p class="price">9,99 $</p>
+          <p class="price-unit">CAD une fois + taxes</p>
+          <p style="color:#94a3b8;font-size:.9rem;margin-top:.75rem;">
+            Accès permanent aux îles premium.<br>
+            Vérification périodique requise (~30 jours).
+          </p>
+          <!-- TODO: remplacer PRICE_ID_PERM_SOLO par l'ID Stripe réel après création du SKU -->
+          <button class="mq-btn-primary stripe-btn" data-price="PRICE_ID_PERM_SOLO" style="width:100%;margin-top:1rem;">
+            Acheter — 9,99 $
+          </button>
+        </div>
+
+      </div>
+
+      <ul style="color:#94a3b8;font-size:.9rem;padding-left:1.25rem;">
+        <li>1 code QR Crockford (format XXXX-XXXX-XXXX) livré par courriel en 2 minutes</li>
+        <li>S'active sur 1 appareil Android, Windows PC (MS Store)</li>
+        <li>Transférable sur un nouvel appareil dans une fenêtre de 1 an</li>
+        <li>Fonctionne hors-ligne après activation initiale (connexion requise ~tous les 30 jours)</li>
+        <li>Pour plusieurs enfants → voir <a href="#tab-pack5" onclick="switchTab('pack5')">Pack 5</a></li>
+      </ul>
+    </div>
+
+    <!-- ===== ONGLET PACK 5 ===== -->
+    <div id="tab-pack5" class="tab-panel">
+      <div class="price-duo">
+
+        <div class="price-card">
+          <p class="tag"><span class="badge-annuel">ANNUEL</span> Renouvelable</p>
+          <p class="price">7,99 $</p>
+          <p class="price-unit">CAD/an + taxes — 5 codes</p>
+          <p style="color:#94a3b8;font-size:.9rem;margin-top:.75rem;">
+            5 codes QR indépendants valides 1 an chacun.<br>
+            Idéal pour une fratrie ou un groupe.
+          </p>
+          <!-- TODO: remplacer PRICE_ID_ANNUEL_PACK5 par l'ID Stripe réel après création du SKU -->
+          <button class="mq-btn-primary stripe-btn" data-price="PRICE_ID_ANNUEL_PACK5" style="width:100%;margin-top:1rem;">
+            Acheter — 7,99 $/an
+          </button>
+        </div>
+
+        <div class="price-card featured-dur">
+          <p class="tag"><span class="badge-perm">PERMANENT</span> À vie</p>
+          <p class="price">39,99 $</p>
+          <p class="price-unit">CAD une fois + taxes — 5 codes</p>
+          <p style="color:#94a3b8;font-size:.9rem;margin-top:.75rem;">
+            5 codes QR permanents, un par enfant.<br>
+            Chaque code transférable dans la fenêtre de 1 an.
+          </p>
+          <!-- TODO: remplacer PRICE_ID_PERM_PACK5 par l'ID Stripe réel après création du SKU -->
+          <button class="mq-btn-primary stripe-btn" data-price="PRICE_ID_PERM_PACK5" style="width:100%;margin-top:1rem;">
+            Acheter — 39,99 $
+          </button>
+        </div>
+
+      </div>
+
+      <ul style="color:#94a3b8;font-size:.9rem;padding-left:1.25rem;">
+        <li>5 codes QR distincts, chacun pour 1 appareil</li>
+        <li>Codes livrés ensemble dans le même courriel</li>
+        <li>Chaque code est indépendant — transfert d'appareil possible par code</li>
+        <li>Pour une école ou une classe → voir <a href="ecole.html">Licences école</a></li>
+      </ul>
+    </div>
+
+    <div class="note-activation">
+      <h3 style="margin-top:0;">⚙ Comment activer votre code QR</h3>
+      <ol style="margin-bottom:0;">
+        <li><strong>Paiement Stripe</strong> — quelques secondes, carte de crédit</li>
+        <li><strong>Courriel reçu</strong> — votre code QR Crockford (XXXX-XXXX-XXXX) dans les 2 minutes</li>
+        <li><strong>Dans le jeu</strong> — Réglages → <em>Activer un code de licence</em> → scanner ou saisir le code</li>
+        <li><strong>Activation en ligne</strong> — le jeu contacte notre serveur pour lier le code à votre appareil</li>
+        <li><strong>Jouer hors-ligne</strong> — après activation, une vérification est requise environ tous les 30 jours</li>
+      </ol>
+    </div>
+
+    <div class="sandbox-note">
+      <h3 style="margin-top:0;">⚠ Mode test — paiement non actif</h3>
+      <p style="margin-bottom:0;">
+        Les boutons d'achat sont en mode <strong>test Stripe</strong>. Les SKU de prix seront activés prochainement.
+        Pour obtenir un code maintenant, écrivez à
+        <a href="mailto:coresrdi@outlook.com">coresrdi@outlook.com</a>.
       </p>
     </div>
 
   </section>
 
-  <!-- ===== Comment ça marche ===== -->
-  <section class="mq-section" style="background: white; border-radius: 16px;">
-    <h2>Comment ça marche ?</h2>
+  <section class="mq-section" style="background:white;border-radius:16px;">
+    <h2>Questions fréquentes</h2>
     <div class="mq-grid">
-
       <article class="mq-card">
-        <span class="icon">✔</span>
-        <h3>1. Vous choisissez votre palier</h3>
-        <p>Selon le nombre d'élèves de votre classe ou de votre école.</p>
+        <h3>Quelle est la différence Annuel vs Permanent ?</h3>
+        <p>Annuel = accès 1 an, reconductible. Permanent = accès à vie pour cet appareil. Dans les deux cas, une vérification serveur est requise environ tous les 30 jours.</p>
       </article>
-
       <article class="mq-card">
-        <span class="icon">✔</span>
-        <h3>2. Paiement sécurisé Stripe</h3>
-        <p>Carte de crédit en quelques clics. Aucune carte stockée chez nous.</p>
+        <h3>Puis-je changer d'appareil ?</h3>
+        <p>Oui. Chaque licence est transférable sur un nouvel appareil dans une fenêtre de 1 an. Allez dans <a href="transferer-licence.html">Transférer ma licence</a>.</p>
       </article>
-
       <article class="mq-card">
-        <span class="icon">✔</span>
-        <h3>3. Code par courriel</h3>
-        <p>Vous recevez votre code de licence (<code>MQ-CLAS-XXXX-XXXX</code>) dans les 2 minutes, avec PDF et CSV en pièces jointes.</p>
+        <h3>Le jeu fonctionne-t-il sans Internet ?</h3>
+        <p>Oui, après l'activation initiale. Une vérification est nécessaire environ tous les 30 jours. Si vous êtes hors-ligne depuis plus de 40 jours, le jeu revient en mode gratuit jusqu'à reconnexion.</p>
       </article>
-
       <article class="mq-card">
-        <span class="icon">✔</span>
-        <h3>4. Distribution aux élèves</h3>
-        <p>Dictez le code en classe ou collez-le dans le jeu. Activation immédiate, hors-ligne possible.</p>
+        <h3>Vous gérez une école ?</h3>
+        <p>Les licences école démarrent à 35 $/an pour 30 élèves, avec mode prof, distribution QR et tableau de bord. <a href="ecole.html">Voir les tarifs école →</a></p>
       </article>
     </div>
   </section>
 
   <footer class="mq-footer">
     <div class="mq-footer-content">
+      <div><h4>Mathéquête</h4><p style="color:#cbd5e1;">© 2026 CORES RDI</p></div>
       <div>
-        <h4>Mathéquête</h4>
-        <p style="color: #cbd5e1;">© 2026 CORES RDI</p>
-      </div>
-      <div>
-        <h4>Produit</h4>
-        <a href="index.html">Accueil</a>
-        <a href="calculateur.html">Calculateur</a>
-        <a href="comparaison-prodigy.html">vs Prodigy</a>
+        <h4>Licences</h4>
+        <a href="achat.html">Individuelle</a>
+        <a href="ecole.html">École</a>
+        <a href="transferer-licence.html">Transférer</a>
       </div>
       <div>
         <h4>Légal</h4>
         <a href="https://coresrdi.github.io/mathequete-privacy/">Confidentialité</a>
       </div>
       <div>
-        <h4>Contact</h4>
-        <a href="mailto:contact@mathequete.com">contact@mathequete.com</a>
+        <h4>Support</h4>
+        <a href="support.html">Aide</a>
+        <a href="mailto:coresrdi@outlook.com">coresrdi@outlook.com</a>
       </div>
     </div>
     <div class="mq-footer-bottom">Fait avec ★ au Québec — Paiement sécurisé par Stripe</div>
   </footer>
 
   <script>
-    /* ===== Intégration Stripe Checkout =====
-     * IMPORTANT : remplacer STRIPE_PUBLIC_KEY et API_URL avant déploiement.
-     * Voir docs/STRIPE-SETUP.md pour les étapes manuelles.
+    function switchTab(name) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        if ((name === 'solo' && b.textContent.includes('1 licence')) ||
+            (name === 'pack5' && b.textContent.includes('Pack'))) {
+          b.classList.add('active');
+        }
+      });
+    }
+
+    /* ===== Stripe Checkout =====
+     * TODO: Remplacer STRIPE_PUBLIC_KEY par la clé live quand les SKUs sont créés dans Stripe.
+     * TODO: Remplacer les PRICE_ID_* dans chaque bouton par les vrais Price IDs Stripe.
+     * Voir docs/STRIPE-SETUP.md pour la procédure complète.
      */
     const STRIPE_PUBLIC_KEY = 'pk_test_PLACEHOLDER_REMPLACER';
-    const API_URL = 'https://api.mathequete.com';
+    const API_URL = 'https://mathequete-api.coresrdi.workers.dev';
 
     document.addEventListener('DOMContentLoaded', function () {
       const buttons = document.querySelectorAll('.stripe-btn');
-
       buttons.forEach(btn => {
         btn.addEventListener('click', async function (e) {
           e.preventDefault();
-          const tier = this.dataset.tier;
+          const priceId = this.dataset.price;
+          if (priceId.startsWith('PRICE_ID_')) {
+            alert('Paiement en ligne bientôt disponible.\nPour obtenir un code maintenant : coresrdi@outlook.com');
+            return;
+          }
           const originalText = this.textContent;
           this.textContent = 'Redirection...';
           this.disabled = true;
-
           try {
             const res = await fetch(API_URL + '/create-checkout-session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ tier: tier })
+              body: JSON.stringify({ priceId })
             });
-
             if (!res.ok) throw new Error('HTTP ' + res.status);
             const data = await res.json();
-
-            if (!data.url) throw new Error('Aucune URL de checkout');
+            if (!data.url) throw new Error('Aucune URL');
             window.location.href = data.url;
           } catch (err) {
-            console.error('Erreur Stripe :', err);
-            alert('Erreur lors de la création de la session de paiement. Réessayez ou écrivez à contact@mathequete.com.');
+            alert('Erreur. Écrivez à coresrdi@outlook.com');
             this.textContent = originalText;
             this.disabled = false;
           }

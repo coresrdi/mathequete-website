@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Licences école — Mathéquête</title>
+  <meta name="description" content="Licences Mathéquête pour écoles : de 35$/an (30 élèves) à 716$/an (1300 élèves). Mode prof, distribution QR, tableau de bord direction. Paiement Stripe sécurisé.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+
+  <header class="mq-header">
+    <nav>
+      <a href="/" class="mq-logo">★ Mathéquête</a>
+      <ul class="mq-nav-links">
+        <li><a href="index.html">Accueil</a></li>
+        <li><a href="achat.html">Individuel</a></li>
+        <li><a href="calculateur.html">Calculateur</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="mq-section">
+    <h2>Licences école et classe</h2>
+    <p class="text-center" style="color:var(--mq-muted);margin-bottom:3rem;">
+      Codes QR distribués en classe ou par PDF. Mode prof inclus, renouvellement annuel.<br>
+      TPS et TVQ calculées au paiement. <a href="calculateur.html">Calculer le prix exact →</a>
+    </p>
+
+    <div class="mq-pricing-grid">
+
+      <div class="mq-tier" id="classe-petite">
+        <h3>Classe Petite</h3>
+        <p class="students">Jusqu'à 30 élèves</p>
+        <p class="price">35 $</p>
+        <p class="price-unit">CAD/an + taxes</p>
+        <p class="per-student"><strong>1,17 $</strong>/élève/an</p>
+        <ul>
+          <li>1 prof, 30 codes QR</li>
+          <li>Mode prof complet</li>
+          <li>Support email</li>
+          <li>Renouvelable annuellement</li>
+        </ul>
+        <button class="mq-btn-primary stripe-btn" data-tier="classe_petite" style="width:100%;">Acheter — 35 $</button>
+      </div>
+
+      <div class="mq-tier" id="classe-moyenne">
+        <h3>Classe Moyenne</h3>
+        <p class="students">Jusqu'à 100 élèves</p>
+        <p class="price">98 $</p>
+        <p class="price-unit">CAD/an + taxes</p>
+        <p class="per-student"><strong>0,98 $</strong>/élève/an</p>
+        <ul>
+          <li>2-3 classes</li>
+          <li>Mode prof multi-classes</li>
+          <li>Support email prioritaire</li>
+        </ul>
+        <button class="mq-btn-primary stripe-btn" data-tier="classe_moyenne" style="width:100%;">Acheter — 98 $</button>
+      </div>
+
+      <div class="mq-tier featured" id="petite-ecole">
+        <h3>Petite École ★</h3>
+        <p class="students">Jusqu'à 300 élèves</p>
+        <p class="price">265 $</p>
+        <p class="price-unit">CAD/an + taxes</p>
+        <p class="per-student"><strong>0,88 $</strong>/élève/an</p>
+        <ul>
+          <li>~10 classes</li>
+          <li>Tableau direction</li>
+          <li>Support prioritaire</li>
+          <li>Formation 1h incluse</li>
+        </ul>
+        <button class="mq-btn-primary stripe-btn" data-tier="petite_ecole" style="width:100%;">Acheter — 265 $</button>
+      </div>
+
+      <div class="mq-tier" id="ecole-standard">
+        <h3>École Standard</h3>
+        <p class="students">Jusqu'à 500 élèves</p>
+        <p class="price">393 $</p>
+        <p class="price-unit">CAD/an + taxes</p>
+        <p class="per-student"><strong>0,79 $</strong>/élève/an</p>
+        <ul>
+          <li>École moyenne</li>
+          <li>Dashboard direction</li>
+          <li>Formation 2h incluse</li>
+          <li>Hotline support</li>
+        </ul>
+        <button class="mq-btn-primary stripe-btn" data-tier="ecole_standard" style="width:100%;">Acheter — 393 $</button>
+      </div>
+
+      <div class="mq-tier" id="grande-ecole">
+        <h3>Grande École</h3>
+        <p class="students">Jusqu'à 1 000 élèves</p>
+        <p class="price">650 $</p>
+        <p class="price-unit">CAD/an + taxes</p>
+        <p class="per-student"><strong>0,65 $</strong>/élève/an</p>
+        <ul>
+          <li>Toute l'école primaire</li>
+          <li>Dashboard CSS</li>
+          <li>Formation 4h incluse</li>
+          <li>Hotline 7j/7</li>
+        </ul>
+        <button class="mq-btn-primary stripe-btn" data-tier="grande_ecole" style="width:100%;">Acheter — 650 $</button>
+      </div>
+
+      <div class="mq-tier" id="mega-ecole">
+        <h3>Méga École</h3>
+        <p class="students">Jusqu'à 1 300 élèves</p>
+        <p class="price">716 $</p>
+        <p class="price-unit">CAD/an + taxes</p>
+        <p class="per-student"><strong>0,55 $</strong>/élève/an</p>
+        <ul>
+          <li>Grand complexe scolaire</li>
+          <li>Tout inclus Grande École</li>
+          <li>Consultant dédié</li>
+        </ul>
+        <button class="mq-btn-primary stripe-btn" data-tier="mega_ecole" style="width:100%;">Acheter — 716 $</button>
+      </div>
+
+      <div class="mq-tier" id="css">
+        <h3>Commission scolaire</h3>
+        <p class="students">&gt; 1 300 élèves</p>
+        <p class="price" style="font-size:1.75rem;">Sur devis</p>
+        <p class="price-unit">tarif personnalisé</p>
+        <ul>
+          <li>Déploiement complet</li>
+          <li>Formation équipe</li>
+          <li>SLA garanti</li>
+          <li>Intégration SSO</li>
+        </ul>
+        <a href="mailto:coresrdi@outlook.com?subject=Devis%20CSS%20Mathéquête" class="mq-btn-primary" style="width:100%;text-align:center;display:block;">Demander un devis</a>
+      </div>
+
+    </div>
+
+    <div style="background:var(--mq-card-bg);padding:2rem;border-radius:12px;margin-top:3rem;border-left:4px solid var(--mq-gold);">
+      <h3>⚠ Mode test — paiement non actif</h3>
+      <p style="margin-bottom:0;">Les boutons sont en mode <strong>test Stripe</strong>. Les SKU seront activés prochainement. Pour obtenir des codes maintenant : <a href="mailto:coresrdi@outlook.com">coresrdi@outlook.com</a>.</p>
+    </div>
+
+  </section>
+
+  <section class="mq-section" style="background:white;border-radius:16px;">
+    <h2>Comment ça fonctionne pour une école ?</h2>
+    <div class="mq-grid">
+      <article class="mq-card">
+        <span class="icon">1</span>
+        <h3>Vous choisissez votre palier</h3>
+        <p>Selon le nombre total d'élèves. <a href="calculateur.html">Utilisez le calculateur</a> pour trouver le meilleur tarif.</p>
+      </article>
+      <article class="mq-card">
+        <span class="icon">2</span>
+        <h3>Paiement Stripe sécurisé</h3>
+        <p>Carte de crédit, virement. Facture émise automatiquement. TPS + TVQ incluses au paiement.</p>
+      </article>
+      <article class="mq-card">
+        <span class="icon">3</span>
+        <h3>PDF de codes QR par courriel</h3>
+        <p>Vous recevez un PDF avec vos codes QR Crockford (format XXXX-XXXX-XXXX) dans les 2 minutes. Imprimez et distribuez.</p>
+      </article>
+      <article class="mq-card">
+        <span class="icon">4</span>
+        <h3>Activation par les élèves</h3>
+        <p>Chaque élève scanne son QR dans le jeu → Réglages → Activer un code. Activation en ligne, jeu ensuite hors-ligne disponible.</p>
+      </article>
+    </div>
+  </section>
+
+  <footer class="mq-footer">
+    <div class="mq-footer-content">
+      <div><h4>Mathéquête</h4><p style="color:#cbd5e1;">© 2026 CORES RDI</p></div>
+      <div>
+        <h4>Licences</h4>
+        <a href="achat.html">Individuelle</a>
+        <a href="ecole.html">École</a>
+        <a href="transferer-licence.html">Transférer</a>
+      </div>
+      <div>
+        <h4>Légal</h4>
+        <a href="https://coresrdi.github.io/mathequete-privacy/">Confidentialité</a>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <a href="support.html">Aide</a>
+        <a href="mailto:coresrdi@outlook.com">coresrdi@outlook.com</a>
+      </div>
+    </div>
+    <div class="mq-footer-bottom">Fait avec ★ au Québec — Paiement sécurisé par Stripe</div>
+  </footer>
+
+  <script>
+    const API_URL = 'https://mathequete-api.coresrdi.workers.dev';
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.stripe-btn').forEach(btn => {
+        btn.addEventListener('click', async function (e) {
+          e.preventDefault();
+          const tier = this.dataset.tier;
+          const originalText = this.textContent;
+          this.textContent = 'Redirection...';
+          this.disabled = true;
+          try {
+            const res = await fetch(API_URL + '/create-checkout-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tier })
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            if (!data.url) throw new Error('Aucune URL');
+            window.location.href = data.url;
+          } catch (err) {
+            alert('Paiement en ligne bientôt disponible. Écrivez à coresrdi@outlook.com');
+            this.textContent = originalText;
+            this.disabled = false;
+          }
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>

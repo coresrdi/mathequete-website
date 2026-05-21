@@ -10,7 +10,7 @@
   <meta property="og:title" content="Mathéquête — Le jeu de maths 77× moins cher que Prodigy">
   <meta property="og:description" content="Jeu math éducatif québécois. Licence Classe dès 35 $/an. Mode prof + génération IA d'exercices.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://mathequete.com/">
+  <meta property="og:url" content="https://mathequete.pages.dev/">
   <meta property="og:locale" content="fr_CA">
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
@@ -18,19 +18,18 @@
 </head>
 <body>
 
-  <!-- ===== Header ===== -->
   <header class="mq-header">
     <nav>
       <a href="/" class="mq-logo">★ Mathéquête</a>
       <ul class="mq-nav-links">
         <li><a href="calculateur.html">Calculateur</a></li>
         <li><a href="comparaison-prodigy.html">vs Prodigy</a></li>
-        <li><a href="achat.html">Acheter</a></li>
+        <li><a href="achat.html">Individuel</a></li>
+        <li><a href="ecole.html">École</a></li>
       </ul>
     </nav>
   </header>
 
-  <!-- ===== Hero ===== -->
   <section class="mq-hero">
     <h1>Le jeu de maths québécois pour les 6-12 ans</h1>
     <p class="lead">
@@ -38,12 +37,11 @@
       progression sur 8 continents. <strong>77× moins cher que Prodigy.</strong>
     </p>
     <div class="cta-group">
-      <a href="achat.html" class="mq-btn-primary">Acheter une licence classe</a>
-      <a href="calculateur.html" class="mq-btn-secondary">Calculer le prix pour mon école</a>
+      <a href="achat.html" class="mq-btn-primary">Acheter une licence</a>
+      <a href="ecole.html" class="mq-btn-secondary">Licences école</a>
     </div>
   </section>
 
-  <!-- ===== Value props ===== -->
   <section class="mq-section">
     <h2>Pourquoi choisir Mathéquête ?</h2>
     <div class="mq-grid">
@@ -72,10 +70,9 @@
         <span class="icon">⚙</span>
         <h3>Tarif honnête</h3>
         <p>
-          <strong>0,65 $ par élève par an</strong> pour 1000 élèves.
-          Aucune microtransaction agressive, aucun pop-up qui pousse
-          les enfants à supplier leurs parents. Une vraie licence,
-          point.
+          <strong>À partir de 1,99 $/an</strong> pour une licence individuelle.
+          Licences école dès 35 $/an. Aucune microtransaction agressive,
+          aucun pop-up qui pousse les enfants à supplier leurs parents.
         </p>
       </article>
 
@@ -91,11 +88,11 @@
 
       <article class="mq-card">
         <span class="icon">✔</span>
-        <h3>Offline-first Android</h3>
+        <h3>Android &amp; Windows PC</h3>
         <p>
-          Fonctionne sans Internet une fois installé. Idéal pour
-          écoles avec connexion limitée, voyages, ou parents qui
-          préfèrent contrôler le temps d'écran connecté.
+          Disponible sur Google Play (Android) et Microsoft Store (Windows).
+          Fonctionne sans Internet après l'activation initiale — vérification
+          périodique requise environ tous les 30 jours.
         </p>
       </article>
 
@@ -111,83 +108,74 @@
     </div>
   </section>
 
-  <!-- ===== Pricing teaser ===== -->
   <section class="mq-section" style="background: white; border-radius: 16px;">
-    <h2>Tarifs école et classe</h2>
+    <h2>Tarifs individuels &amp; école</h2>
     <p class="text-center" style="margin-bottom: 2rem; color: var(--mq-muted);">
-      Une licence annuelle couvre tous les élèves de la classe ou de l'école.
-      Renouvellement automatique optionnel.
+      Licences individuelles à partir de 1,99 $/an · Licences école dès 35 $/an pour 30 élèves.
     </p>
 
     <div class="mq-pricing-grid">
+
+      <div class="mq-tier">
+        <h3>Individuel Annuel</h3>
+        <p class="students">1 joueur</p>
+        <p class="price">1,99 $</p>
+        <p class="price-unit">CAD/an</p>
+        <ul>
+          <li>Code QR livré par courriel</li>
+          <li>1 appareil (transférable)</li>
+          <li>Renouvelable annuellement</li>
+        </ul>
+        <a href="achat.html" class="mq-btn-primary" style="width:100%; text-align:center;">Choisir</a>
+      </div>
+
+      <div class="mq-tier featured">
+        <h3>Individuel Permanent</h3>
+        <p class="students">1 joueur — à vie</p>
+        <p class="price">9,99 $</p>
+        <p class="price-unit">CAD une fois</p>
+        <ul>
+          <li>Code QR permanent</li>
+          <li>1 appareil (transférable 1 an)</li>
+          <li>Jamais de renouvellement</li>
+        </ul>
+        <a href="achat.html" class="mq-btn-primary" style="width:100%; text-align:center;">Choisir</a>
+      </div>
 
       <div class="mq-tier">
         <h3>Classe Petite</h3>
         <p class="students">Jusqu'à 30 élèves</p>
         <p class="price">35 $</p>
         <p class="price-unit">CAD/an</p>
-        <p class="per-student"><strong>1,17 $</strong>/élève/an</p>
         <ul>
-          <li>1 prof, 30 élèves</li>
           <li>Mode prof complet</li>
-          <li>Génération IA exercices</li>
+          <li>30 codes QR</li>
           <li>Support email</li>
         </ul>
-        <a href="achat.html#classe-petite" class="mq-btn-primary" style="width:100%; text-align:center;">Choisir</a>
-      </div>
-
-      <div class="mq-tier featured">
-        <h3>Petite École</h3>
-        <p class="students">Jusqu'à 300 élèves</p>
-        <p class="price">265 $</p>
-        <p class="price-unit">CAD/an</p>
-        <p class="per-student"><strong>0,88 $</strong>/élève/an</p>
-        <ul>
-          <li>~10 classes</li>
-          <li>Tableau direction</li>
-          <li>Génération IA illimitée</li>
-          <li>Support prioritaire</li>
-        </ul>
-        <a href="achat.html#petite-ecole" class="mq-btn-primary" style="width:100%; text-align:center;">Choisir</a>
-      </div>
-
-      <div class="mq-tier">
-        <h3>Grande École</h3>
-        <p class="students">Jusqu'à 1000 élèves</p>
-        <p class="price">650 $</p>
-        <p class="price-unit">CAD/an</p>
-        <p class="per-student"><strong>0,65 $</strong>/élève/an</p>
-        <ul>
-          <li>Toute l'école primaire</li>
-          <li>Dashboard CSS</li>
-          <li>Formation incluse</li>
-          <li>Hotline 7j/7</li>
-        </ul>
-        <a href="achat.html#grande-ecole" class="mq-btn-primary" style="width:100%; text-align:center;">Choisir</a>
+        <a href="ecole.html#classe-petite" class="mq-btn-primary" style="width:100%; text-align:center;">Choisir</a>
       </div>
 
     </div>
 
     <p class="text-center mt-2">
-      <a href="calculateur.html">→ Calculer un prix sur-mesure pour votre nombre exact d'élèves</a><br>
-      <a href="achat.html">→ Voir tous les paliers et acheter</a>
+      <a href="achat.html">→ Voir toutes les licences individuelles et Pack 5</a><br>
+      <a href="ecole.html">→ Voir tous les paliers école (35 $ à 716 $)</a><br>
+      <a href="calculateur.html">→ Calculer un prix sur-mesure</a>
     </p>
   </section>
 
-  <!-- ===== CTA final ===== -->
   <section class="mq-hero" style="margin-top: 4rem;">
     <h1>Prêt à essayer ?</h1>
     <p class="lead">
-      Téléchargez le jeu gratuit sur Google Play et débloquez l'Île 1
+      Téléchargez le jeu gratuit sur Google Play ou Microsoft Store et jouez l'Île 1
       de chaque continent. Aucune carte de crédit requise.
     </p>
     <div class="cta-group">
-      <a href="#" class="mq-btn-primary">★ Télécharger sur Google Play</a>
-      <a href="achat.html" class="mq-btn-secondary">Acheter une licence prof</a>
+      <a href="https://play.google.com/store/apps/details?id=com.coresrdi.mathequete" class="mq-btn-primary">★ Google Play</a>
+      <a href="https://apps.microsoft.com/detail/9P3VCV7PSXST" class="mq-btn-secondary">🪟 Microsoft Store</a>
     </div>
   </section>
 
-  <!-- ===== Footer ===== -->
   <footer class="mq-footer">
     <div class="mq-footer-content">
       <div>
@@ -198,19 +186,20 @@
         </p>
       </div>
       <div>
-        <h4>Produit</h4>
-        <a href="calculateur.html">Calculateur de prix</a>
-        <a href="achat.html">Acheter</a>
-        <a href="comparaison-prodigy.html">vs Prodigy</a>
+        <h4>Licences</h4>
+        <a href="achat.html">Individuelle</a>
+        <a href="ecole.html">École</a>
+        <a href="calculateur.html">Calculateur</a>
+        <a href="transferer-licence.html">Transférer</a>
       </div>
       <div>
         <h4>Légal</h4>
         <a href="https://coresrdi.github.io/mathequete-privacy/">Confidentialité</a>
-        <a href="mailto:contact@mathequete.com">Contact</a>
       </div>
       <div>
-        <h4>Contact</h4>
-        <a href="mailto:contact@mathequete.com">contact@mathequete.com</a>
+        <h4>Support</h4>
+        <a href="support.html">Aide</a>
+        <a href="mailto:coresrdi@outlook.com">coresrdi@outlook.com</a>
         <p style="color: #cbd5e1;">Québec, Canada</p>
       </div>
     </div>
