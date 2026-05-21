@@ -3,10 +3,8 @@
  * Toutes les bindings et secrets déclarés dans wrangler.toml.
  *
  * TARIFICATION mise à jour 20 mai 2026 — Registre v4.36 §4B (Jeff 18 mai 8h24 EDT)
- * Anciens prix : continent_1 = 499 ¢ (4,99 $), pack_5 = 1999 ¢ (19,99 $)
- * Nouveaux prix : voir table ci-dessous.
- * Deux nouveaux tiers ajoutés : solo_permanent (9,99 $) et pack_5_permanent (39,99 $).
- * Fenêtre de transfert DEC-45 : 6 mois → 1 an (pour tiers _permanent).
+ * Sprint S2 terminé 20 mai 2026 — stripe_price_id école branchés (price_id existaient déjà en livemode).
+ * Tous les tiers (individuels + école) ont maintenant leur stripe_price_id complet.
  */
 
 export interface Env {
@@ -14,8 +12,6 @@ export interface Env {
   DB: D1Database;
 
   // Sprint PB1 — R2 bucket pour stockage des PDFs de QR école (D5 + D8).
-  // À créer en prod : `wrangler r2 bucket create mathequete-pdfs`
-  // Binding configuré dans wrangler.toml section [[r2_buckets]].
   R2_PDFS: R2Bucket;
 
   // ===== Variables publiques (wrangler.toml [vars]) =====
@@ -34,43 +30,27 @@ export interface Env {
   // Sprint D1 — Master Encryption Key (32 octets hex = 64 caractères)
   // Génération : openssl rand -hex 32
   // Pose : npx wrangler secret put MASTER_ENCRYPTION_KEY
-  // Chiffre les DEK par prof et les secrets TOTP au repos.
   // ⚠️ NE JAMAIS PERDRE : sa perte rend illisibles toutes les données chiffrées.
   MASTER_ENCRYPTION_KEY: string;
 
-  // Sprint PB1 — Admin token pour endpoints /api/admin/* (D8 régénération PDF
-  // manuel pour gros forfaits). À poser : `wrangler secret put ADMIN_API_TOKEN`.
-  // Comparaison constant-time côté endpoint.
+  // Sprint PB1 — Admin token pour endpoints /api/admin/*
   ADMIN_API_TOKEN: string;
 }
 
 /* Paliers tarifaires côté serveur — DOIT correspondre au front
  * (Plan v3.1 §3.3 + Sprint S3.C + PB1 D4). Prix en cents CAD HT (avant taxes Québec).
  *
- * nb_codes   : nombre de codes HMAC `licences` émis par achat (1 par défaut,
- *              5 pour Pack 5). Chaque code HMAC est indépendant.
- *              Pour les paliers école, ce champ reste à 1 — un seul code
- *              HMAC « licence-parent » sert d'identité Stripe et porte
- *              les N clés QR via la table `licences_qr`.
- * nb_cles_qr : nombre de clés QR Crockford Base32 (12 chars) distinctes
- *              générées dans `licences_qr` (Sprint PB1, décision D4).
- *              Égale à `nb_eleves` pour les paliers école, et à `nb_codes`
- *              pour les paliers individuels (1 ou 5).
- *              1 QR = 1 licence = 1 continent = 1 appareil.
- * nb_eleves  : nombre maximum d'appareils actifs PAR CODE HMAC.
- *              (Pour les paliers école, c'est le nombre d'élèves du palier ;
- *              désormais aussi le nombre de clés QR émises.)
- * stripe_price_id : Price ID Stripe actif pour ce palier (livemode).
- *              Utilisé par le webhook checkout.session.completed pour identifier
- *              le palier et générer les QR + PDF correspondants.
- *              IMPORTANT : le price_id 499 ¢ (price_1TX3EUAtSQMHh0M879yhFTt4)
- *              est désactivé côté UI — il reste en DB pour les achats historiques
- *              mais ne doit plus être proposé sur le site.
+ * nb_codes        : codes HMAC `licences` émis par achat (1 ou 5).
+ * nb_cles_qr      : QR Crockford Base32 12 chars distincts dans `licences_qr`.
+ * nb_eleves       : appareils actifs max PAR CODE HMAC.
+ * stripe_price_id : Price ID Stripe livemode — identifie le palier dans le webhook
+ *                   checkout.session.completed.
+ * duree           : 'annuel' = 1 an après activation (date_expiration à gérer)
+ *                   'permanent' = à vie (expire_le = 0 dans licences_qr)
+ *                   'ecole' = année scolaire
  *
- * TYPE de durée :
- *   'annuel'    = 1 an après activation (EntitlementManager doit vérifier date_expiration)
- *   'permanent' = à vie (expire_le = 0 dans licences_qr)
- *   'ecole'     = durée année scolaire (gérée par date_expiration du forfait_ecole)
+ * ANCIEN price_id désactivé UI (conserver pour achats historiques) :
+ *   price_1TX3EUAtSQMHh0M879yhFTt4  (one_time, 499 ¢, continent_1 à 4,99 $)
  */
 export const PRIX_TIERS_CENTS: Record<string, {
   prix_cents: number;
@@ -81,134 +61,144 @@ export const PRIX_TIERS_CENTS: Record<string, {
   stripe_price_id: string;
   duree: 'annuel' | 'permanent' | 'ecole';
 }> = {
-  // -------------------------------------------------------------------------
-  // Tiers individuels — Continent 1
-  // -------------------------------------------------------------------------
 
-  // 1,99 $ CAD/an — abonnement annuel renouvelable
-  // Stripe : product prod_UW5Prr6X8LYJGX (Mathéquête — Continent 1)
-  // Nouveau price_id créé 20 mai 2026 (remplace price_1TX3EUAtSQMHh0M879yhFTt4 à 4,99 $)
+  // ---- Individuels --------------------------------------------------------
+
+  // 1,99 $/an — abonnement annuel (recurring year)
+  // product prod_UW5Prr6X8LYJGX — prix créé 20 mai 2026
   'continent_1': {
-    prix_cents:     199,
-    nb_eleves:      1,
-    nb_codes:       1,
-    nb_cles_qr:     1,
-    nom:            'Continent 1 — Annuel solo',
+    prix_cents:      199,
+    nb_eleves:       1,
+    nb_codes:        1,
+    nb_cles_qr:      1,
+    nom:             'Continent 1 — Annuel solo',
     stripe_price_id: 'price_1TZLUzAtSQMHh0M8k0h1Zmw8',
-    duree:          'annuel',
+    duree:           'annuel',
   },
 
-  // 7,99 $ CAD/an — abonnement annuel, 5 codes
-  // Stripe : product prod_UYSQxgqhFdLW5H (Mathéquête — Pack 5 Annuel)
+  // 7,99 $/an — abonnement annuel, 5 codes (recurring year)
+  // product prod_UYSQxgqhFdLW5H — créé 20 mai 2026
   'pack_5_continent_1': {
-    prix_cents:     799,
-    nb_eleves:      1,
-    nb_codes:       5,
-    nb_cles_qr:     5,
-    nom:            'Continent 1 — Pack 5 Annuel',
+    prix_cents:      799,
+    nb_eleves:       1,
+    nb_codes:        5,
+    nb_cles_qr:      5,
+    nom:             'Continent 1 — Pack 5 Annuel',
     stripe_price_id: 'price_1TZLXRAtSQMHh0M8U6ZrKR1X',
-    duree:          'annuel',
+    duree:           'annuel',
   },
 
-  // 9,99 $ CAD — achat unique permanent (one-time)
-  // Stripe : product prod_UYSSaFjbHc2ggu (Mathéquête — Permanent Solo)
-  // DEC-45 : fenêtre de transfert 1 an (anciennement 6 mois — voir TODO sprint séparé)
+  // 9,99 $ — achat unique permanent (one_time)
+  // product prod_UYSSaFjbHc2ggu — créé 20 mai 2026
+  // DEC-45 : fenêtre transfert 1 an
   'solo_permanent': {
-    prix_cents:     999,
-    nb_eleves:      1,
-    nb_codes:       1,
-    nb_cles_qr:     1,
-    nom:            'Continent 1 — Permanent solo',
+    prix_cents:      999,
+    nb_eleves:       1,
+    nb_codes:        1,
+    nb_cles_qr:      1,
+    nom:             'Continent 1 — Permanent solo',
     stripe_price_id: 'price_1TZLXgAtSQMHh0M8ZROkEC9k',
-    duree:          'permanent',
+    duree:           'permanent',
   },
 
-  // 39,99 $ CAD — achat unique permanent (one-time), 5 codes
-  // Stripe : product prod_UYSSgaiJ01F2sU (Mathéquête — Pack 5 Permanent)
-  // DEC-45 : fenêtre de transfert 1 an par code
+  // 39,99 $ — achat unique permanent 5 codes (one_time)
+  // product prod_UYSSgaiJ01F2sU — créé 20 mai 2026
+  // DEC-45 : fenêtre transfert 1 an par code
   'pack_5_permanent': {
-    prix_cents:     3999,
-    nb_eleves:      1,
-    nb_codes:       5,
-    nb_cles_qr:     5,
-    nom:            'Continent 1 — Pack 5 Permanent',
+    prix_cents:      3999,
+    nb_eleves:       1,
+    nb_codes:        5,
+    nb_cles_qr:      5,
+    nom:             'Continent 1 — Pack 5 Permanent',
     stripe_price_id: 'price_1TZLXmAtSQMHh0M8d0y6tzgT',
-    duree:          'permanent',
+    duree:           'permanent',
   },
 
-  // -------------------------------------------------------------------------
-  // Tiers école — Licences année scolaire (prix et stripe_price_id inchangés)
-  // TODO sprint S2 : ajouter les stripe_price_id école une fois créés dans Stripe
-  // -------------------------------------------------------------------------
+  // ---- École (année scolaire) — price_id existaient déjà en livemode --------
+
+  // 35,00 $ — 30 QR — product prod_UW5PcDk5PtVnLV
   'classe_petite': {
-    prix_cents:     3500,
-    nb_eleves:      30,
-    nb_codes:       1,
-    nb_cles_qr:     30,
-    nom:            'Classe Petite',
-    stripe_price_id: '',  // TODO sprint S2
-    duree:          'ecole',
+    prix_cents:      3500,
+    nb_eleves:       30,
+    nb_codes:        1,
+    nb_cles_qr:      30,
+    nom:             'Classe Petite',
+    stripe_price_id: 'price_1TX3F7AtSQMHh0M8b06wRCb0',
+    duree:           'ecole',
   },
+
+  // 98,00 $ — 100 QR — product prod_UW5Qz9NfHwilbS
   'classe_moyenne': {
-    prix_cents:     9800,
-    nb_eleves:      100,
-    nb_codes:       1,
-    nb_cles_qr:     100,
-    nom:            'Classe Moyenne',
-    stripe_price_id: '',  // TODO sprint S2
-    duree:          'ecole',
+    prix_cents:      9800,
+    nb_eleves:       100,
+    nb_codes:        1,
+    nb_cles_qr:      100,
+    nom:             'Classe Moyenne',
+    stripe_price_id: 'price_1TX3FoAtSQMHh0M8tsnTlzeh',
+    duree:           'ecole',
   },
+
+  // 265,00 $ — 300 QR — product prod_UW5Roqj2HYIMZb
   'petite_ecole': {
-    prix_cents:     26500,
-    nb_eleves:      300,
-    nb_codes:       1,
-    nb_cles_qr:     300,
-    nom:            'Petite École',
-    stripe_price_id: '',  // TODO sprint S2
-    duree:          'ecole',
+    prix_cents:      26500,
+    nb_eleves:       300,
+    nb_codes:        1,
+    nb_cles_qr:      300,
+    nom:             'Petite École',
+    stripe_price_id: 'price_1TX3GVAtSQMHh0M8c7ghO7lF',
+    duree:           'ecole',
   },
+
+  // 393,00 $ — 500 QR — product prod_UW5S8UTm2EC8Dq
   'ecole_standard': {
-    prix_cents:     39300,
-    nb_eleves:      500,
-    nb_codes:       1,
-    nb_cles_qr:     500,
-    nom:            'École Standard',
-    stripe_price_id: '',  // TODO sprint S2
-    duree:          'ecole',
+    prix_cents:      39300,
+    nb_eleves:       500,
+    nb_codes:        1,
+    nb_cles_qr:      500,
+    nom:             'École Standard',
+    stripe_price_id: 'price_1TX3H8AtSQMHh0M8ZiSMVv2c',
+    duree:           'ecole',
   },
+
+  // 650,00 $ — 1 000 QR — product prod_UW5SvIvozIdmRt
   'grande_ecole': {
-    prix_cents:     65000,
-    nb_eleves:      1000,
-    nb_codes:       1,
-    nb_cles_qr:     1000,
-    nom:            'Grande École',
-    stripe_price_id: '',  // TODO sprint S2
-    duree:          'ecole',
+    prix_cents:      65000,
+    nb_eleves:       1000,
+    nb_codes:        1,
+    nb_cles_qr:      1000,
+    nom:             'Grande École',
+    stripe_price_id: 'price_1TX3HcAtSQMHh0M8hh5dtrEr',
+    duree:           'ecole',
   },
+
+  // 716,00 $ — 1 300 QR — product prod_UW5TXSfHTVvrvp
   'mega_ecole': {
-    prix_cents:     71600,
-    nb_eleves:      1300,
-    nb_codes:       1,
-    nb_cles_qr:     1300,
-    nom:            'Méga École',
-    stripe_price_id: '',  // TODO sprint S2
-    duree:          'ecole',
+    prix_cents:      71600,
+    nb_eleves:       1300,
+    nb_codes:        1,
+    nb_cles_qr:      1300,
+    nom:             'Méga École',
+    stripe_price_id: 'price_1TX3IcAtSQMHh0M8XgfyfFdB',
+    duree:           'ecole',
   },
 };
 
 /**
- * STRIPE PRICE IDs DE RÉFÉRENCE (livemode) — mis à jour 20 mai 2026
+ * STRIPE PRICE IDs DE RÉFÉRENCE COMPLÈTE (livemode) — Sprint S2 terminé 20 mai 2026
  *
- * | Tier                | Price ID                              | Montant   | Type        |
- * |---------------------|---------------------------------------|-----------|-------------|
- * | continent_1         | price_1TZLUzAtSQMHh0M8k0h1Zmw8        | 1,99 $/an | recurring   |
- * | pack_5_continent_1  | price_1TZLXRAtSQMHh0M8U6ZrKR1X        | 7,99 $/an | recurring   |
- * | solo_permanent      | price_1TZLXgAtSQMHh0M8ZROkEC9k        | 9,99 $    | one_time    |
- * | pack_5_permanent    | price_1TZLXmAtSQMHh0M8d0y6tzgT        | 39,99 $   | one_time    |
+ * | Tier                | Price ID                              | Montant     | Type        |
+ * |---------------------|---------------------------------------|-------------|-------------|
+ * | continent_1         | price_1TZLUzAtSQMHh0M8k0h1Zmw8        | 1,99 $/an   | recurring   |
+ * | pack_5_continent_1  | price_1TZLXRAtSQMHh0M8U6ZrKR1X        | 7,99 $/an   | recurring   |
+ * | solo_permanent      | price_1TZLXgAtSQMHh0M8ZROkEC9k        | 9,99 $      | one_time    |
+ * | pack_5_permanent    | price_1TZLXmAtSQMHh0M8d0y6tzgT        | 39,99 $     | one_time    |
+ * | classe_petite       | price_1TX3F7AtSQMHh0M8b06wRCb0        | 35,00 $     | one_time    |
+ * | classe_moyenne      | price_1TX3FoAtSQMHh0M8tsnTlzeh        | 98,00 $     | one_time    |
+ * | petite_ecole        | price_1TX3GVAtSQMHh0M8c7ghO7lF        | 265,00 $    | one_time    |
+ * | ecole_standard      | price_1TX3H8AtSQMHh0M8ZiSMVv2c        | 393,00 $    | one_time    |
+ * | grande_ecole        | price_1TX3HcAtSQMHh0M8hh5dtrEr        | 650,00 $    | one_time    |
+ * | mega_ecole          | price_1TX3IcAtSQMHh0M8XgfyfFdB        | 716,00 $    | one_time    |
  *
- * ANCIEN price_id à 4,99 $ (désactivé UI, conserver pour achats historiques) :
- *   price_1TX3EUAtSQMHh0M879yhFTt4  (one_time, 499 cents, prod_UW5Prr6X8LYJGX)
- *
- * Pour les tiers école : stripe_price_id vide jusqu'au sprint S2
- * où les produits et prix Stripe école seront créés et liés.
+ * ANCIEN price_id désactivé UI — ne plus proposer sur le site :
+ *   price_1TX3EUAtSQMHh0M879yhFTt4  (one_time, 499 ¢, continent_1 à 4,99 $)
  */
