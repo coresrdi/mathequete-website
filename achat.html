@@ -3,258 +3,232 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acheter une licence individuelle — Mathéquête</title>
-  <meta name="description" content="Licences individuelles Mathéquête : 1,99$/an ou 9,99$ permanent. Pack 5 codes : 7,99$/an ou 39,99$ permanent. Activation par code QR sécurisé.">
+  <title>Acheter Mathéquête — Individuelle, Pack 5, écoles</title>
+  <meta name="description" content="Licences Mathéquête : 1,99 $/an annuel, 9,99 $ perpétuel. Pack 5 : 7,99 $/an ou 39,99 $. Paiement sécurisé Stripe.">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-  <link rel="stylesheet" href="assets/css/styles.css">
-  <script src="https://js.stripe.com/v3/"></script>
-  <style>
-    .tabs { display:flex; gap:1rem; margin-bottom:2rem; justify-content:center; }
-    .tab-btn { padding:.75rem 2rem; border-radius:8px; border:2px solid var(--mq-gold,#f59e0b); background:transparent; color:var(--mq-gold,#f59e0b); font-size:1rem; cursor:pointer; transition:.2s; }
-    .tab-btn.active { background:var(--mq-gold,#f59e0b); color:#1e293b; font-weight:700; }
-    .tab-panel { display:none; }
-    .tab-panel.active { display:block; }
-    .badge-annuel { background:#2563eb; color:#fff; font-size:.75rem; padding:.2rem .6rem; border-radius:20px; vertical-align:middle; margin-left:.5rem; }
-    .badge-perm { background:#16a34a; color:#fff; font-size:.75rem; padding:.2rem .6rem; border-radius:20px; vertical-align:middle; margin-left:.5rem; }
-    .price-duo { display:flex; gap:1rem; margin-bottom:1.5rem; }
-    .price-card { flex:1; border:2px solid #334155; border-radius:12px; padding:1.25rem; text-align:center; }
-    .price-card.featured-dur { border-color:var(--mq-gold,#f59e0b); }
-    .price-card .price { font-size:2rem; font-weight:800; color:#f1f5f9; margin:.5rem 0 0; }
-    .price-card .price-unit { color:#94a3b8; font-size:.85rem; }
-    .price-card .tag { font-size:.8rem; margin-bottom:.5rem; }
-    .note-activation { background:#1e293b; border-left:4px solid #2563eb; padding:1.25rem 1.5rem; border-radius:8px; margin-top:2.5rem; }
-    .sandbox-note { background:#1e293b; border-left:4px solid var(--mq-gold,#f59e0b); padding:1.25rem 1.5rem; border-radius:8px; margin-top:2rem; }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="js/checkout.js"></script>
 </head>
 <body>
 
-  <header class="mq-header">
-    <nav>
-      <a href="/" class="mq-logo">★ Mathéquête</a>
-      <ul class="mq-nav-links">
-        <li><a href="index.html">Accueil</a></li>
-        <li><a href="ecole.html">Licences école</a></li>
-        <li><a href="calculateur.html">Calculateur</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <section class="mq-section">
-    <h2>Licences individuelles et familiales</h2>
-    <p class="text-center" style="color:var(--mq-muted);margin-bottom:2rem;">
-      Un code QR livré par courriel. S'active sur 1 appareil, transférable (fenêtre 1 an).<br>
-      TPS et TVQ calculées au paiement Stripe.
-    </p>
-
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('solo')">1 licence</button>
-      <button class="tab-btn" onclick="switchTab('pack5')">Pack 5 licences</button>
+<nav class="site-nav">
+  <div class="container">
+    <a href="index.html" class="logo" aria-label="Accueil Mathéquête">
+      <img src="assets/logo.svg" alt="Mathéquête" height="44">
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="achat.html" style="color: var(--aventure-or); font-weight: 700;">Acheter</a>
+      <a href="enseignants.html">Enseignants</a>
+      <a href="guide-prof.html">Guide école</a>
+      <a href="applications.html">Applications</a>
+      <a href="iles-bonus.html">Générer une île</a>
+      <a href="template-eleves.html">Template élèves</a>
+      <a href="support.html">Support</a>
     </div>
+  </div>
+</nav>
 
-    <!-- ===== ONGLET 1 LICENCE ===== -->
-    <div id="tab-solo" class="tab-panel active">
-      <div class="price-duo">
+<section class="section" x-data="checkoutApp()">
 
-        <div class="price-card">
-          <p class="tag"><span class="badge-annuel">ANNUEL</span> Renouvelable</p>
-          <p class="price">1,99 $</p>
-          <p class="price-unit">CAD/an + taxes</p>
-          <p style="color:#94a3b8;font-size:.9rem;margin-top:.75rem;">
-            Accès 1 an aux îles premium du Continent 1.<br>
-            Vérification périodique requise (~30 jours).
-          </p>
-          <!-- TODO: remplacer PRICE_ID_ANNUEL_SOLO par l'ID Stripe réel après création du SKU -->
-          <button class="mq-btn-primary stripe-btn" data-price="PRICE_ID_ANNUEL_SOLO" style="width:100%;margin-top:1rem;">
-            Acheter — 1,99 $/an
-          </button>
+  <h1 class="section-titre">Choisis ta licence</h1>
+  <p class="section-sous-titre">Une seule étape : choisis le forfait qui te convient, paie en toute sécurité avec Stripe, reçois ton code par courriel.</p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab-btn" :class="{ active: tab === 'individuelle' }" @click="tab = 'individuelle'; error = ''" role="tab" :aria-selected="tab === 'individuelle'">👤 Licence individuelle</button>
+    <button class="tab-btn" :class="{ active: tab === 'pack5' }" @click="tab = 'pack5'; error = ''" role="tab" :aria-selected="tab === 'pack5'">👨‍👩‍👧 Pack 5</button>
+    <button class="tab-btn" :class="{ active: tab === 'ecole' }" @click="tab = 'ecole'; error = ''" role="tab" :aria-selected="tab === 'ecole'">🏫 Pour une école</button>
+  </div>
+
+  <div class="toast-erreur" x-show="error" x-transition x-cloak>
+    <span x-text="error"></span>
+  </div>
+
+  <!-- ===== INDIVIDUELLE ===== -->
+  <div x-show="tab === 'individuelle'" x-transition>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 680px; margin: 0 auto;">
+
+      <!-- Annuelle -->
+      <article class="sku-carte" style="position: relative;">
+        <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--aventure-bleu, #2A5FA5); color: white; padding: 0.25rem 0.8rem; border-radius: 0.4rem; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">🔄 La plus populaire</div>
+        <h3>Continent 1 — Annuelle</h3>
+        <div class="sku-prix">1,99&nbsp;$ <small style="font-size: 0.9rem;">CAD / an</small></div>
+        <div class="sku-taxes">+ TPS et TVQ calculées au paiement</div>
+        <div class="sku-details">
+          <p><strong>1 licence &mdash; 1 appareil à la fois</strong> (Android, Windows, ou bientôt iOS).<br>
+          Accès illimité au Continent 1 pendant 1&nbsp;an. Renouvelable chaque année. Transférable sur un nouvel appareil au besoin.</p>
         </div>
+        <button class="btn-aventure" @click="acheter('continent_1')" :disabled="loading">
+          <template x-if="loading && loadingTier === 'continent_1'"><span class="spinner"></span></template>
+          <span x-text="(loading && loadingTier === 'continent_1') ? 'Redirection…' : 'Acheter — 1,99 $/an'"></span>
+        </button>
+      </article>
 
-        <div class="price-card featured-dur">
-          <p class="tag"><span class="badge-perm">PERMANENT</span> À vie</p>
-          <p class="price">9,99 $</p>
-          <p class="price-unit">CAD une fois + taxes</p>
-          <p style="color:#94a3b8;font-size:.9rem;margin-top:.75rem;">
-            Accès permanent aux îles premium.<br>
-            Vérification périodique requise (~30 jours).
-          </p>
-          <!-- TODO: remplacer PRICE_ID_PERM_SOLO par l'ID Stripe réel après création du SKU -->
-          <button class="mq-btn-primary stripe-btn" data-price="PRICE_ID_PERM_SOLO" style="width:100%;margin-top:1rem;">
-            Acheter — 9,99 $
-          </button>
+      <!-- Perpétuelle — SKU: solo_permanent -->
+      <article class="sku-carte">
+        <h3>Continent 1 — Perpétuelle</h3>
+        <div class="sku-prix">9,99&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-taxes">+ TPS et TVQ calculées au paiement</div>
+        <div class="sku-details">
+          <p><strong>1 licence permanente &mdash; vie de l&rsquo;appareil</strong>.<br>
+          Accès illimité au Continent 1 sans date d’expiration. <em>Transférable une fois avant la première année.</em></p>
         </div>
+        <button class="btn-aventure" @click="acheter('solo_permanent')" :disabled="loading">
+          <template x-if="loading && loadingTier === 'solo_permanent'"><span class="spinner"></span></template>
+          <span x-text="(loading && loadingTier === 'solo_permanent') ? 'Redirection…' : 'Acheter — 9,99 $'"></span>
+        </button>
+      </article>
 
-      </div>
-
-      <ul style="color:#94a3b8;font-size:.9rem;padding-left:1.25rem;">
-        <li>1 code QR Crockford (format XXXX-XXXX-XXXX) livré par courriel en 2 minutes</li>
-        <li>S'active sur 1 appareil Android, Windows PC (MS Store)</li>
-        <li>Transférable sur un nouvel appareil dans une fenêtre de 1 an</li>
-        <li>Fonctionne hors-ligne après activation initiale (connexion requise ~tous les 30 jours)</li>
-        <li>Pour plusieurs enfants → voir <a href="#tab-pack5" onclick="switchTab('pack5')">Pack 5</a></li>
-      </ul>
     </div>
+  </div>
 
-    <!-- ===== ONGLET PACK 5 ===== -->
-    <div id="tab-pack5" class="tab-panel">
-      <div class="price-duo">
+  <!-- ===== PACK 5 ===== -->
+  <div x-show="tab === 'pack5'" x-transition x-cloak>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 680px; margin: 0 auto;">
 
-        <div class="price-card">
-          <p class="tag"><span class="badge-annuel">ANNUEL</span> Renouvelable</p>
-          <p class="price">7,99 $</p>
-          <p class="price-unit">CAD/an + taxes — 5 codes</p>
-          <p style="color:#94a3b8;font-size:.9rem;margin-top:.75rem;">
-            5 codes QR indépendants valides 1 an chacun.<br>
-            Idéal pour une fratrie ou un groupe.
-          </p>
-          <!-- TODO: remplacer PRICE_ID_ANNUEL_PACK5 par l'ID Stripe réel après création du SKU -->
-          <button class="mq-btn-primary stripe-btn" data-price="PRICE_ID_ANNUEL_PACK5" style="width:100%;margin-top:1rem;">
-            Acheter — 7,99 $/an
-          </button>
+      <!-- Pack 5 annuel -->
+      <article class="sku-carte" style="position: relative;">
+        <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--aventure-bleu, #2A5FA5); color: white; padding: 0.25rem 0.8rem; border-radius: 0.4rem; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">🔄 Annuel</div>
+        <h3>Pack 5 — Annuel</h3>
+        <div class="sku-prix">7,99&nbsp;$ <small style="font-size: 0.9rem;">CAD / an</small></div>
+        <div class="sku-taxes">+ TPS et TVQ calculées au paiement</div>
+        <div class="sku-details">
+          <p><strong>5 codes annuels distincts</strong>, chacun activable sur 1 appareil.<br>
+          Idéal pour la fratrie ou les cousins. Économie de 2,00 $ par rapport à 5 licences individuelles.</p>
+          <p style="font-size: 0.85rem; opacity: 0.75;">~1,60 $/personne/an</p>
         </div>
+        <button class="btn-aventure" @click="acheter('pack_5_continent_1')" :disabled="loading">
+          <template x-if="loading && loadingTier === 'pack_5_continent_1'"><span class="spinner"></span></template>
+          <span x-text="(loading && loadingTier === 'pack_5_continent_1') ? 'Redirection…' : 'Acheter — 7,99 $/an'"></span>
+        </button>
+      </article>
 
-        <div class="price-card featured-dur">
-          <p class="tag"><span class="badge-perm">PERMANENT</span> À vie</p>
-          <p class="price">39,99 $</p>
-          <p class="price-unit">CAD une fois + taxes — 5 codes</p>
-          <p style="color:#94a3b8;font-size:.9rem;margin-top:.75rem;">
-            5 codes QR permanents, un par enfant.<br>
-            Chaque code transférable dans la fenêtre de 1 an.
-          </p>
-          <!-- TODO: remplacer PRICE_ID_PERM_PACK5 par l'ID Stripe réel après création du SKU -->
-          <button class="mq-btn-primary stripe-btn" data-price="PRICE_ID_PERM_PACK5" style="width:100%;margin-top:1rem;">
-            Acheter — 39,99 $
-          </button>
+      <!-- Pack 5 perpétuel — SKU: pack_5_permanent -->
+      <article class="sku-carte">
+        <h3>Pack 5 — Perpétuel</h3>
+        <div class="sku-prix">39,99&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-taxes">+ TPS et TVQ calculées au paiement</div>
+        <div class="sku-details">
+          <p><strong>5 codes permanents distincts</strong> &mdash; vie de l&rsquo;appareil.<br>
+          Chaque code est transférable une fois avant la première année.</p>
+          <p style="font-size: 0.85rem; opacity: 0.75;">~8,00 $/personne</p>
         </div>
+        <button class="btn-aventure" @click="acheter('pack_5_permanent')" :disabled="loading">
+          <template x-if="loading && loadingTier === 'pack_5_permanent'"><span class="spinner"></span></template>
+          <span x-text="(loading && loadingTier === 'pack_5_permanent') ? 'Redirection…' : 'Acheter — 39,99 $'"></span>
+        </button>
+      </article>
 
-      </div>
-
-      <ul style="color:#94a3b8;font-size:.9rem;padding-left:1.25rem;">
-        <li>5 codes QR distincts, chacun pour 1 appareil</li>
-        <li>Codes livrés ensemble dans le même courriel</li>
-        <li>Chaque code est indépendant — transfert d'appareil possible par code</li>
-        <li>Pour une école ou une classe → voir <a href="ecole.html">Licences école</a></li>
-      </ul>
     </div>
+  </div>
 
-    <div class="note-activation">
-      <h3 style="margin-top:0;">⚙ Comment activer votre code QR</h3>
-      <ol style="margin-bottom:0;">
-        <li><strong>Paiement Stripe</strong> — quelques secondes, carte de crédit</li>
-        <li><strong>Courriel reçu</strong> — votre code QR Crockford (XXXX-XXXX-XXXX) dans les 2 minutes</li>
-        <li><strong>Dans le jeu</strong> — Réglages → <em>Activer un code de licence</em> → scanner ou saisir le code</li>
-        <li><strong>Activation en ligne</strong> — le jeu contacte notre serveur pour lier le code à votre appareil</li>
-        <li><strong>Jouer hors-ligne</strong> — après activation, une vérification est requise environ tous les 30 jours</li>
-      </ol>
+  <!-- ===== ÉCOLE ===== -->
+  <div x-show="tab === 'ecole'" x-transition x-cloak>
+    <div class="sku-grid">
+      <article class="sku-carte">
+        <h3>Classe Petite</h3>
+        <div class="sku-prix">35&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-taxes">+ TPS et TVQ au paiement</div>
+        <div class="sku-details"><p>Jusqu’à <strong>30 élèves</strong>.<br>Idéal pour une classe unique.</p></div>
+        <button class="btn-aventure" @click="acheter('classe_petite')" :disabled="loading">
+          <template x-if="loading && loadingTier === 'classe_petite'"><span class="spinner"></span></template>
+          <span x-text="(loading && loadingTier === 'classe_petite') ? 'Redirection…' : 'Acheter'"></span>
+        </button>
+      </article>
+      <article class="sku-carte">
+        <h3>Classe Moyenne</h3>
+        <div class="sku-prix">98&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-taxes">+ TPS et TVQ au paiement</div>
+        <div class="sku-details"><p>Jusqu’à <strong>100 élèves</strong>.<br>Pour 3–4 classes.</p></div>
+        <button class="btn-aventure" @click="acheter('classe_moyenne')" :disabled="loading">
+          <template x-if="loading && loadingTier === 'classe_moyenne'"><span class="spinner"></span></template>
+          <span x-text="(loading && loadingTier === 'classe_moyenne') ? 'Redirection…' : 'Acheter'"></span>
+        </button>
+      </article>
+      <article class="sku-carte">
+        <h3>Petite École</h3>
+        <div class="sku-prix">265&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-taxes">+ TPS et TVQ au paiement</div>
+        <div class="sku-details"><p>Jusqu’à <strong>300 élèves</strong>.<br>Petite école primaire complète.</p></div>
+        <button class="btn-aventure" @click="acheter('petite_ecole')" :disabled="loading">
+          <template x-if="loading && loadingTier === 'petite_ecole'"><span class="spinner"></span></template>
+          <span x-text="(loading && loadingTier === 'petite_ecole') ? 'Redirection…' : 'Acheter'"></span>
+        </button>
+      </article>
+      <article class="sku-carte" style="border-color: var(--aventure-or); position: relative;">
+        <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--aventure-or); color: white; padding: 0.25rem 0.8rem; border-radius: 0.4rem; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">★ Le plus populaire</div>
+        <h3>École Standard</h3>
+        <div class="sku-prix">393&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-taxes">+ TPS et TVQ au paiement</div>
+        <div class="sku-details"><p>Jusqu’à <strong>500 élèves</strong>.<br>Le forfait le plus populaire.</p></div>
+        <button class="btn-aventure" @click="acheter('ecole_standard')" :disabled="loading">
+          <template x-if="loading && loadingTier === 'ecole_standard'"><span class="spinner"></span></template>
+          <span x-text="(loading && loadingTier === 'ecole_standard') ? 'Redirection…' : 'Acheter'"></span>
+        </button>
+      </article>
+      <article class="sku-carte">
+        <h3>Grande École</h3>
+        <div class="sku-prix">650&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-taxes">+ TPS et TVQ au paiement</div>
+        <div class="sku-details"><p>Jusqu’à <strong>1 000 élèves</strong>.<br>Grand établissement primaire.</p></div>
+        <button class="btn-aventure" @click="acheter('grande_ecole')" :disabled="loading">
+          <template x-if="loading && loadingTier === 'grande_ecole'"><span class="spinner"></span></template>
+          <span x-text="(loading && loadingTier === 'grande_ecole') ? 'Redirection…' : 'Acheter'"></span>
+        </button>
+      </article>
+      <article class="sku-carte">
+        <h3>Méga École</h3>
+        <div class="sku-prix">716&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-taxes">+ TPS et TVQ au paiement</div>
+        <div class="sku-details"><p>Jusqu’à <strong>1 300 élèves</strong>.<br>Centre de services scolaire.</p></div>
+        <button class="btn-aventure" @click="acheter('mega_ecole')" :disabled="loading">
+          <template x-if="loading && loadingTier === 'mega_ecole'"><span class="spinner"></span></template>
+          <span x-text="(loading && loadingTier === 'mega_ecole') ? 'Redirection…' : 'Acheter'"></span>
+        </button>
+      </article>
     </div>
+    <p class="note-paiement">Besoin de plus de 1 300 licences ? <a href="mailto:coresrdi@gmail.com">Demande un devis personnalisé</a>.</p>
+  </div>
 
-    <div class="sandbox-note">
-      <h3 style="margin-top:0;">⚠ Mode test — paiement non actif</h3>
-      <p style="margin-bottom:0;">
-        Les boutons d'achat sont en mode <strong>test Stripe</strong>. Les SKU de prix seront activés prochainement.
-        Pour obtenir un code maintenant, écrivez à
-        <a href="mailto:coresrdi@outlook.com">coresrdi@outlook.com</a>.
+  <p class="note-paiement">
+    🔒 Paiement sécurisé par Stripe. Taxes (TPS 5 %, TVQ 9,975 %) calculées automatiquement au paiement.<br>
+    Code(s) livré(s) par courriel dans les minutes suivant le paiement.
+  </p>
+
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>
+      <h4>Mathéquête</h4>
+      <p>Un jeu éducatif québécois pour apprendre les maths en s'amusant. Conçu par <strong>CORES RDI</strong>.</p>
+    </div>
+    <div>
+      <h4>Liens</h4>
+      <p>
+        <a href="index.html">Accueil</a><br>
+        <a href="achat.html">Acheter</a><br>
+        <a href="enseignants.html">Enseignants</a><br>
+        <a href="guide-prof.html">Guide école</a><br>
+        <a href="support.html">Support</a>
       </p>
     </div>
-
-  </section>
-
-  <section class="mq-section" style="background:white;border-radius:16px;">
-    <h2>Questions fréquentes</h2>
-    <div class="mq-grid">
-      <article class="mq-card">
-        <h3>Quelle est la différence Annuel vs Permanent ?</h3>
-        <p>Annuel = accès 1 an, reconductible. Permanent = accès à vie pour cet appareil. Dans les deux cas, une vérification serveur est requise environ tous les 30 jours.</p>
-      </article>
-      <article class="mq-card">
-        <h3>Puis-je changer d'appareil ?</h3>
-        <p>Oui. Chaque licence est transférable sur un nouvel appareil dans une fenêtre de 1 an. Allez dans <a href="transferer-licence.html">Transférer ma licence</a>.</p>
-      </article>
-      <article class="mq-card">
-        <h3>Le jeu fonctionne-t-il sans Internet ?</h3>
-        <p>Oui, après l'activation initiale. Une vérification est nécessaire environ tous les 30 jours. Si vous êtes hors-ligne depuis plus de 40 jours, le jeu revient en mode gratuit jusqu'à reconnexion.</p>
-      </article>
-      <article class="mq-card">
-        <h3>Vous gérez une école ?</h3>
-        <p>Les licences école démarrent à 35 $/an pour 30 élèves, avec mode prof, distribution QR et tableau de bord. <a href="ecole.html">Voir les tarifs école →</a></p>
-      </article>
+    <div>
+      <h4>Légal &amp; contact</h4>
+      <p>
+        <a href="https://coresrdi.github.io/mathequete-privacy/" target="_blank" rel="noopener">Politique de confidentialité</a><br>
+        <a href="mailto:coresrdi@gmail.com">coresrdi@gmail.com</a>
+      </p>
     </div>
-  </section>
+  </div>
+  <p class="copyright">© 2026 CORES RDI — Tous droits réservés. Fait au Québec.</p>
+</footer>
 
-  <footer class="mq-footer">
-    <div class="mq-footer-content">
-      <div><h4>Mathéquête</h4><p style="color:#cbd5e1;">© 2026 CORES RDI</p></div>
-      <div>
-        <h4>Licences</h4>
-        <a href="achat.html">Individuelle</a>
-        <a href="ecole.html">École</a>
-        <a href="transferer-licence.html">Transférer</a>
-      </div>
-      <div>
-        <h4>Légal</h4>
-        <a href="https://coresrdi.github.io/mathequete-privacy/">Confidentialité</a>
-      </div>
-      <div>
-        <h4>Support</h4>
-        <a href="support.html">Aide</a>
-        <a href="mailto:coresrdi@outlook.com">coresrdi@outlook.com</a>
-      </div>
-    </div>
-    <div class="mq-footer-bottom">Fait avec ★ au Québec — Paiement sécurisé par Stripe</div>
-  </footer>
-
-  <script>
-    function switchTab(name) {
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + name).classList.add('active');
-      document.querySelectorAll('.tab-btn').forEach(b => {
-        if ((name === 'solo' && b.textContent.includes('1 licence')) ||
-            (name === 'pack5' && b.textContent.includes('Pack'))) {
-          b.classList.add('active');
-        }
-      });
-    }
-
-    /* ===== Stripe Checkout =====
-     * TODO: Remplacer STRIPE_PUBLIC_KEY par la clé live quand les SKUs sont créés dans Stripe.
-     * TODO: Remplacer les PRICE_ID_* dans chaque bouton par les vrais Price IDs Stripe.
-     * Voir docs/STRIPE-SETUP.md pour la procédure complète.
-     */
-    const STRIPE_PUBLIC_KEY = 'pk_test_PLACEHOLDER_REMPLACER';
-    const API_URL = 'https://mathequete-api.coresrdi.workers.dev';
-
-    document.addEventListener('DOMContentLoaded', function () {
-      const buttons = document.querySelectorAll('.stripe-btn');
-      buttons.forEach(btn => {
-        btn.addEventListener('click', async function (e) {
-          e.preventDefault();
-          const priceId = this.dataset.price;
-          if (priceId.startsWith('PRICE_ID_')) {
-            alert('Paiement en ligne bientôt disponible.\nPour obtenir un code maintenant : coresrdi@outlook.com');
-            return;
-          }
-          const originalText = this.textContent;
-          this.textContent = 'Redirection...';
-          this.disabled = true;
-          try {
-            const res = await fetch(API_URL + '/create-checkout-session', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ priceId })
-            });
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            const data = await res.json();
-            if (!data.url) throw new Error('Aucune URL');
-            window.location.href = data.url;
-          } catch (err) {
-            alert('Erreur. Écrivez à coresrdi@outlook.com');
-            this.textContent = originalText;
-            this.disabled = false;
-          }
-        });
-      });
-    });
-  </script>
-
+<style>[x-cloak] { display: none !important; }</style>
 </body>
 </html>
