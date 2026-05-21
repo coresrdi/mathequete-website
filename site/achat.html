@@ -6,13 +6,11 @@
   <title>Acheter Mathéquête — Individuelle, Pack 5, écoles</title>
   <meta name="description" content="Choisis ta licence Mathéquête : Continent 1 individuelle à 4,99 $ CAD, Pack 5 à 19,99 $ CAD, ou 6 paliers école de 35 à 716 $ CAD pour 30 à 1 300 élèves. Paiement sécurisé Stripe.">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script src="js/checkout.js"></script>
 </head>
@@ -31,6 +29,7 @@
       <a href="applications.html">Applications</a>
       <a href="iles-bonus.html">Générer une île</a>
       <a href="template-eleves.html">Template élèves</a>
+      <a href="support.html">Support</a>
     </div>
   </div>
 </nav>
@@ -40,25 +39,16 @@
   <h1 class="section-titre">Choisis ta licence</h1>
   <p class="section-sous-titre">Une seule étape&nbsp;: choisis le forfait qui te convient, paie en toute sécurité avec Stripe, reçois ton code par courriel.</p>
 
-  <!-- Tabs -->
   <div class="tabs" role="tablist">
-    <button class="tab-btn" :class="{ active: tab === 'individuelle' }" @click="tab = 'individuelle'; error = ''" role="tab" :aria-selected="tab === 'individuelle'">
-      👤 Licence individuelle
-    </button>
-    <button class="tab-btn" :class="{ active: tab === 'pack5' }" @click="tab = 'pack5'; error = ''" role="tab" :aria-selected="tab === 'pack5'">
-      👨‍👩‍👧 Pack 5
-    </button>
-    <button class="tab-btn" :class="{ active: tab === 'ecole' }" @click="tab = 'ecole'; error = ''" role="tab" :aria-selected="tab === 'ecole'">
-      🏫 Pour une école
-    </button>
+    <button class="tab-btn" :class="{ active: tab === 'individuelle' }" @click="tab = 'individuelle'; error = ''" role="tab" :aria-selected="tab === 'individuelle'">👤 Licence individuelle</button>
+    <button class="tab-btn" :class="{ active: tab === 'pack5' }" @click="tab = 'pack5'; error = ''" role="tab" :aria-selected="tab === 'pack5'">👨‍👩‍👧 Pack 5</button>
+    <button class="tab-btn" :class="{ active: tab === 'ecole' }" @click="tab = 'ecole'; error = ''" role="tab" :aria-selected="tab === 'ecole'">🏫 Pour une école</button>
   </div>
 
-  <!-- Toast erreur -->
   <div class="toast-erreur" x-show="error" x-transition x-cloak>
     <span x-text="error"></span>
   </div>
 
-  <!-- ===== INDIVIDUELLE ===== -->
   <div x-show="tab === 'individuelle'" x-transition style="max-width: 420px; margin: 0 auto;">
     <article class="sku-carte">
       <h3>Continent&nbsp;1 — Individuelle</h3>
@@ -75,7 +65,6 @@
     </article>
   </div>
 
-  <!-- ===== PACK 5 ===== -->
   <div x-show="tab === 'pack5'" x-transition x-cloak style="max-width: 420px; margin: 0 auto;">
     <article class="sku-carte">
       <h3>Continent&nbsp;1 — Pack 5</h3>
@@ -92,93 +81,70 @@
     </article>
   </div>
 
-  <!-- ===== ÉCOLE ===== -->
   <div x-show="tab === 'ecole'" x-transition x-cloak>
     <div class="sku-grid">
-
       <article class="sku-carte">
         <h3>Classe Petite</h3>
         <div class="sku-prix">35&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details">
-          <p>Jusqu'à <strong>30 élèves</strong>.<br>Idéal pour une classe unique.</p>
-        </div>
+        <div class="sku-details"><p>Jusqu'à <strong>30 élèves</strong>.<br>Idéal pour une classe unique.</p></div>
         <button class="btn-aventure" @click="acheter('classe_petite')" :disabled="loading">
           <template x-if="loading && loadingTier === 'classe_petite'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'classe_petite') ? 'Redirection…' : 'Acheter'"></span>
         </button>
       </article>
-
       <article class="sku-carte">
         <h3>Classe Moyenne</h3>
         <div class="sku-prix">98&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details">
-          <p>Jusqu'à <strong>100 élèves</strong>.<br>Pour 3-4 classes.</p>
-        </div>
+        <div class="sku-details"><p>Jusqu'à <strong>100 élèves</strong>.<br>Pour 3-4 classes.</p></div>
         <button class="btn-aventure" @click="acheter('classe_moyenne')" :disabled="loading">
           <template x-if="loading && loadingTier === 'classe_moyenne'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'classe_moyenne') ? 'Redirection…' : 'Acheter'"></span>
         </button>
       </article>
-
       <article class="sku-carte">
         <h3>Petite École</h3>
         <div class="sku-prix">265&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details">
-          <p>Jusqu'à <strong>300 élèves</strong>.<br>Petite école primaire complète.</p>
-        </div>
+        <div class="sku-details"><p>Jusqu'à <strong>300 élèves</strong>.<br>Petite école primaire complète.</p></div>
         <button class="btn-aventure" @click="acheter('petite_ecole')" :disabled="loading">
           <template x-if="loading && loadingTier === 'petite_ecole'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'petite_ecole') ? 'Redirection…' : 'Acheter'"></span>
         </button>
       </article>
-
       <article class="sku-carte">
         <h3>École Standard</h3>
         <div class="sku-prix">393&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details">
-          <p>Jusqu'à <strong>500 élèves</strong>.<br>Le forfait le plus populaire.</p>
-        </div>
+        <div class="sku-details"><p>Jusqu'à <strong>500 élèves</strong>.<br>Le forfait le plus populaire.</p></div>
         <button class="btn-aventure" @click="acheter('ecole_standard')" :disabled="loading">
           <template x-if="loading && loadingTier === 'ecole_standard'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'ecole_standard') ? 'Redirection…' : 'Acheter'"></span>
         </button>
       </article>
-
       <article class="sku-carte">
         <h3>Grande École</h3>
         <div class="sku-prix">650&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details">
-          <p>Jusqu'à <strong>1 000 élèves</strong>.<br>Grand établissement primaire.</p>
-        </div>
+        <div class="sku-details"><p>Jusqu'à <strong>1 000 élèves</strong>.<br>Grand établissement primaire.</p></div>
         <button class="btn-aventure" @click="acheter('grande_ecole')" :disabled="loading">
           <template x-if="loading && loadingTier === 'grande_ecole'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'grande_ecole') ? 'Redirection…' : 'Acheter'"></span>
         </button>
       </article>
-
       <article class="sku-carte">
         <h3>Méga École</h3>
         <div class="sku-prix">716&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details">
-          <p>Jusqu'à <strong>1 300 élèves</strong>.<br>Centre de services scolaire.</p>
-        </div>
+        <div class="sku-details"><p>Jusqu'à <strong>1 300 élèves</strong>.<br>Centre de services scolaire.</p></div>
         <button class="btn-aventure" @click="acheter('mega_ecole')" :disabled="loading">
           <template x-if="loading && loadingTier === 'mega_ecole'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'mega_ecole') ? 'Redirection…' : 'Acheter'"></span>
         </button>
       </article>
-
     </div>
-
-    <p class="note-paiement">
-      Besoin de plus de 1 300 licences&nbsp;? <a href="mailto:coresrdi@gmail.com">Demande un devis personnalisé</a>.
-    </p>
+    <p class="note-paiement">Besoin de plus de 1 300 licences&nbsp;? <a href="mailto:coresrdi@gmail.com">Demande un devis personnalisé</a>.</p>
   </div>
 
   <p class="note-paiement">
@@ -200,7 +166,8 @@
         <a href="index.html">Accueil</a><br>
         <a href="achat.html">Acheter</a><br>
         <a href="enseignants.html">Enseignants (info)</a><br>
-        <a href="guide-prof.html">Guide école</a>
+        <a href="guide-prof.html">Guide école</a><br>
+        <a href="support.html">Support</a>
       </p>
     </div>
     <div>
