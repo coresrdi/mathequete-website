@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Licences école — Mathéquête</title>
+  <meta name="description" content="Forfaits école Mathéquête pour 30 à 1 300 élèves. De 35 $ à 716 $ CAD. Paiement sécurisé Stripe, codes livrés par courriel, application tableau de bord prof gratuite.">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="js/checkout.js"></script>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="index.html" class="logo" aria-label="Accueil Mathéquête">
+      <img src="assets/logo.svg" alt="Mathéquête" height="44">
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="achat.html">Acheter</a>
+      <a href="enseignants.html">Enseignants</a>
+      <a href="guide-prof.html">Guide école</a>
+      <a href="applications.html">Applications</a>
+      <a href="iles-bonus.html">Générer une île</a>
+      <a href="template-eleves.html">Template élèves</a>
+      <a href="support.html">Support</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" style="padding: 3rem 1rem;">
+  <div class="hero-inner">
+    <h1>🏫 Licences école</h1>
+    <p class="slogan">Mathéquête pour toute votre école — de la maternelle à la 6<sup>e</sup> année.</p>
+    <p style="max-width: 640px; margin: 1rem auto 0; font-size: 1rem; opacity: 0.85;">
+      Une seule licence couvre tous les élèves de votre établissement pour l'année scolaire.
+      Codes distribués par PDF. Application tableau de bord prof <strong>gratuite</strong>.
+    </p>
+  </div>
+</header>
+
+<!-- AVANTAGES -->
+<section class="section" style="background: var(--couleur-fond-secondaire, #F7F6F2); padding: 2rem 1rem;">
+  <div class="container" style="max-width: 860px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; text-align: center;">
+      <div style="padding: 1.25rem; background: white; border-radius: 0.75rem; border: 1px solid var(--couleur-bordure, #DDD);">
+        <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">📊</div>
+        <strong>Tableau de bord gratuit</strong>
+        <p style="margin: 0.5rem 0 0; font-size: 0.9rem; opacity: 0.8;">Application prof Windows pour suivre les progrès en temps réel.</p>
+      </div>
+      <div style="padding: 1.25rem; background: white; border-radius: 0.75rem; border: 1px solid var(--couleur-bordure, #DDD);">
+        <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">📧</div>
+        <strong>Codes par courriel</strong>
+        <p style="margin: 0.5rem 0 0; font-size: 0.9rem; opacity: 0.8;">PDF avec un code QR par élève, livré en quelques minutes.</p>
+      </div>
+      <div style="padding: 1.25rem; background: white; border-radius: 0.75rem; border: 1px solid var(--couleur-bordure, #DDD);">
+        <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">📵</div>
+        <strong>Hors-ligne</strong>
+        <p style="margin: 0.5rem 0 0; font-size: 0.9rem; opacity: 0.8;">Le jeu fonctionne sans Wi-Fi après la première activation.</p>
+      </div>
+      <div style="padding: 1.25rem; background: white; border-radius: 0.75rem; border: 1px solid var(--couleur-bordure, #DDD);">
+        <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🇮🇨🅾️</div>
+        <strong>Conforme Loi 25</strong>
+        <p style="margin: 0.5rem 0 0; font-size: 0.9rem; opacity: 0.8;">Données élèves chiffrées sur l’appareil, jamais transmises en clair.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TARIFS -->
+<section class="section" x-data="checkoutApp()" style="padding: 2.5rem 1rem 3rem;">
+  <h2 class="section-titre">Choisissez votre forfait</h2>
+  <p class="section-sous-titre">Paiement sécurisé Stripe &mdash; TPS&nbsp;5&nbsp;% + TVQ&nbsp;9,975&nbsp;% calculées au paiement.</p>
+
+  <div class="toast-erreur" x-show="error" x-transition x-cloak>
+    <span x-text="error"></span>
+  </div>
+
+  <div class="sku-grid" style="max-width: 1100px; margin: 0 auto;">
+
+    <article class="sku-carte">
+      <h3>Classe Petite</h3>
+      <div class="sku-prix">35&nbsp;$ <small>CAD</small></div>
+      <div class="sku-taxes">+ TPS et TVQ au paiement</div>
+      <div class="sku-details">
+        <p>Jusqu’à <strong>30 élèves</strong><br>Idéal pour une classe unique.</p>
+        <p style="font-size: 0.85rem; opacity: 0.75;">~1,17&nbsp;$/élève</p>
+      </div>
+      <button class="btn-aventure" @click="acheter('classe_petite')" :disabled="loading">
+        <template x-if="loading && loadingTier === 'classe_petite'"><span class="spinner"></span></template>
+        <span x-text="(loading && loadingTier === 'classe_petite') ? 'Redirection…' : 'Acheter — 35 $'"></span>
+      </button>
+    </article>
+
+    <article class="sku-carte">
+      <h3>Classe Moyenne</h3>
+      <div class="sku-prix">98&nbsp;$ <small>CAD</small></div>
+      <div class="sku-taxes">+ TPS et TVQ au paiement</div>
+      <div class="sku-details">
+        <p>Jusqu’à <strong>100 élèves</strong><br>Pour 3–4 classes.</p>
+        <p style="font-size: 0.85rem; opacity: 0.75;">~0,98&nbsp;$/élève</p>
+      </div>
+      <button class="btn-aventure" @click="acheter('classe_moyenne')" :disabled="loading">
+        <template x-if="loading && loadingTier === 'classe_moyenne'"><span class="spinner"></span></template>
+        <span x-text="(loading && loadingTier === 'classe_moyenne') ? 'Redirection…' : 'Acheter — 98 $'"></span>
+      </button>
+    </article>
+
+    <article class="sku-carte">
+      <h3>Petite École</h3>
+      <div class="sku-prix">265&nbsp;$ <small>CAD</small></div>
+      <div class="sku-taxes">+ TPS et TVQ au paiement</div>
+      <div class="sku-details">
+        <p>Jusqu’à <strong>300 élèves</strong><br>Petite école primaire complète.</p>
+        <p style="font-size: 0.85rem; opacity: 0.75;">~0,88&nbsp;$/élève</p>
+      </div>
+      <button class="btn-aventure" @click="acheter('petite_ecole')" :disabled="loading">
+        <template x-if="loading && loadingTier === 'petite_ecole'"><span class="spinner"></span></template>
+        <span x-text="(loading && loadingTier === 'petite_ecole') ? 'Redirection…' : 'Acheter — 265 $'"></span>
+      </button>
+    </article>
+
+    <article class="sku-carte" style="border-color: var(--aventure-or); position: relative;">
+      <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--aventure-or); color: white; padding: 0.25rem 0.8rem; border-radius: 0.4rem; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">★ Le plus populaire</div>
+      <h3>École Standard</h3>
+      <div class="sku-prix">393&nbsp;$ <small>CAD</small></div>
+      <div class="sku-taxes">+ TPS et TVQ au paiement</div>
+      <div class="sku-details">
+        <p>Jusqu’à <strong>500 élèves</strong><br>Le forfait le plus populaire.</p>
+        <p style="font-size: 0.85rem; opacity: 0.75;">~0,79&nbsp;$/élève</p>
+      </div>
+      <button class="btn-aventure" @click="acheter('ecole_standard')" :disabled="loading">
+        <template x-if="loading && loadingTier === 'ecole_standard'"><span class="spinner"></span></template>
+        <span x-text="(loading && loadingTier === 'ecole_standard') ? 'Redirection…' : 'Acheter — 393 $'"></span>
+      </button>
+    </article>
+
+    <article class="sku-carte">
+      <h3>Grande École</h3>
+      <div class="sku-prix">650&nbsp;$ <small>CAD</small></div>
+      <div class="sku-taxes">+ TPS et TVQ au paiement</div>
+      <div class="sku-details">
+        <p>Jusqu’à <strong>1 000 élèves</strong><br>Grand établissement primaire.</p>
+        <p style="font-size: 0.85rem; opacity: 0.75;">~0,65&nbsp;$/élève</p>
+      </div>
+      <button class="btn-aventure" @click="acheter('grande_ecole')" :disabled="loading">
+        <template x-if="loading && loadingTier === 'grande_ecole'"><span class="spinner"></span></template>
+        <span x-text="(loading && loadingTier === 'grande_ecole') ? 'Redirection…' : 'Acheter — 650 $'"></span>
+      </button>
+    </article>
+
+    <article class="sku-carte">
+      <h3>Méga École</h3>
+      <div class="sku-prix">716&nbsp;$ <small>CAD</small></div>
+      <div class="sku-taxes">+ TPS et TVQ au paiement</div>
+      <div class="sku-details">
+        <p>Jusqu’à <strong>1 300 élèves</strong><br>Centre de services scolaire.</p>
+        <p style="font-size: 0.85rem; opacity: 0.75;">~0,55&nbsp;$/élève</p>
+      </div>
+      <button class="btn-aventure" @click="acheter('mega_ecole')" :disabled="loading">
+        <template x-if="loading && loadingTier === 'mega_ecole'"><span class="spinner"></span></template>
+        <span x-text="(loading && loadingTier === 'mega_ecole') ? 'Redirection…' : 'Acheter — 716 $'"></span>
+      </button>
+    </article>
+
+  </div>
+
+  <p class="note-paiement" style="text-align: center; margin-top: 2rem;">
+    Besoin de plus de 1 300 licences&nbsp;?
+    <a href="mailto:coresrdi@gmail.com?subject=Devis%20%C3%A9cole%20Math%C3%A9qu%C3%AAte">Demandez un devis personnalisé</a>.
+  </p>
+</section>
+
+<!-- FAQ ECOLE -->
+<section class="section" style="background: var(--couleur-fond-secondaire, #F7F6F2); padding: 3rem 1rem;">
+  <div class="container" style="max-width: 760px;">
+    <h2 class="section-titre">Questions fréquentes</h2>
+
+    <details style="margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid var(--couleur-bordure, #DDD);">
+      <summary style="cursor: pointer; font-weight: 600;">Comment distribuer les codes aux élèves ?</summary>
+      <p style="margin-top: 1rem;">Après le paiement, vous recevez un PDF contenant un code QR scannable par élève. L’élève l’active directement dans Mathéquête en allant dans
+      <strong>Réglages → Licence → Scanner un code QR</strong>. Le guide complet est disponible sur la page <a href="guide-prof.html">Guide école</a>.</p>
+    </details>
+
+    <details style="margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid var(--couleur-bordure, #DDD);">
+      <summary style="cursor: pointer; font-weight: 600;">La licence couvre-t-elle toute l’année scolaire ?</summary>
+      <p style="margin-top: 1rem;">Oui. Les licences école sont valides 12 mois à compter de la date d’achat. Elles peuvent être renouvelées chaque année scolaire au même tarif. Un rappel de renouvellement vous est envoyé 30 jours avant expiration.</p>
+    </details>
+
+    <details style="margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid var(--couleur-bordure, #DDD);">
+      <summary style="cursor: pointer; font-weight: 600;">Un élève change d’appareil en cours d’année. Que faire ?</summary>
+      <p style="margin-top: 1rem;">L’enseignant peut révoquer et réattribuer un code QR depuis le tableau de bord prof. L’opération prend quelques secondes et ne nécessite pas de contacter le support.</p>
+    </details>
+
+    <details style="margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid var(--couleur-bordure, #DDD);">
+      <summary style="cursor: pointer; font-weight: 600;">L’application tableau de bord est-elle incluse ?</summary>
+      <p style="margin-top: 1rem;">Oui, elle est <strong>entièrement gratuite</strong> pour tous les enseignants, que ce soit avec une licence école ou individuelle. Téléchargement disponible sur la page <a href="enseignants.html">Enseignants</a>.</p>
+    </details>
+
+    <details style="padding: 1rem; background: white; border-radius: 8px; border: 1px solid var(--couleur-bordure, #DDD);">
+      <summary style="cursor: pointer; font-weight: 600;">Mon école n’a pas de carte de crédit. Peut-on payer par bon de commande ?</summary>
+      <p style="margin-top: 1rem;">Oui. Écrivez-nous à <a href="mailto:coresrdi@gmail.com?subject=Bon%20de%20commande%20%C3%A9cole">coresrdi@gmail.com</a> avec le nom de votre établissement et le forfait souhaité. Nous pouvons émettre une facture formelle compatible avec les processus d’approbation des commissions scolaires.</p>
+    </details>
+  </div>
+</section>
+
+<!-- LIEN GUIDE -->
+<section class="section" style="padding: 2rem 1rem; text-align: center;">
+  <p style="font-size: 1.05rem; margin-bottom: 1.25rem;">Vous êtes directeur·rice ou responsable pédagogique ?</p>
+  <a href="guide-prof.html" class="btn-aventure">Consulter le guide école complet</a>
+  <span style="display: inline-block; margin: 0 1rem; opacity: 0.4;">|</span>
+  <a href="enseignants.html" class="btn-secondaire">Informations pour enseignants</a>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>
+      <h4>Mathéquête</h4>
+      <p>Un jeu éducatif québécois pour apprendre les maths en s'amusant. Conçu par <strong>CORES RDI</strong>.</p>
+    </div>
+    <div>
+      <h4>Liens</h4>
+      <p>
+        <a href="index.html">Accueil</a><br>
+        <a href="achat.html">Acheter</a><br>
+        <a href="enseignants.html">Enseignants</a><br>
+        <a href="guide-prof.html">Guide école</a><br>
+        <a href="support.html">Support</a>
+      </p>
+    </div>
+    <div>
+      <h4>Légal &amp; contact</h4>
+      <p>
+        <a href="https://coresrdi.github.io/mathequete-privacy/" target="_blank" rel="noopener">Politique de confidentialité</a><br>
+        <a href="mailto:coresrdi@gmail.com">coresrdi@gmail.com</a>
+      </p>
+    </div>
+  </div>
+  <p class="copyright">© 2026 CORES RDI — Tous droits réservés. Fait au Québec.</p>
+</footer>
+
+<style>[x-cloak] { display: none !important; }</style>
+</body>
+</html>
