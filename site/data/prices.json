@@ -7,7 +7,7 @@
   "_transfert_max": 1,
 
   "individuel_annuel": {
-    "id": "solo_annuel",
+    "id": "continent_1",
     "label": "Solo Annuel",
     "prix": 1.99,
     "devise": "CAD",
@@ -35,7 +35,7 @@
   },
 
   "pack5_annuel": {
-    "id": "pack5_annuel",
+    "id": "pack_5_continent_1",
     "label": "Pack 5 Annuel",
     "prix": 7.99,
     "devise": "CAD",
@@ -48,7 +48,7 @@
   },
 
   "pack5_permanent": {
-    "id": "pack5_permanent",
+    "id": "pack_5_permanent",
     "label": "Pack 5 Permanent",
     "prix": 39.99,
     "devise": "CAD",
@@ -70,10 +70,10 @@
     "paliers": [
       { "id": "classe_petite",  "nom": "Petite Classe",  "max_eleves": 30,   "prix": 35  },
       { "id": "classe_moyenne", "nom": "Classe Moyenne", "max_eleves": 100,  "prix": 98  },
-      { "id": "ecole_petite",   "nom": "Petite École",   "max_eleves": 300,  "prix": 265 },
+      { "id": "petite_ecole",   "nom": "Petite École",   "max_eleves": 300,  "prix": 265 },
       { "id": "ecole_standard", "nom": "École Standard", "max_eleves": 500,  "prix": 393 },
-      { "id": "ecole_grande",   "nom": "Grande École",   "max_eleves": 1000, "prix": 650 },
-      { "id": "ecole_mega",     "nom": "Méga École",     "max_eleves": 1300, "prix": 716 }
+      { "id": "grande_ecole",   "nom": "Grande École",   "max_eleves": 1000, "prix": 650 },
+      { "id": "mega_ecole",     "nom": "Méga École",     "max_eleves": 1300, "prix": 716 }
     ]
   }
 }

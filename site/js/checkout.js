@@ -10,8 +10,12 @@
  *   pack_5_continent_1   — 7,99 $/an  (annuel pack 5)
  *   solo_permanent       — 9,99 $     (perpétuel solo)
  *   pack_5_permanent     — 39,99 $    (perpétuel pack 5)
- *   classe_petite / classe_moyenne / petite_ecole
- *   ecole_standard / grande_ecole / mega_ecole
+ *   classe_petite        — 35 $  / 30 élèves
+ *   classe_moyenne       — 98 $  / 100 élèves
+ *   petite_ecole         — 265 $ / 300 élèves   ← SKU canonique (types.ts)
+ *   ecole_standard       — 393 $ / 500 élèves
+ *   grande_ecole         — 650 $ / 1 000 élèves
+ *   mega_ecole           — 716 $ / 1 300 élèves
  */
 function checkoutApp() {
   return {
