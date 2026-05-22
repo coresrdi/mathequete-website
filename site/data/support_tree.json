@@ -1,0 +1,58 @@
+{
+  "_note": "STUB v4.40 — Arbre de décision support — À compléter au sprint P3",
+  "_version": "4.40",
+  "_date": "2026-05-22",
+  "_statut": "stub_minimal",
+
+  "racine": {
+    "id": "root",
+    "question": "Quel est votre problème?",
+    "options": [
+      { "label": "Ma licence ne fonctionne pas",       "suivant": "licence_probleme" },
+      { "label": "Je veux transférer ma licence",      "suivant": "transfert"        },
+      { "label": "Problème de connexion / hors-ligne", "suivant": "hors_ligne"       },
+      { "label": "Question sur la facturation",        "suivant": "facturation"      },
+      { "label": "Autre",                              "suivant": "contact_direct"   }
+    ]
+  },
+
+  "noeuds": {
+    "licence_probleme": {
+      "question": "Sur quelle plateforme avez-vous acheté?",
+      "options": [
+        { "label": "Site web (mathequete.pages.dev)", "suivant": "licence_web"     },
+        { "label": "Google Play (Android)",           "suivant": "licence_android" },
+        { "label": "Autre",                           "suivant": "contact_direct"  }
+      ]
+    },
+    "licence_web": {
+      "type": "reponse",
+      "texte": "Vérifiez que votre code QR Crockford est bien scanné. Si votre licence est expirée, rendez-vous sur mathequete.pages.dev/acheter pour renouveler. Pour toute autre erreur, contactez-nous.",
+      "cta": { "label": "Nous contacter", "url": null }
+    },
+    "licence_android": {
+      "type": "reponse",
+      "texte": "Les achats Android se gèrent via Google Play. Vérifiez votre historique d'achat dans le Play Store. Si le problème persiste, contactez le support Google Play.",
+      "cta": { "label": "Support Google Play", "url": "https://support.google.com/googleplay" }
+    },
+    "transfert": {
+      "type": "reponse",
+      "texte": "Chaque licence peut être transférée une seule fois dans les 12 premiers mois. Consultez la page de transfert pour les instructions détaillées.",
+      "cta": { "label": "Page transfert de licence", "url": "https://mathequete.pages.dev/transferer-licence" }
+    },
+    "hors_ligne": {
+      "type": "reponse",
+      "texte": "Une connexion internet est requise une fois tous les 40 jours pour valider votre licence Premium. Si vous dépassez ce délai, reconnectez-vous à internet pour réactiver le mode hors-ligne."
+    },
+    "facturation": {
+      "type": "reponse",
+      "texte": "Pour toute question de facturation concernant un achat sur notre site web, contactez-nous directement. Pour les achats Android, référez-vous à Google Play.",
+      "cta": { "label": "Nous contacter", "url": null }
+    },
+    "contact_direct": {
+      "type": "contact",
+      "texte": "Notre équipe est là pour vous aider. Écrivez-nous et nous vous répondrons dans les plus brefs délais.",
+      "cta": { "label": "Envoyer un courriel", "url": null }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "_note": "SOURCE UNIQUE DE VÉRITÉ — v4.40 — NE JAMAIS HARDCODER CES VALEURS AILLEURS",
+  "_version": "4.40",
+  "_date": "2026-05-22",
+  "_offline_grace_days": 40,
+  "_transfert_window_months": 12,
+  "_transfert_max": 1,
+
+  "individuel_annuel": {
+    "id": "solo_annuel",
+    "label": "Solo Annuel",
+    "prix": 1.99,
+    "devise": "CAD",
+    "duree": "1 an",
+    "type": "annuel",
+    "nb_appareils": 1,
+    "systeme_cle": "QR Crockford",
+    "transferable": false,
+    "description": "1 appareil, renouvellement annuel, clé QR Crockford."
+  },
+
+  "individuel_permanent": {
+    "id": "solo_permanent",
+    "label": "Solo Permanent",
+    "prix": 9.99,
+    "devise": "CAD",
+    "duree": "À vie",
+    "type": "permanent",
+    "nb_appareils": 1,
+    "systeme_cle": "QR Crockford",
+    "transferable": true,
+    "transfert_max": 1,
+    "transfert_fenetre_mois": 12,
+    "description": "1 appareil, licence à vie, transférable une seule fois dans les 12 premiers mois."
+  },
+
+  "pack5_annuel": {
+    "id": "pack5_annuel",
+    "label": "Pack 5 Annuel",
+    "prix": 7.99,
+    "devise": "CAD",
+    "duree": "1 an",
+    "type": "annuel",
+    "nb_codes": 5,
+    "systeme_cle": "QR Crockford",
+    "transferable": false,
+    "description": "5 codes distincts, renouvellement annuel, clé QR Crockford."
+  },
+
+  "pack5_permanent": {
+    "id": "pack5_permanent",
+    "label": "Pack 5 Permanent",
+    "prix": 39.99,
+    "devise": "CAD",
+    "duree": "À vie",
+    "type": "permanent",
+    "nb_codes": 5,
+    "systeme_cle": "QR Crockford",
+    "transferable": true,
+    "transfert_max": 1,
+    "transfert_fenetre_mois": 12,
+    "description": "5 codes distincts, chacun transférable une seule fois dans les 12 premiers mois."
+  },
+
+  "ecole": {
+    "type": "annuel",
+    "duree": "Année scolaire",
+    "devise": "CAD",
+    "description": "Toutes les licences école sont annuelles par année scolaire.",
+    "paliers": [
+      { "id": "classe_petite",  "nom": "Petite Classe",  "max_eleves": 30,   "prix": 35  },
+      { "id": "classe_moyenne", "nom": "Classe Moyenne", "max_eleves": 100,  "prix": 98  },
+      { "id": "ecole_petite",   "nom": "Petite École",   "max_eleves": 300,  "prix": 265 },
+      { "id": "ecole_standard", "nom": "École Standard", "max_eleves": 500,  "prix": 393 },
+      { "id": "ecole_grande",   "nom": "Grande École",   "max_eleves": 1000, "prix": 650 },
+      { "id": "ecole_mega",     "nom": "Méga École",     "max_eleves": 1300, "prix": 716 }
+    ]
+  }
+}

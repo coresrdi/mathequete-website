@@ -1,0 +1,84 @@
+{
+  "_note": "SOURCE UNIQUE DE VÉRITÉ — Continents Mathéquête — v4.40",
+  "_version": "4.40",
+  "_date": "2026-05-22",
+
+  "continents": [
+    {
+      "id": "mathematiques",
+      "nom": "Mathéquête",
+      "sous_titre": "Continent des Mathématiques",
+      "statut": "disponible",
+      "badge": "Disponible maintenant",
+      "badge_style": "success",
+      "description": "Le continent actuel. Explore l'univers des mathématiques à travers des aventures, des îles à découvrir et des défis progressifs adaptés au curriculum québécois.",
+      "cta_primaire": { "label": "Jouer maintenant", "url": "https://mathequete.pages.dev/acheter" },
+      "cta_secondaire": null,
+      "kickstarter_cta": false,
+      "couleur_accent": "#01696f",
+      "icone": "🧮"
+    },
+    {
+      "id": "sciences",
+      "nom": "Sciéquête",
+      "sous_titre": "Continent des Sciences",
+      "statut": "en_creation",
+      "badge": "En création",
+      "badge_style": "warning",
+      "description": "Le continent des sciences est en cours de développement. Rejoignez notre Kickstarter pour accélérer sa création et obtenir vos licences en avant-première.",
+      "cta_primaire": { "label": "Soutenir sur Kickstarter", "url": null, "_note": "URL Kickstarter à confirmer." },
+      "cta_secondaire": { "label": "Liste d'attente", "url": null },
+      "kickstarter_cta": true,
+      "couleur_accent": "#437a22",
+      "icone": "🔬"
+    },
+    {
+      "id": "langues",
+      "nom": "Linguéquête",
+      "sous_titre": "Continent des Langues",
+      "statut": "en_creation",
+      "badge": "En création",
+      "badge_style": "warning",
+      "description": "Un monde de langues et de cultures t'attend. Ce continent est en cours de développement. Soutiens-nous sur Kickstarter pour participer à son évolution.",
+      "cta_primaire": { "label": "Soutenir sur Kickstarter", "url": null, "_note": "URL Kickstarter à confirmer." },
+      "cta_secondaire": { "label": "Liste d'attente", "url": null },
+      "kickstarter_cta": true,
+      "couleur_accent": "#006494",
+      "icone": "🌍"
+    },
+    {
+      "id": "histoire",
+      "nom": "Histoquête",
+      "sous_titre": "Continent de l'Histoire",
+      "statut": "en_creation",
+      "badge": "En création",
+      "badge_style": "warning",
+      "description": "Voyage à travers les grandes époques de l'humanité. Ce continent est en cours de développement. Rejoins le Kickstarter pour être parmi les premiers explorateurs.",
+      "cta_primaire": { "label": "Soutenir sur Kickstarter", "url": null, "_note": "URL Kickstarter à confirmer." },
+      "cta_secondaire": { "label": "Liste d'attente", "url": null },
+      "kickstarter_cta": true,
+      "couleur_accent": "#964219",
+      "icone": "📜"
+    },
+    {
+      "id": "foret_sciences",
+      "nom": "Forêt des Sciences",
+      "sous_titre": "Monde de la Découverte",
+      "statut": "a_venir",
+      "badge": "À venir",
+      "badge_style": "muted",
+      "description": "Un continent mystérieux se profile à l'horizon. Détails à venir.",
+      "cta_primaire": null,
+      "cta_secondaire": null,
+      "kickstarter_cta": false,
+      "couleur_accent": "#7a39bb",
+      "icone": "🌲"
+    }
+  ],
+
+  "statuts_visuels": {
+    "disponible":  { "label": "Disponible maintenant", "css_class": "badge-success", "opacite_carte": 1.0  },
+    "en_creation": { "label": "En création",           "css_class": "badge-warning", "opacite_carte": 0.75 },
+    "a_venir":     { "label": "À venir",               "css_class": "badge-muted",   "opacite_carte": 0.5  }
+  }
+}

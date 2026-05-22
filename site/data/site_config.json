@@ -1,0 +1,75 @@
+{
+  "_note": "SOURCE UNIQUE DE VÉRITÉ — Textes FAQ, politiques, URLs — v4.40",
+  "_version": "4.40",
+  "_date": "2026-05-22",
+
+  "offline_grace_days": 40,
+  "transfert_window_months": 12,
+  "transfert_max": 1,
+  "licence_ecole_duree": "année scolaire",
+
+  "kickstarter": {
+    "palier_base_cad": 15,
+    "licences_par_palier": 2,
+    "formule": "15 $ = 2 licences, 30 $ = 4, 45 $ = 6, etc.",
+    "ios_inclus_si_objectif_atteint": true,
+    "lien": null,
+    "_note_lien": "URL Kickstarter à confirmer avant publication publique."
+  },
+
+  "faq": {
+    "hors_ligne": {
+      "question": "Le jeu fonctionne-t-il sans internet?",
+      "reponse": "Oui. Une connexion internet est requise une seule fois tous les 40 jours pour valider votre licence Premium. Entre ces validations, le jeu fonctionne entièrement hors ligne."
+    },
+    "transfert": {
+      "question": "Puis-je transférer ma licence sur un autre appareil?",
+      "reponse": "Chaque licence QR Crockford achetée sur le site web (annuelle ou permanente) peut être transférée une seule fois dans les 12 premiers mois suivant son activation. Après un transfert, la licence n'est plus transférable, même si la fenêtre de 12 mois n'est pas écoulée."
+    },
+    "duree": {
+      "question": "Quelle est la durée d'une licence?",
+      "reponse": "Deux options existent : licence annuelle (1 an, renouvelable) ou licence permanente (à vie). Les licences école sont annuelles par année scolaire."
+    },
+    "appareils": {
+      "question": "Sur combien d'appareils puis-je utiliser ma licence?",
+      "reponse": "Chaque licence individuelle est liée à 1 appareil via un code QR Crockford. Les pack 5 contiennent 5 codes distincts, chacun pour un appareil différent."
+    },
+    "ios": {
+      "question": "Une version iOS est-elle disponible?",
+      "reponse": "La version iOS est en développement. Inscrivez-vous à notre liste d'attente pour être informé à sa sortie. Aucune date n'est confirmée pour l'instant."
+    },
+    "microsoft_store": {
+      "question": "La version Microsoft Store est-elle gratuite?",
+      "reponse": "Oui. La version Microsoft Store distribue le jeu gratuitement. L'achat de licence Premium se fait exclusivement sur mathequete.pages.dev."
+    }
+  },
+
+  "politiques": {
+    "transfert_detail": "Les licences QR Crockford suivent un principe de réarmage avec incrémentation du compteur côté backend. Après un transfert, la licence n'est plus transférable, même si la fenêtre de 12 mois n'est pas écoulée.",
+    "ms_store": "Microsoft Store distribue uniquement la version gratuite. Les paywalls redirigent vers mathequete.pages.dev.",
+    "android": "Les achats Android se font via le flux natif Play Billing de Google Play."
+  },
+
+  "plateformes": {
+    "android":         { "label": "Android / Google Play",  "achat_natif": true,  "systeme": "Play Billing", "redirection_web": false },
+    "microsoft_store": { "label": "Microsoft Store",        "achat_natif": false, "gratuit_seulement": true, "redirection_web": true, "url_redirect": "https://mathequete.pages.dev/acheter" },
+    "build_direct":    { "label": "Build direct PC",        "achat_natif": false, "redirection_web": true,   "url_redirect": "https://mathequete.pages.dev/acheter" },
+    "steam":           { "label": "Steam",                  "statut": "futur_sprint", "note": "Système natif Steam. Ne pas planifier redirection externe." },
+    "epic":            { "label": "Epic Games Store",       "statut": "futur_sprint", "note": "Système natif Epic. Ne pas planifier redirection externe." },
+    "ios":             { "label": "iOS / App Store",        "statut": "futur_sprint", "note": "Question App Store séparée, non résolue par ce sprint." }
+  },
+
+  "urls": {
+    "achat": "https://mathequete.pages.dev/acheter",
+    "transferer_licence": "https://mathequete.pages.dev/transferer-licence",
+    "espace_enseignant": "https://mathequete.pages.dev/enseignant",
+    "contact": null,
+    "_note_contact": "Valider l'adresse courriel officielle avant publication."
+  },
+
+  "regles_permanentes": {
+    "R_SOURCE_VERITE": "Aucune page HTML ne doit hardcoder des prix, durées ou politiques. Toujours lire depuis prices.json et site_config.json.",
+    "R_STORE_NATIF": "Toute plateforme avec store natif utilise son flux natif. MS Store = exception (gratuit + redirection web).",
+    "R_REGISTRE": "À chaque commit, mettre à jour REGISTRE-UNIQUE-V4.40-PLAN-SITE-WEB.md avec [DONE — COMMIT N — DATE] avant de clore le PR."
+  }
+}
