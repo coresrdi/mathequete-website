@@ -35,37 +35,40 @@
 
 <header class="hero" style="padding: 3rem 1rem 2rem;">
   <div class="hero-inner">
-    <h1>Centre d'aide</h1>
-    <p class="slogan">Une question ? Consultez les rubriques ci-dessous ou écrivez-nous directement.</p>
+    <h1>Centre d’aide</h1>
+    <p class="slogan">Une question ? Consultez les rubriques ci-dessous ou écrivez-nous directement.</p>
   </div>
 </header>
 
+<!-- CARTES RAPIDES -->
 <section class="section">
-
   <div class="cartes-grid">
 
     <article class="carte">
       <span class="emoji" aria-hidden="true">🔑</span>
       <h3>Activer mon code</h3>
-      <p>Ouvrez le jeu → <strong>Réglages</strong> → <em>Gérer mes licences (activer / transférer)</em> → saisissez votre code <code>XXXX-XXXX-XXXX</code>. Une connexion Internet est requise pour l'activation initiale.</p>
+      <p>Ouvrez le jeu → <strong>Réglages</strong> → <em>Gérer mes licences (activer / transférer)</em> → saisissez votre code <code>MQ-CONT-XXXX</code>. Une connexion Internet est requise pour l’activation initiale.</p>
     </article>
 
     <article class="carte">
       <span class="emoji" aria-hidden="true">📱</span>
-      <h3>Changer d'appareil</h3>
-      <p>Votre licence est transférable dans une fenêtre de <strong>1 an</strong>. Allez dans Réglages → <em>Gérer mes licences (activer / transférer)</em>, puis activez votre code sur le nouvel appareil. Un seul transfert est autorisé par licence.</p>
+      <h3>Changer d’appareil</h3>
+      <!-- source: site_config.json faq.transfert -->
+      <p>Les licences <strong>permanentes</strong> sont transférables <strong>une seule fois</strong> dans les <strong>12 premiers mois</strong> suivant l’activation. Après un transfert, la licence n’est plus transférable, même si la fenêtre de 12 mois n’est pas écoulée. Les licences <strong>annuelles ne sont pas transférables</strong>.</p>
+      <p style="margin-top: 0.5rem;"><a href="transferer-licence.html">→ Guide complet du transfert</a></p>
     </article>
 
     <article class="carte">
       <span class="emoji" aria-hidden="true">📴</span>
       <h3>Jeu hors-ligne</h3>
-      <p>Après l'activation initiale, le jeu fonctionne sans Internet pendant <strong>40 jours</strong>. Après 40 jours sans connexion, le jeu revient en mode gratuit jusqu'à la prochaine synchronisation.</p>
+      <!-- source: site_config.json offline_grace_days = 40, faq.hors_ligne -->
+      <p>Une connexion internet est requise une seule fois tous les <strong>40 jours</strong> pour valider votre licence. Entre ces validations, le jeu fonctionne entièrement hors ligne.</p>
     </article>
 
     <article class="carte">
       <span class="emoji" aria-hidden="true">👨‍👩‍👧</span>
       <h3>Plusieurs profils</h3>
-      <p>Une licence active sur un appareil débloque le contenu pour <strong>tous les profils</strong> de cet appareil. Pas besoin d'acheter plusieurs fois pour la même tablette familiale.</p>
+      <p>Une licence active sur un appareil débloque le contenu pour <strong>tous les profils</strong> de cet appareil. Pas besoin d’acheter plusieurs fois pour la même tablette familiale.</p>
     </article>
 
     <article class="carte">
@@ -77,38 +80,80 @@
     <article class="carte">
       <span class="emoji" aria-hidden="true">🪟</span>
       <h3>Windows PC</h3>
-      <p>Disponible sur le <strong>Microsoft Store</strong> et en téléchargement direct sur la page <a href="applications.html">Applications</a>. Le tutoriel est gratuit. Pour débloquer le contenu, allez dans <strong>Réglages → Gérer mes licences (activer / transférer)</strong> ou utilisez la section <em>Licence prof / promo / essai</em> si vous avez un code promotionnel.</p>
+      <!-- source: site_config.json politiques.ms_store + plateformes.microsoft_store -->
+      <p>Téléchargement gratuit via le <strong>Microsoft Store</strong> ou en direct sur la page <a href="applications.html">Applications</a>. Le tutoriel est gratuit. Pour débloquer le contenu, achetez votre licence sur <a href="achat.html">mathequete.ca</a>, puis entrez votre code dans Réglages.</p>
+      <p style="margin-top: 0.5rem; font-size: 0.88rem; opacity: 0.75;">ℹ️ L’achat intégré n’est pas disponible dans le Microsoft Store.</p>
     </article>
 
     <article class="carte">
       <span class="emoji" aria-hidden="true">🤖</span>
       <h3>Android</h3>
-      <p>Disponible sur <strong>Google Play</strong>. Recherchez <strong>MathéQuête</strong>. Le tutoriel et la première île sont gratuits. L'achat du Continent 1 (7 îles complètes débloquées d'un coup) peut se faire <a href="achat.html">directement sur notre site</a> pour nous encourager, ou via Google Play dans l'application.</p>
+      <!-- source: site_config.json plateformes.android, achat_natif = true -->
+      <p>Disponible sur <strong>Google Play</strong>. Recherchez <strong>MathéQuête</strong>. Le tutoriel et la première île sont gratuits. L’achat du Continent 1 peut se faire via Google Play (flux natif) ou sur <a href="achat.html">mathequete.ca</a>. Attention : une licence achetée sur mathequete.ca n’est pas utilisable sur un autre OS.</p>
     </article>
 
     <article class="carte">
       <span class="emoji" aria-hidden="true">🐛</span>
       <h3>Signaler un bug</h3>
-      <p>Décrivez le problème par courriel en incluant : plateforme, version du jeu (visible dans Réglages), description du problème et capture d'écran si possible.</p>
+      <p>Décrivez le problème par courriel en incluant : plateforme, version du jeu (visible dans Réglages), description du problème et capture d’écran si possible.</p>
+    </article>
+
+    <!-- iOS — source: site_config.json faq.ios (aucune date confirmée) -->
+    <article class="carte">
+      <span class="emoji" aria-hidden="true">🍏</span>
+      <h3>iOS</h3>
+      <p>La version iOS est en développement. Inscrivez-vous à notre liste d’attente pour être informé à sa sortie. <strong>Aucune date n’est confirmée pour l’instant.</strong></p>
     </article>
 
   </div>
+</section>
 
-  <div style="max-width: 560px; margin: 3rem auto 0; text-align: center;">
-    <h2>Nous contacter directement</h2>
-    <p>
-      <strong>Courriel :</strong> <a href="mailto:coresrdi@gmail.com">coresrdi@gmail.com</a><br>
-      <strong>Téléphone :</strong> <a href="tel:+15818880175">1 581 888-0175</a><br>
-      <strong>Adresse :</strong> Québec, QC, Canada<br>
-      <em>Délai de réponse habituel : 48 heures ouvrables.</em>
-    </p>
-    <p style="margin-top: 1.5rem; font-size: 0.9rem; opacity: 0.7;">
-      Mathéquête est conforme à la <strong>Loi 25 (Québec)</strong> et à <strong>COPPA</strong>.
-      Aucune donnée personnelle n'est collectée dans le jeu.
-      <a href="https://coresrdi.github.io/mathequete-privacy/" target="_blank" rel="noopener">Politique de confidentialité complète</a>.
-    </p>
+<!-- FAQ DYNAMIQUE (source: site_config.json) -->
+<section class="section-pro">
+  <div class="section">
+    <h2 class="section-titre">Questions fréquentes</h2>
+    <p class="section-sous-titre" style="margin-bottom: 2rem;">Réponses officielles tirées de notre source de vérité.</p>
+
+    <div class="faq" x-data="faqSupport()">
+
+      <template x-if="erreur">
+        <p style="color: var(--aventure-rouge, #a00); text-align: center;">⚠️ Impossible de charger la FAQ. <a href="mailto:coresrdi@gmail.com">Contactez-nous</a>.</p>
+      </template>
+
+      <template x-if="!erreur && items.length === 0">
+        <p style="text-align: center; opacity: 0.6;">Chargement…</p>
+      </template>
+
+      <template x-for="(item, i) in items" :key="i">
+        <div class="faq-item">
+          <button class="faq-question" @click="ouvert = (ouvert === i ? null : i)" :aria-expanded="ouvert === i">
+            <span x-text="item.question"></span>
+            <span class="chevron" aria-hidden="true">▼</span>
+          </button>
+          <div class="faq-reponse" x-show="ouvert === i" x-transition x-cloak>
+            <p x-text="item.reponse"></p>
+          </div>
+        </div>
+      </template>
+
+    </div>
   </div>
+</section>
 
+<!-- CONTACT -->
+<section class="section" style="text-align: center;">
+  <h2 class="section-titre">Nous contacter directement</h2>
+  <p>
+    <strong>Courriel :</strong> <a href="mailto:coresrdi@gmail.com">coresrdi@gmail.com</a><br>
+    <strong>Téléphone :</strong> <a href="tel:+15818880175">1 581 888-0175</a><br>
+    <strong>Adresse :</strong> Québec, QC, Canada<br>
+    <em>Délai de réponse habituel : 48 heures ouvrables.</em>
+  </p>
+  <p style="margin-top: 1.5rem; font-size: 0.9rem; opacity: 0.7;">
+    Mathéquête est conforme à la <strong>Loi 25 (Québec)</strong> et à <strong>COPPA</strong>.
+    Aucune donnée personnelle n’est collectée dans le jeu.
+    <a href="https://coresrdi.github.io/mathequete-privacy/" target="_blank" rel="noopener">Politique de confidentialité</a>.
+  </p>
 </section>
 
 <footer class="site-footer">
@@ -138,6 +183,33 @@
   <p class="copyright">© 2026 CORES RDI — Tous droits réservés. Fait au Québec.</p>
 </footer>
 
+<script>
+function faqSupport() {
+  return {
+    items: [],
+    ouvert: null,
+    erreur: false,
+    async init() {
+      try {
+        const r = await fetch('data/site_config.json');
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const cfg = await r.json();
+        // Ordre d'affichage défini ici
+        const ORDRE = ['hors_ligne', 'transfert', 'duree', 'appareils', 'ios', 'microsoft_store'];
+        this.items = ORDRE
+          .filter(k => cfg.faq && cfg.faq[k])
+          .map(k => ({
+            question: cfg.faq[k].question,
+            reponse:  cfg.faq[k].reponse
+          }));
+      } catch(e) {
+        console.error('FAQ load error:', e);
+        this.erreur = true;
+      }
+    }
+  };
+}
+</script>
 <style>[x-cloak] { display: none !important; }</style>
 </body>
 </html>
