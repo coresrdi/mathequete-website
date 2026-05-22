@@ -12,6 +12,86 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    /* ── Section Continents ── */
+    .continents-section {
+      padding: 3rem 1rem 4rem;
+      background: var(--color-surface, #f7f6f2);
+    }
+    .continents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+      gap: 1.5rem;
+      max-width: 1100px;
+      margin: 2rem auto 0;
+    }
+    .continent-carte {
+      border-radius: 14px;
+      padding: 1.6rem 1.4rem 1.4rem;
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+      position: relative;
+    }
+    .continent-carte:not(.carte-locked):hover {
+      box-shadow: 0 6px 24px rgba(0,0,0,0.11);
+      transform: translateY(-2px);
+    }
+    .continent-carte.carte-en-creation { opacity: 0.80; }
+    .continent-carte.carte-a-venir     { opacity: 0.50; pointer-events: none; filter: grayscale(0.3); }
+
+    .continent-icone { font-size: 2.2rem; line-height: 1; margin-bottom: 0.3rem; }
+    .continent-nom   { font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700; margin: 0; }
+    .continent-sous-titre { font-size: 0.82rem; opacity: 0.6; margin: 0; }
+    .continent-desc  { font-size: 0.88rem; line-height: 1.55; flex: 1; margin: 0.4rem 0 0.8rem; }
+
+    .continent-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 99px;
+      padding: 0.2em 0.75em;
+      margin-bottom: 0.5rem;
+      width: fit-content;
+    }
+    .badge-success { background: #d4f0e0; color: #1a6638; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    .badge-muted   { background: #e5e7eb; color: #6b7280; }
+
+    .continent-cta-group { display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto; }
+    .btn-continent-primaire {
+      display: block; text-align: center; padding: 0.6rem 1rem;
+      border-radius: 8px; font-size: 0.9rem; font-weight: 600;
+      text-decoration: none; color: #fff; border: none; cursor: pointer;
+      transition: filter 0.18s ease;
+    }
+    .btn-continent-primaire:hover { filter: brightness(1.1); }
+    .btn-continent-secondaire {
+      display: block; text-align: center; padding: 0.55rem 1rem;
+      border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+      text-decoration: none; background: transparent; border: 1.5px solid currentColor;
+      cursor: pointer; opacity: 0.75;
+      transition: opacity 0.18s ease;
+    }
+    .btn-continent-secondaire:hover { opacity: 1; }
+    .btn-continent-disabled {
+      display: block; text-align: center; padding: 0.6rem 1rem;
+      border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+      background: #e5e7eb; color: #9ca3af; border: none; cursor: not-allowed;
+      font-style: italic;
+    }
+    .carte-locked-overlay {
+      position: absolute; top: 1rem; right: 1rem;
+      font-size: 1.3rem; opacity: 0.4;
+    }
+  </style>
 </head>
 <body>
 
@@ -72,6 +152,86 @@
   </div>
 </section>
 
+<!-- ═══════════════════════════════════════════
+     SECTION CONTINENTS — chargée depuis continents.json
+     ═══════════════════════════════════════════ -->
+<section class="continents-section">
+  <div style="max-width:1100px; margin:0 auto; text-align:center; padding: 0 1rem;">
+    <h2 class="section-titre">L'univers Éduquête</h2>
+    <p class="section-sous-titre">Un continent disponible aujourd'hui. D'autres en cours de création.</p>
+  </div>
+  <div class="continents-grid" id="continents-grid">
+    <!-- Chargé dynamiquement par le script ci-dessous -->
+    <p style="text-align:center; opacity:0.5; font-style:italic;" id="continents-loading">Chargement des continents…</p>
+  </div>
+</section>
+
+<script>
+(function () {
+  fetch('data/continents.json')
+    .then(r => r.json())
+    .then(data => {
+      const grid = document.getElementById('continents-grid');
+      grid.innerHTML = '';
+
+      data.continents.forEach(c => {
+        const isDisponible  = c.statut === 'disponible';
+        const isEnCreation  = c.statut === 'en_creation';
+        const isAVenir      = c.statut === 'a_venir';
+
+        // Badge
+        const badgeClass = data.statuts_visuels[c.statut]?.css_class || 'badge-muted';
+        const badgeLabel = data.statuts_visuels[c.statut]?.label || c.badge;
+
+        // Classe carte
+        let carteClass = 'continent-carte';
+        if (isEnCreation) carteClass += ' carte-en-creation';
+        if (isAVenir)     carteClass += ' carte-a-venir carte-locked';
+
+        // CTA HTML
+        let ctaHtml = '';
+        if (isDisponible && c.cta_primaire) {
+          ctaHtml = `
+            <div class="continent-cta-group">
+              <a href="${c.cta_primaire.url}" class="btn-continent-primaire"
+                 style="background:${c.couleur_accent};">
+                ${c.cta_primaire.label}
+              </a>
+            </div>`;
+        } else if (isEnCreation) {
+          ctaHtml = `
+            <div class="continent-cta-group">
+              <span class="btn-continent-disabled" aria-disabled="true">🚀 Bientôt sur Kickstarter</span>
+            </div>`;
+        } else if (isAVenir) {
+          ctaHtml = `
+            <div class="continent-cta-group">
+              <span class="btn-continent-disabled" aria-disabled="true">🔒 À venir</span>
+            </div>`;
+        }
+
+        // Overlay cadenas pour A_VENIR
+        const cadenas = isAVenir ? `<span class="carte-locked-overlay" aria-hidden="true">🔒</span>` : '';
+
+        grid.innerHTML += `
+          <article class="${carteClass}" style="border-top: 4px solid ${c.couleur_accent};">
+            ${cadenas}
+            <span class="continent-badge ${badgeClass}">${badgeLabel}</span>
+            <div class="continent-icone" aria-hidden="true">${c.icone}</div>
+            <h3 class="continent-nom" style="color:${c.couleur_accent};">${c.nom}</h3>
+            <p class="continent-sous-titre">${c.sous_titre}</p>
+            <p class="continent-desc">${c.description}</p>
+            ${ctaHtml}
+          </article>`;
+      });
+    })
+    .catch(() => {
+      document.getElementById('continents-grid').innerHTML =
+        '<p style="text-align:center;opacity:0.5;">Impossible de charger les continents.</p>';
+    });
+})();
+</script>
+
 <section class="section-pro">
   <div class="section">
     <h2 class="section-titre">Comment ça marche</h2>
@@ -99,16 +259,18 @@
   <div class="tarifs-grid">
     <div class="tarif-carte">
       <h3>Individuelle</h3>
-      <div class="tarif-prix">4,99&nbsp;$<small> CAD</small></div>
-      <p style="margin: 0.3rem 0 1rem; opacity: 0.7; font-size: 0.9rem;">+ TPS et TVQ au paiement</p>
-      <p>Continent&nbsp;1 complet (8 îles + 8 sous-sols), 1 appareil (Windows, Android, ou bientôt Apple). Hors-ligne après activation.</p>
+      <div class="tarif-prix">1,99&nbsp;$<small>/an CAD</small></div>
+      <p style="margin: 0.3rem 0 0.2rem; opacity: 0.7; font-size: 0.85rem;">ou 9,99&nbsp;$ accès permanent</p>
+      <p style="margin: 0 0 1rem; opacity: 0.7; font-size: 0.9rem;">+ TPS et TVQ au paiement</p>
+      <p>Continent Mathéquête complet (8 îles + 8 sous-sols), 1 appareil. Hors-ligne après activation.</p>
       <a href="achat.html" class="btn-aventure" style="margin-top: 1rem;">Acheter</a>
     </div>
     <div class="tarif-carte">
       <h3>Pack 5</h3>
-      <div class="tarif-prix">19,99&nbsp;$<small> CAD</small></div>
-      <p style="margin: 0.3rem 0 1rem; opacity: 0.7; font-size: 0.9rem;">+ TPS et TVQ au paiement</p>
-      <p>5 codes permanents, chacun 1 appareil. Idéal pour la fratrie ou les cousins.</p>
+      <div class="tarif-prix">7,99&nbsp;$<small>/an CAD</small></div>
+      <p style="margin: 0.3rem 0 0.2rem; opacity: 0.7; font-size: 0.85rem;">ou 39,99&nbsp;$ accès permanent</p>
+      <p style="margin: 0 0 1rem; opacity: 0.7; font-size: 0.9rem;">+ TPS et TVQ au paiement</p>
+      <p>5 codes, chacun 1 appareil. Idéal pour la fratrie ou les cousins.</p>
       <a href="achat.html" class="btn-aventure" style="margin-top: 1rem;">Acheter</a>
     </div>
     <div class="tarif-carte b2b">
@@ -140,16 +302,16 @@
           <span class="chevron" aria-hidden="true">▼</span>
         </button>
         <div class="faq-reponse" x-show="ouvert === 2" x-transition x-cloak>
-          <p>Les licences individuelles et Pack 5 sont à vie (1 appareil par code, transférable). Les licences école sont valides pour une année scolaire complète (10 mois) et renouvelables au tarif en vigueur.</p>
+          <p>Les licences individuelles et Pack 5 sont disponibles en formule annuelle (1,99&nbsp;$/an, renouvelable) ou accès permanent (9,99&nbsp;$, à vie sur 1 appareil, transférable). Les licences école sont valides pour une année scolaire complète (10 mois).</p>
         </div>
       </div>
       <div class="faq-item">
         <button class="faq-question" @click="ouvert = (ouvert === 3 ? null : 3)" :aria-expanded="ouvert === 3">
-          <span>Les autres continents seront-ils gratuits pour moi&nbsp;?</span>
+          <span>Les autres continents seront-ils inclus dans mon achat&nbsp;?</span>
           <span class="chevron" aria-hidden="true">▼</span>
         </button>
         <div class="faq-reponse" x-show="ouvert === 3" x-transition x-cloak>
-          <p>Le Continent&nbsp;1 est jouable aujourd'hui et couvre déjà des dizaines d'heures de jeu (8 îles + 8 sous-sols, capture des profs, mode boutique, healer). Les Continents&nbsp;2 à 8 sont en développement et seront proposés un par un à un tarif similaire (4,99&nbsp;$ CAD chacun), sans abonnement.</p>
+          <p>Le continent Mathéquête est jouable aujourd'hui et couvre des dizaines d'heures de jeu. Les autres continents (Sciéquête, Linguéquête, Histoquête…) seront proposés séparément à un tarif similaire. Leur développement sera accéléré grâce à Kickstarter — restez à l'affût !</p>
         </div>
       </div>
       <div class="faq-item">
@@ -158,7 +320,7 @@
           <span class="chevron" aria-hidden="true">▼</span>
         </button>
         <div class="faq-reponse" x-show="ouvert === 4" x-transition x-cloak>
-          <p>Oui. Une fois le code activé (connexion requise une seule fois), Mathéquête fonctionne complètement hors-ligne. Idéal pour les voyages, le chalet, ou les classes sans wifi fiable.</p>
+          <p>Oui. Une fois le code activé (connexion requise une seule fois), Mathéquête fonctionne complètement hors-ligne pendant 40 jours. Idéal pour les voyages, le chalet, ou les classes sans wifi fiable.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -167,7 +329,7 @@
           <span class="chevron" aria-hidden="true">▼</span>
         </button>
         <div class="faq-reponse" x-show="ouvert === 5" x-transition x-cloak>
-          <p>Oui&nbsp;! Le tutoriel complet et la première île du Continent&nbsp;1 sont jouables gratuitement. Aucun code de carte de crédit demandé pour essayer.</p>
+          <p>Oui&nbsp;! Le tutoriel complet et la première île du continent Mathéquête sont jouables gratuitement. Aucun code de carte de crédit demandé pour essayer.</p>
         </div>
       </div>
       <div class="faq-item">
