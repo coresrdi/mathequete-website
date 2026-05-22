@@ -1,0 +1,15 @@
+# Mathéquête — Cloudflare Pages _redirects
+# Corrige les HTTP 500 causés par la suppression automatique de .html
+# Cloudflare Pages fait achat.html → /achat (308), mais /achat n'existe pas → 500
+# Solution : rediriger /achat → /achat.html (301 permanent)
+
+/achat                /achat.html              301
+/enseignants          /enseignants.html        301
+/transferer-licence   /transferer-licence.html 301
+/applications         /applications.html       301
+/support              /support.html            301
+/guide-prof           /guide-prof.html         301
+/iles-bonus           /iles-bonus.html         301
+/merci                /merci.html              301
+/ecole                /ecole.html              301
+/template-eleves      /template-eleves.html    301
