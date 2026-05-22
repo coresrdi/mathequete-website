@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Acheter Mathéquête — Individuelle, Pack 5, écoles</title>
-  <meta name="description" content="Choisis ta licence Mathéquête : 1,99 $/an (annuelle), 9,99 $ perpétuelle, Pack 5 à 7,99 $/an, ou 6 paliers école de 35 à 716 $ CAD. Paiement sécurisé Stripe.">
+  <meta name="description" content="Choisis ta licence Mathéquête : 1,99 $/an (annuelle), 9,99 $ permanent, Pack 5 à 7,99 $/an, ou 6 paliers école de 35 à 716 $ CAD. Paiement sécurisé Stripe.">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,8 +13,62 @@
   <link rel="stylesheet" href="css/style.css">
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script src="js/checkout.js"></script>
+
+  <style>
+    .continent-actif-bandeau {
+      background: linear-gradient(135deg, #01696f 0%, #0c4e54 100%);
+      color: #fff;
+      text-align: center;
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .continent-actif-bandeau span {
+      opacity: 0.8;
+      font-weight: 400;
+      margin-left: 0.5rem;
+      font-size: 0.82rem;
+    }
+    .mode-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin: 1.5rem auto 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 52px; height: 28px;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: #01696f; border-radius: 99px; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-slider:before {
+      content: '';
+      position: absolute;
+      width: 20px; height: 20px;
+      left: 4px; top: 4px;
+      background: white; border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: #7a39bb; }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(24px); }
+    .mode-label { transition: opacity 0.2s; }
+    .mode-label.inactive { opacity: 0.4; }
+  </style>
 </head>
 <body>
+
+<div class="continent-actif-bandeau">
+  🧮 Mathéquête — Continent des Mathématiques
+  <span>Seul continent disponible à l'achat pour l'instant</span>
+</div>
 
 <nav class="site-nav">
   <div class="container">
@@ -37,7 +91,18 @@
 <section class="section" x-data="checkoutApp()">
 
   <h1 class="section-titre">Choisis ta licence</h1>
-  <p class="section-sous-titre">Une seule étape : choisis le forfait qui te convient, paie en toute sécurité avec Stripe, reçois ton code par courriel.</p>
+  <p class="section-sous-titre">Une seule étape : choisis le forfait qui te convient, paie en toute sécurité avec Stripe, reçois ton code par courriel.</p>
+
+  <!-- Toggle Annuel / Permanent -->
+  <div class="mode-toggle" role="group" aria-label="Mode de licence">
+    <span class="mode-label" id="label-annuel">🔄 Annuel</span>
+    <label class="toggle-switch" aria-label="Basculer entre annuel et permanent">
+      <input type="checkbox" id="toggle-permanent" onchange="toggleMode(this.checked)">
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="mode-label inactive" id="label-permanent">♾️ Permanent</span>
+  </div>
+  <p style="text-align:center; font-size:0.82rem; opacity:0.55; margin-top:0.25rem;" id="mode-hint">Renouvellement chaque année · Hors-ligne 40 jours</p>
 
   <div class="tabs" role="tablist">
     <button class="tab-btn" :class="{ active: tab === 'individuelle' }" @click="tab = 'individuelle'; error = ''" role="tab" :aria-selected="tab === 'individuelle'">👤 Licence individuelle</button>
@@ -51,36 +116,36 @@
 
   <!-- ===== INDIVIDUELLE ===== -->
   <div x-show="tab === 'individuelle'" x-transition>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 680px; margin: 0 auto;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 480px; margin: 0 auto;">
 
-      <!-- Annuelle -->
-      <article class="sku-carte" style="position: relative;">
+      <article class="sku-carte mode-annuel" style="position: relative;">
         <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--aventure-bleu, #2A5FA5); color: white; padding: 0.25rem 0.8rem; border-radius: 0.4rem; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">🔄 La plus populaire</div>
-        <h3>Continent 1 — Annuelle</h3>
-        <div class="sku-prix">1,99&nbsp;$ <small style="font-size: 0.9rem;">CAD / an</small></div>
+        <h3>Mathéquête — Annuelle</h3>
+        <div class="sku-prix">1,99&nbsp;<small style="font-size: 0.9rem;">$ CAD / an</small></div>
         <div class="sku-taxes">+ TPS et TVQ calculées au paiement</div>
         <div class="sku-details">
-          <p><strong>1 licence &mdash; 1 appareil à la fois</strong> (Android, Windows, ou bientôt iOS).<br>
-          Accès illimité au Continent 1 pendant 1&nbsp;an. Renouvelable chaque année. Transférable sur un nouvel appareil au besoin.</p>
+          <p><strong>1 licence · 1 appareil à la fois</strong> (Android, Windows, ou bientôt iOS/Mac).<br>
+          Accès illimité au continent Mathéquête pendant 1 an. Renouvelable. Transférable sur un nouvel appareil.</p>
+          <p style="font-size:0.82rem; opacity:0.6;">⏱ Hors-ligne jusqu'à 40 jours</p>
         </div>
         <button class="btn-aventure" @click="acheter('continent_1')" :disabled="loading">
           <template x-if="loading && loadingTier === 'continent_1'"><span class="spinner"></span></template>
-          <span x-text="(loading && loadingTier === 'continent_1') ? 'Redirection…' : 'Acheter — 1,99 $/an'"></span>
+          <span x-text="(loading && loadingTier === 'continent_1') ? 'Redirection…' : 'Acheter — 1,99 $/an'"></span>
         </button>
       </article>
 
-      <!-- Perpétuelle -->
-      <article class="sku-carte">
-        <h3>Continent 1 — Perpétuelle</h3>
-        <div class="sku-prix">9,99&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+      <article class="sku-carte mode-permanent" style="display:none;">
+        <h3>Mathéquête — Permanent</h3>
+        <div class="sku-prix">9,99&nbsp;<small style="font-size: 0.9rem;">$ CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ calculées au paiement</div>
         <div class="sku-details">
-          <p><strong>1 licence permanente &mdash; vie de l&rsquo;appareil</strong>.<br>
-          Accès illimité au Continent 1 sans date d’expiration. <em>Transférable une fois avant la première année.</em></p>
+          <p><strong>1 licence à vie · 1 appareil</strong> (Android, Windows, ou bientôt iOS/Mac).<br>
+          Accès permanent sans date d'expiration. <em>Transférable une fois dans les 12 premiers mois.</em></p>
+          <p style="font-size:0.82rem; opacity:0.6;">⏱ Hors-ligne jusqu'à 40 jours</p>
         </div>
         <button class="btn-aventure" @click="acheter('continent_1_perp')" :disabled="loading">
           <template x-if="loading && loadingTier === 'continent_1_perp'"><span class="spinner"></span></template>
-          <span x-text="(loading && loadingTier === 'continent_1_perp') ? 'Redirection…' : 'Acheter — 9,99 $'"></span>
+          <span x-text="(loading && loadingTier === 'continent_1_perp') ? 'Redirection…' : 'Acheter — 9,99 $'"></span>
         </button>
       </article>
 
@@ -89,38 +154,36 @@
 
   <!-- ===== PACK 5 ===== -->
   <div x-show="tab === 'pack5'" x-transition x-cloak>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 680px; margin: 0 auto;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 480px; margin: 0 auto;">
 
-      <!-- Pack 5 annuel -->
-      <article class="sku-carte" style="position: relative;">
+      <article class="sku-carte mode-annuel" style="position: relative;">
         <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--aventure-bleu, #2A5FA5); color: white; padding: 0.25rem 0.8rem; border-radius: 0.4rem; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">🔄 Annuel</div>
         <h3>Pack 5 — Annuel</h3>
-        <div class="sku-prix">7,99&nbsp;$ <small style="font-size: 0.9rem;">CAD / an</small></div>
+        <div class="sku-prix">7,99&nbsp;<small style="font-size: 0.9rem;">$ CAD / an</small></div>
         <div class="sku-taxes">+ TPS et TVQ calculées au paiement</div>
         <div class="sku-details">
-          <p><strong>5 codes annuels distincts</strong>, chacun activable sur 1 appareil.<br>
-          Idéal pour la fratrie ou les cousins. Économie de 2,00 $ par rapport à 5 licences individuelles.</p>
-          <p style="font-size: 0.85rem; opacity: 0.75;">~1,60 $/personne/an</p>
+          <p><strong>5 codes annuels distincts</strong>, chacun 1 appareil.<br>
+          Idéal pour la fratrie ou les cousins.</p>
+          <p style="font-size: 0.85rem; opacity: 0.75;">~1,60 $ / personne / an · économie vs 5 individuelles</p>
         </div>
         <button class="btn-aventure" @click="acheter('pack_5_continent_1')" :disabled="loading">
           <template x-if="loading && loadingTier === 'pack_5_continent_1'"><span class="spinner"></span></template>
-          <span x-text="(loading && loadingTier === 'pack_5_continent_1') ? 'Redirection…' : 'Acheter — 7,99 $/an'"></span>
+          <span x-text="(loading && loadingTier === 'pack_5_continent_1') ? 'Redirection…' : 'Acheter — 7,99 $/an'"></span>
         </button>
       </article>
 
-      <!-- Pack 5 perpétuel -->
-      <article class="sku-carte">
-        <h3>Pack 5 — Perpétuel</h3>
-        <div class="sku-prix">39,99&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+      <article class="sku-carte mode-permanent" style="display:none;">
+        <h3>Pack 5 — Permanent</h3>
+        <div class="sku-prix">39,99&nbsp;<small style="font-size: 0.9rem;">$ CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ calculées au paiement</div>
         <div class="sku-details">
-          <p><strong>5 codes permanents distincts</strong> &mdash; vie de l&rsquo;appareil.<br>
-          Chaque code est transférable une fois avant la première année.</p>
-          <p style="font-size: 0.85rem; opacity: 0.75;">~8,00 $/personne</p>
+          <p><strong>5 codes permanents distincts</strong> — accès à vie, 1 appareil chacun.<br>
+          Chaque code transférable une fois dans les 12 premiers mois.</p>
+          <p style="font-size: 0.85rem; opacity: 0.75;">~8,00 $ / personne · un seul achat</p>
         </div>
         <button class="btn-aventure" @click="acheter('pack_5_continent_1_perp')" :disabled="loading">
           <template x-if="loading && loadingTier === 'pack_5_continent_1_perp'"><span class="spinner"></span></template>
-          <span x-text="(loading && loadingTier === 'pack_5_continent_1_perp') ? 'Redirection…' : 'Acheter — 39,99 $'"></span>
+          <span x-text="(loading && loadingTier === 'pack_5_continent_1_perp') ? 'Redirection…' : 'Acheter — 39,99 $'"></span>
         </button>
       </article>
 
@@ -129,12 +192,13 @@
 
   <!-- ===== ÉCOLE ===== -->
   <div x-show="tab === 'ecole'" x-transition x-cloak>
+    <p style="text-align:center; font-size:0.85rem; opacity:0.65; margin-bottom:1.2rem;">Les licences école sont annuelles (année scolaire). Renouvelables au tarif en vigueur.</p>
     <div class="sku-grid">
       <article class="sku-carte">
         <h3>Classe Petite</h3>
-        <div class="sku-prix">35&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-prix">35&nbsp;<small style="font-size: 0.9rem;">$ CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details"><p>Jusqu’à <strong>30 élèves</strong>.<br>Idéal pour une classe unique.</p></div>
+        <div class="sku-details"><p>Jusqu'à <strong>30 élèves</strong>.<br>Idéal pour une classe unique.</p></div>
         <button class="btn-aventure" @click="acheter('classe_petite')" :disabled="loading">
           <template x-if="loading && loadingTier === 'classe_petite'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'classe_petite') ? 'Redirection…' : 'Acheter'"></span>
@@ -142,9 +206,9 @@
       </article>
       <article class="sku-carte">
         <h3>Classe Moyenne</h3>
-        <div class="sku-prix">98&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-prix">98&nbsp;<small style="font-size: 0.9rem;">$ CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details"><p>Jusqu’à <strong>100 élèves</strong>.<br>Pour 3–4 classes.</p></div>
+        <div class="sku-details"><p>Jusqu'à <strong>100 élèves</strong>.<br>Pour 3–4 classes.</p></div>
         <button class="btn-aventure" @click="acheter('classe_moyenne')" :disabled="loading">
           <template x-if="loading && loadingTier === 'classe_moyenne'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'classe_moyenne') ? 'Redirection…' : 'Acheter'"></span>
@@ -152,9 +216,9 @@
       </article>
       <article class="sku-carte">
         <h3>Petite École</h3>
-        <div class="sku-prix">265&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-prix">265&nbsp;<small style="font-size: 0.9rem;">$ CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details"><p>Jusqu’à <strong>300 élèves</strong>.<br>Petite école primaire complète.</p></div>
+        <div class="sku-details"><p>Jusqu'à <strong>300 élèves</strong>.<br>Petite école primaire complète.</p></div>
         <button class="btn-aventure" @click="acheter('petite_ecole')" :disabled="loading">
           <template x-if="loading && loadingTier === 'petite_ecole'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'petite_ecole') ? 'Redirection…' : 'Acheter'"></span>
@@ -163,9 +227,9 @@
       <article class="sku-carte" style="border-color: var(--aventure-or); position: relative;">
         <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--aventure-or); color: white; padding: 0.25rem 0.8rem; border-radius: 0.4rem; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">★ Le plus populaire</div>
         <h3>École Standard</h3>
-        <div class="sku-prix">393&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-prix">393&nbsp;<small style="font-size: 0.9rem;">$ CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details"><p>Jusqu’à <strong>500 élèves</strong>.<br>Le forfait le plus populaire.</p></div>
+        <div class="sku-details"><p>Jusqu'à <strong>500 élèves</strong>.<br>Le forfait le plus populaire.</p></div>
         <button class="btn-aventure" @click="acheter('ecole_standard')" :disabled="loading">
           <template x-if="loading && loadingTier === 'ecole_standard'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'ecole_standard') ? 'Redirection…' : 'Acheter'"></span>
@@ -173,9 +237,9 @@
       </article>
       <article class="sku-carte">
         <h3>Grande École</h3>
-        <div class="sku-prix">650&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-prix">650&nbsp;<small style="font-size: 0.9rem;">$ CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details"><p>Jusqu’à <strong>1 000 élèves</strong>.<br>Grand établissement primaire.</p></div>
+        <div class="sku-details"><p>Jusqu'à <strong>1 000 élèves</strong>.<br>Grand établissement primaire.</p></div>
         <button class="btn-aventure" @click="acheter('grande_ecole')" :disabled="loading">
           <template x-if="loading && loadingTier === 'grande_ecole'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'grande_ecole') ? 'Redirection…' : 'Acheter'"></span>
@@ -183,20 +247,20 @@
       </article>
       <article class="sku-carte">
         <h3>Méga École</h3>
-        <div class="sku-prix">716&nbsp;$ <small style="font-size: 0.9rem;">CAD</small></div>
+        <div class="sku-prix">716&nbsp;<small style="font-size: 0.9rem;">$ CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details"><p>Jusqu’à <strong>1 300 élèves</strong>.<br>Centre de services scolaire.</p></div>
+        <div class="sku-details"><p>Jusqu'à <strong>1 300 élèves</strong>.<br>Centre de services scolaire.</p></div>
         <button class="btn-aventure" @click="acheter('mega_ecole')" :disabled="loading">
           <template x-if="loading && loadingTier === 'mega_ecole'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'mega_ecole') ? 'Redirection…' : 'Acheter'"></span>
         </button>
       </article>
     </div>
-    <p class="note-paiement">Besoin de plus de 1 300 licences ? <a href="mailto:coresrdi@gmail.com">Demande un devis personnalisé</a>.</p>
+    <p class="note-paiement">Besoin de plus de 1 300 licences ? <a href="mailto:coresrdi@gmail.com">Demande un devis personnalisé</a>.</p>
   </div>
 
   <p class="note-paiement">
-    🔒 Paiement sécurisé par Stripe. Taxes (TPS 5 %, TVQ 9,975 %) calculées automatiquement au paiement.<br>
+    🔒 Paiement sécurisé par Stripe. Taxes (TPS 5 %, TVQ 9,975 %) calculées automatiquement au paiement.<br>
     Code(s) livré(s) par courriel dans les minutes suivant le paiement.
   </p>
 
@@ -228,6 +292,18 @@
   </div>
   <p class="copyright">© 2026 CORES RDI — Tous droits réservés. Fait au Québec.</p>
 </footer>
+
+<script>
+function toggleMode(isPermanent) {
+  document.querySelectorAll('.mode-annuel').forEach(el => el.style.display = isPermanent ? 'none' : '');
+  document.querySelectorAll('.mode-permanent').forEach(el => el.style.display = isPermanent ? '' : 'none');
+  document.getElementById('label-annuel').classList.toggle('inactive', isPermanent);
+  document.getElementById('label-permanent').classList.toggle('inactive', !isPermanent);
+  document.getElementById('mode-hint').textContent = isPermanent
+    ? 'Accès à vie · Transférable une fois dans les 12 premiers mois'
+    : 'Renouvellement chaque année · Hors-ligne 40 jours';
+}
+</script>
 
 <style>[x-cloak] { display: none !important; }</style>
 </body>
