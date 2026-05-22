@@ -75,7 +75,7 @@
       <span class="platforme-icon" aria-hidden="true">🍏</span>
       <h3 class="platforme-titre">iOS / iPad</h3>
       <span class="badge-statut badge-bientot">Bientôt</span>
-      <p class="platforme-statut">Version iOS en développement. Sortie prévue au cours de l'année 2026. Aucun frais supplémentaire pour les acheteurs Android existants.</p>
+      <p class="platforme-statut">Version iOS en développement. Sortie à confirmer — aucune date annoncée. Aucun frais supplémentaire pour les acheteurs Android existants.</p>
       <div class="platforme-action">
         <a href="#notif-ios" class="btn-secondaire" @click.prevent="rejoindreNotifs('ios')">M'aviser à la sortie</a>
       </div>
@@ -84,7 +84,7 @@
       <span class="platforme-icon" aria-hidden="true">🖥️</span>
       <h3 class="platforme-titre">Windows</h3>
       <span class="badge-statut badge-bientot">Bientôt</span>
-      <p class="platforme-statut">Version Windows en développement (téléchargement direct, format à confirmer). Sortie prévue au cours de l'année 2026.</p>
+      <p class="platforme-statut">Version Windows en développement (téléchargement direct, format à confirmer). Sortie à confirmer — aucune date annoncée.</p>
       <div class="platforme-action">
         <a href="#notif-windows" class="btn-secondaire" @click.prevent="rejoindreNotifs('windows')">M'aviser à la sortie</a>
       </div>
@@ -130,19 +130,52 @@
       </div>
       <div class="faq-item">
         <button class="faq-question" @click="ouvert = (ouvert === 2 ? null : 2)" :aria-expanded="ouvert === 2"><span>Combien d'appareils par licence ?</span><span class="chevron" aria-hidden="true">▼</span></button>
-        <div class="faq-reponse" x-show="ouvert === 2" x-transition x-cloak><p>Une licence individuelle = 1 appareil à la fois. Vous pouvez transférer votre licence vers un nouvel appareil après 6 mois automatiquement (changement de téléphone, etc.), ou immédiatement avec validation prof si c'est une licence école.</p></div>
+        <div class="faq-reponse" x-show="ouvert === 2" x-transition x-cloak><p>Une licence individuelle = 1 appareil à la fois. Vous pouvez transférer votre licence vers un nouvel appareil dans une fenêtre de 12 mois suivant l'achat (un seul transfert autorisé).</p></div>
       </div>
       <div class="faq-item">
         <button class="faq-question" @click="ouvert = (ouvert === 3 ? null : 3)" :aria-expanded="ouvert === 3"><span>Le jeu fonctionne-t-il hors-ligne ?</span><span class="chevron" aria-hidden="true">▼</span></button>
-        <div class="faq-reponse" x-show="ouvert === 3" x-transition x-cloak><p>Oui. Une fois activé via une connexion Internet, le jeu fonctionne entièrement hors-ligne. Parfait pour les classes sans wifi fiable, les voyages, ou le chalet.</p></div>
+        <div class="faq-reponse" x-show="ouvert === 3" x-transition x-cloak><p>Oui. Une fois activé via une connexion Internet, le jeu fonctionne entièrement hors-ligne pendant 40 jours. Parfait pour les classes sans wifi fiable, les voyages, ou le chalet.</p></div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" @click="ouvert = (ouvert === 4 ? null : 4)" :aria-expanded="ouvert === 4"><span>L'application Tableau de bord prof nécessite-t-elle un achat ?</span><span class="chevron" aria-hidden="true">▼</span></button>
+        <button class="faq-question" @click="ouvert = (ouvert === 4 ? null : 4)" :aria-expanded="ouvert === 4"><span>Le tableau de bord enseignant est-il payant ?</span><span class="chevron" aria-hidden="true">▼</span></button>
         <div class="faq-reponse" x-show="ouvert === 4" x-transition x-cloak><p>Non, l'application Tableau de bord est entièrement gratuite. Elle vous permet de gérer vos classes et visualiser les progrès de vos élèves. Pour que vos élèves jouent au jeu Mathéquête en classe, une licence par élève doit être achetée séparément (forfaits école disponibles à partir de 30 élèves).</p></div>
       </div>
     </div>
   </div>
 </section>
+
+<div id="notif-ios" x-data="notifForm('ios')" x-show="actif" x-cloak style="position:fixed;bottom:2rem;right:2rem;background:#fff;border:2px solid var(--aventure-or);border-radius:0.8rem;padding:1.5rem;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:1000;">
+  <button @click="actif=false" style="position:absolute;top:0.5rem;right:0.8rem;background:none;border:none;font-size:1.2rem;cursor:pointer;" aria-label="Fermer">×</button>
+  <h4 style="margin:0 0 0.5rem;">Notif iOS 🍏</h4>
+  <p style="font-size:0.9rem;margin-bottom:1rem;">Laissez votre courriel pour être avisé(e) à la sortie de la version iOS.</p>
+  <form @submit.prevent="envoyer">
+    <input type="email" x-model="courriel" placeholder="votre@courriel.com" required style="width:100%;margin-bottom:0.75rem;">
+    <button type="submit" class="btn-aventure" style="width:100%;" :disabled="envoi">M'aviser</button>
+  </form>
+  <p x-show="confirme" style="color:green;margin-top:0.5rem;font-size:0.85rem;">Merci ! Vous serez avisé(e). ✅</p>
+</div>
+
+<div id="notif-windows" x-data="notifForm('windows')" x-show="actif" x-cloak style="position:fixed;bottom:2rem;right:2rem;background:#fff;border:2px solid var(--aventure-or);border-radius:0.8rem;padding:1.5rem;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:1000;">
+  <button @click="actif=false" style="position:absolute;top:0.5rem;right:0.8rem;background:none;border:none;font-size:1.2rem;cursor:pointer;" aria-label="Fermer">×</button>
+  <h4 style="margin:0 0 0.5rem;">Notif Windows 🖥️</h4>
+  <p style="font-size:0.9rem;margin-bottom:1rem;">Laissez votre courriel pour être avisé(e) à la sortie de la version Windows.</p>
+  <form @submit.prevent="envoyer">
+    <input type="email" x-model="courriel" placeholder="votre@courriel.com" required style="width:100%;margin-bottom:0.75rem;">
+    <button type="submit" class="btn-aventure" style="width:100%;" :disabled="envoi">M'aviser</button>
+  </form>
+  <p x-show="confirme" style="color:green;margin-top:0.5rem;font-size:0.85rem;">Merci ! Vous serez avisé(e). ✅</p>
+</div>
+
+<div id="notif-macos" x-data="notifForm('macos')" x-show="actif" x-cloak style="position:fixed;bottom:2rem;right:2rem;background:#fff;border:2px solid var(--aventure-or);border-radius:0.8rem;padding:1.5rem;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:1000;">
+  <button @click="actif=false" style="position:absolute;top:0.5rem;right:0.8rem;background:none;border:none;font-size:1.2rem;cursor:pointer;" aria-label="Fermer">×</button>
+  <h4 style="margin:0 0 0.5rem;">Notif macOS 🍎</h4>
+  <p style="font-size:0.9rem;margin-bottom:1rem;">Laissez votre courriel pour être avisé(e) à la sortie de la version macOS.</p>
+  <form @submit.prevent="envoyer">
+    <input type="email" x-model="courriel" placeholder="votre@courriel.com" required style="width:100%;margin-bottom:0.75rem;">
+    <button type="submit" class="btn-aventure" style="width:100%;" :disabled="envoi">M'aviser</button>
+  </form>
+  <p x-show="confirme" style="color:green;margin-top:0.5rem;font-size:0.85rem;">Merci ! Vous serez avisé(e). ✅</p>
+</div>
 
 <footer class="site-footer">
   <div class="container">
@@ -156,7 +189,7 @@
         <a href="index.html">Accueil</a><br>
         <a href="achat.html">Acheter</a><br>
         <a href="enseignants.html">Enseignants</a><br>
-        <a href="guide-prof.html">Guide école</a><br>
+        <a href="applications.html">Applications</a><br>
         <a href="support.html">Support</a>
       </p>
     </div>
@@ -171,26 +204,43 @@
   <p class="copyright">© 2026 CORES RDI — Tous droits réservés. Fait au Québec.</p>
 </footer>
 
-<script>
-  document.addEventListener('alpine:init', () => {
-    Alpine.data('appsDetection', () => ({
-      plateforme: null,
-      init() {
-        const ua = (navigator.userAgent || '').toLowerCase();
-        if (ua.includes('android')) this.plateforme = 'android';
-        else if (/iphone|ipad|ipod/.test(ua)) this.plateforme = 'ios';
-        else if (/mac os|macos|macintosh/.test(ua)) this.plateforme = 'macos';
-        else if (ua.includes('windows')) this.plateforme = 'windows';
-        else this.plateforme = null;
-      },
-      rejoindreNotifs(plateforme) {
-        window.location.href = 'mailto:coresrdi@gmail.com?subject=' +
-          encodeURIComponent('Notification sortie ' + plateforme) +
-          '&body=' + encodeURIComponent('Bonjour, je souhaite être avisé(e) de la sortie de la version ' + plateforme + ' de Mathéquête. Merci !');
-      }
-    }));
-  });
-</script>
 <style>[x-cloak] { display: none !important; }</style>
+
+<script>
+function appsDetection() {
+  return {
+    plateforme: null,
+    init() {
+      const ua = navigator.userAgent.toLowerCase();
+      if (/android/.test(ua)) this.plateforme = 'android';
+      else if (/iphone|ipad|ipod/.test(ua)) this.plateforme = 'ios';
+      else if (/macintosh|mac os x/.test(ua) && !/iphone|ipad/.test(ua)) this.plateforme = 'macos';
+      else if (/windows/.test(ua)) this.plateforme = 'windows';
+    },
+    rejoindreNotifs(plateforme) {
+      const el = document.getElementById('notif-' + plateforme);
+      if (el && el._x_dataStack) {
+        el._x_dataStack[0].actif = true;
+      }
+    }
+  };
+}
+
+function notifForm(plateforme) {
+  return {
+    actif: false,
+    courriel: '',
+    envoi: false,
+    confirme: false,
+    envoyer() {
+      this.envoi = true;
+      const sujet = encodeURIComponent('Notification sortie ' + plateforme);
+      const corps = encodeURIComponent('Bonjour, je souhaite être avisé(e) de la sortie de la version ' + plateforme + ' de Mathéquête. Merci !');
+      window.location.href = 'mailto:coresrdi@gmail.com?subject=' + sujet + '&body=' + corps;
+      setTimeout(() => { this.confirme = true; this.envoi = false; }, 800);
+    }
+  };
+}
+</script>
 </body>
 </html>
