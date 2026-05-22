@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Applications Mathéquête — Téléchargements Android et Windows</title>
-  <meta name="description" content="Téléchargez Mathéquête sur Android (Google Play). iOS, Windows et macOS en développement. Application gratuite Tableau de bord pour enseignants.">
+  <meta name="description" content="Téléchargez Mathéquête sur Android (Google Play) et Windows. iOS et macOS en développement. Application gratuite Tableau de bord pour enseignants.">
   <meta name="robots" content="index, follow">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
@@ -29,6 +29,8 @@
     .platforme-action { margin-top: auto; }
     .section-prof { background: #f5f8fc; border-top: 4px solid var(--aventure-bleu); border-bottom: 4px solid var(--aventure-bleu); }
     .prof-bloc { max-width: 700px; margin: 0 auto; background: #fff; border: 2px solid var(--aventure-bleu); border-radius: 0.8rem; padding: 2rem; text-align: center; }
+    .note-licence { background: #f0f7ff; border-left: 4px solid var(--aventure-bleu); border-radius: 0 0.5rem 0.5rem 0; padding: 1rem 1.25rem; margin: 2rem auto; max-width: 780px; font-size: 0.92rem; line-height: 1.6; }
+    .note-licence strong { color: var(--aventure-bleu); }
   </style>
 </head>
 <body>
@@ -60,8 +62,19 @@
 
 <section class="section">
   <h2 class="section-titre">Le jeu Mathéquête</h2>
-  <p class="section-sous-titre">Disponible sur Android. iOS et Windows en développement — aucune date annoncée.</p>
+  <p class="section-sous-titre">Disponible sur Android et Windows. iOS et macOS en développement — aucune date annoncée.</p>
+
+  <!-- NOTE IMPORTANTE : politique des licences -->
+  <div class="note-licence">
+    <strong>🔑 Deux façons d'activer votre licence :</strong><br>
+    <strong>Achat via Google Play</strong> — la licence est liée à votre compte Google Play et fonctionne sur vos appareils Android via la sauvegarde Google Play.<br>
+    <strong>Achat sur ce site (Stripe)</strong> — vous recevez un code QR Crockford activable sur n'importe quel appareil compatible (Android, Windows, et iOS à venir).
+    Une licence = 1 appareil actif à la fois. Transfert disponible pour les licences permanentes (1 fois dans les 12 premiers mois).
+  </div>
+
   <div class="platforme-grid" x-data="appsDetection">
+
+    <!-- Android -->
     <article class="platforme-carte" :class="{ detectee: plateforme === 'android' }">
       <span class="platforme-icon" aria-hidden="true">🤖</span>
       <h3 class="platforme-titre">Android</h3>
@@ -71,24 +84,32 @@
         <a href="https://play.google.com/store/apps/details?id=com.coresrdi.mathequete" class="btn-aventure" rel="noopener">Voir sur Google Play</a>
       </div>
     </article>
+
+    <!-- Windows -->
+    <!-- TODO REGISTRE : ajouter lien MS Store définitif quand publié -->
+    <article class="platforme-carte" :class="{ detectee: plateforme === 'windows' }">
+      <span class="platforme-icon" aria-hidden="true">🖥️</span>
+      <h3 class="platforme-titre">Windows</h3>
+      <span class="badge-statut badge-disponible">Disponible</span>
+      <p class="platforme-statut">Téléchargement direct disponible. Compatible Windows 10 / 11 (64 bits). Activez votre licence avec le code QR reçu après achat sur ce site.</p>
+      <div class="platforme-action">
+        <!-- TODO : remplacer # par le lien MS Store ou URL de téléchargement direct -->
+        <a href="#" class="btn-aventure" aria-label="Téléchargement Windows — lien à venir">Télécharger — Windows <span style="font-size:0.78rem;opacity:0.75;">(lien à venir)</span></a>
+      </div>
+    </article>
+
+    <!-- iOS -->
     <article class="platforme-carte" :class="{ detectee: plateforme === 'ios' }">
       <span class="platforme-icon" aria-hidden="true">🍏</span>
       <h3 class="platforme-titre">iOS / iPad</h3>
       <span class="badge-statut badge-bientot">Bientôt</span>
-      <p class="platforme-statut">Version iOS en développement. Sortie à confirmer — aucune date annoncée. Aucun frais supplémentaire pour les acheteurs Android existants.</p>
+      <p class="platforme-statut">Version iOS en développement. Sortie à confirmer — aucune date annoncée. Les licences achetées sur ce site (Stripe) seront compatibles iOS à la sortie.</p>
       <div class="platforme-action">
         <a href="#notif-ios" class="btn-secondaire" @click.prevent="rejoindreNotifs('ios')">M'aviser à la sortie</a>
       </div>
     </article>
-    <article class="platforme-carte" :class="{ detectee: plateforme === 'windows' }">
-      <span class="platforme-icon" aria-hidden="true">🖥️</span>
-      <h3 class="platforme-titre">Windows</h3>
-      <span class="badge-statut badge-bientot">Bientôt</span>
-      <p class="platforme-statut">Version Windows en développement (téléchargement direct, format à confirmer). Sortie à confirmer — aucune date annoncée.</p>
-      <div class="platforme-action">
-        <a href="#notif-windows" class="btn-secondaire" @click.prevent="rejoindreNotifs('windows')">M'aviser à la sortie</a>
-      </div>
-    </article>
+
+    <!-- macOS -->
     <article class="platforme-carte" :class="{ detectee: plateforme === 'macos' }">
       <span class="platforme-icon" aria-hidden="true">🍎</span>
       <h3 class="platforme-titre">macOS</h3>
@@ -98,6 +119,7 @@
         <a href="#notif-macos" class="btn-secondaire" @click.prevent="rejoindreNotifs('macos')">M'aviser à la sortie</a>
       </div>
     </article>
+
   </div>
 </section>
 
@@ -109,7 +131,7 @@
       <span class="platforme-icon" aria-hidden="true">📊</span>
       <h3 class="platforme-titre">Tableau de bord prof — Windows</h3>
       <span class="badge-statut badge-beta">Bêta</span>
-      <p style="margin: 1rem 0; line-height: 1.6;">Application Windows native (Tauri + WebView2). Permet de gérer vos classes, importer vos élèves, visualiser leurs progrès, créer des îles bonus personnalisées.<br><br><strong>Gratuit, sans achat dans l'application.</strong> Toutes les fonctionnalités payantes nécessitent une licence d'élève achetée séparément.</p>
+      <p style="margin: 1rem 0; line-height: 1.6;">Application Windows native (Tauri + WebView2). Permet de gérer vos classes, importer vos élèves, visualiser leurs progrès, créer des îles bonus personnalisées.<br><br><strong>Gratuit, sans achat dans l'application.</strong> Les fonctionnalités de jeu nécessitent une licence d'élève achetée séparément.</p>
       <p style="margin: 1rem 0; font-size: 0.9rem; opacity: 0.8;">Compatible Windows 10 / 11 (64 bits). Prérequis : WebView2 Runtime (généralement déjà installé).</p>
       <div style="margin-top: 1.5rem;">
         <a href="enseignants.html" class="btn-aventure">En savoir plus</a>
@@ -124,26 +146,53 @@
   <div class="section">
     <h2 class="section-titre">Compatibilité</h2>
     <div class="faq" x-data="{ ouvert: null }">
+
       <div class="faq-item">
-        <button class="faq-question" @click="ouvert = (ouvert === 1 ? null : 1)" :aria-expanded="ouvert === 1"><span>Mon achat sur Android fonctionne-t-il sur les futures versions iOS / Windows ?</span><span class="chevron" aria-hidden="true">▼</span></button>
-        <div class="faq-reponse" x-show="ouvert === 1" x-transition x-cloak><p>Oui. Vos codes d'activation Mathéquête sont multiplateformes. Une fois iOS et Windows disponibles, vous pourrez activer votre licence sur n'importe quelle plateforme avec le même code reçu après votre achat initial.</p></div>
+        <button class="faq-question" @click="ouvert = (ouvert === 1 ? null : 1)" :aria-expanded="ouvert === 1">
+          <span>Ma licence achetée sur ce site fonctionne-t-elle sur Android et Windows ?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 1" x-transition x-cloak>
+          <p>Oui. Les licences achetées sur ce site via Stripe vous donnent un code QR Crockford activable sur n'importe quel appareil compatible : Android, Windows, et iOS à la sortie. Une licence active 1 appareil à la fois.</p>
+          <p style="margin-top:0.5rem;">Les licences achetées via Google Play sont liées à votre compte Google Play et fonctionnent sur vos appareils Android via la sauvegarde cloud Google — elles ne sont pas transférables vers Windows ou iOS.</p>
+        </div>
       </div>
+
       <div class="faq-item">
-        <button class="faq-question" @click="ouvert = (ouvert === 2 ? null : 2)" :aria-expanded="ouvert === 2"><span>Combien d'appareils par licence ?</span><span class="chevron" aria-hidden="true">▼</span></button>
-        <div class="faq-reponse" x-show="ouvert === 2" x-transition x-cloak><p>Une licence individuelle = 1 appareil à la fois. Vous pouvez transférer votre licence vers un nouvel appareil à tout moment. Pour les licences permanentes, un seul transfert est autorisé dans les 12 premiers mois suivant l'achat. Les licences annuelles sont transférables sans restriction de temps.</p></div>
+        <button class="faq-question" @click="ouvert = (ouvert === 2 ? null : 2)" :aria-expanded="ouvert === 2">
+          <span>Combien d'appareils par licence ?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 2" x-transition x-cloak>
+          <p>Une licence individuelle = 1 appareil actif à la fois. Pour les <strong>licences permanentes</strong> achetées sur ce site, vous pouvez transférer votre licence vers un nouvel appareil une seule fois dans les 12 premiers mois suivant l'achat. Les <strong>licences annuelles</strong> ne sont pas transférables — elles sont liées à l'appareil activé pour la durée de l'abonnement.</p>
+        </div>
       </div>
+
       <div class="faq-item">
-        <button class="faq-question" @click="ouvert = (ouvert === 3 ? null : 3)" :aria-expanded="ouvert === 3"><span>Le jeu fonctionne-t-il hors-ligne ?</span><span class="chevron" aria-hidden="true">▼</span></button>
-        <div class="faq-reponse" x-show="ouvert === 3" x-transition x-cloak><p>Oui. Une fois activé via une connexion Internet, le jeu fonctionne entièrement hors-ligne pendant 40 jours. Parfait pour les classes sans wifi fiable, les voyages, ou le chalet.</p></div>
+        <button class="faq-question" @click="ouvert = (ouvert === 3 ? null : 3)" :aria-expanded="ouvert === 3">
+          <span>Le jeu fonctionne-t-il hors-ligne ?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 3" x-transition x-cloak>
+          <p>Oui. Une fois activé via une connexion Internet, le jeu fonctionne entièrement hors-ligne pendant 40 jours. Parfait pour les classes sans wifi fiable, les voyages, ou le chalet.</p>
+        </div>
       </div>
+
       <div class="faq-item">
-        <button class="faq-question" @click="ouvert = (ouvert === 4 ? null : 4)" :aria-expanded="ouvert === 4"><span>Le tableau de bord enseignant est-il payant ?</span><span class="chevron" aria-hidden="true">▼</span></button>
-        <div class="faq-reponse" x-show="ouvert === 4" x-transition x-cloak><p>Non, l'application Tableau de bord est entièrement gratuite. Elle vous permet de gérer vos classes et visualiser les progrès de vos élèves. Pour que vos élèves jouent au jeu Mathéquête en classe, une licence par élève doit être achetée séparément (forfaits école disponibles à partir de 30 élèves — Classe Petite, 35 $).</p></div>
+        <button class="faq-question" @click="ouvert = (ouvert === 4 ? null : 4)" :aria-expanded="ouvert === 4">
+          <span>Le tableau de bord enseignant est-il payant ?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 4" x-transition x-cloak>
+          <p>Non, l'application Tableau de bord est entièrement gratuite. Elle vous permet de gérer vos classes et visualiser les progrès de vos élèves. Pour que vos élèves jouent au jeu Mathéquête en classe, une licence par élève doit être achetée séparément (forfaits école disponibles à partir de 30 élèves — Petite Classe, 35 $).</p>
+        </div>
       </div>
+
     </div>
   </div>
 </section>
 
+<!-- Popup notification iOS -->
 <div id="notif-ios" x-data="notifForm('ios')" x-show="actif" x-cloak style="position:fixed;bottom:2rem;right:2rem;background:#fff;border:2px solid var(--aventure-or);border-radius:0.8rem;padding:1.5rem;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:1000;">
   <button @click="actif=false" style="position:absolute;top:0.5rem;right:0.8rem;background:none;border:none;font-size:1.2rem;cursor:pointer;" aria-label="Fermer">×</button>
   <h4 style="margin:0 0 0.5rem;">Notif iOS 🍏</h4>
@@ -155,17 +204,7 @@
   <p x-show="confirme" style="color:green;margin-top:0.5rem;font-size:0.85rem;">Merci ! Vous serez avisé(e). ✅</p>
 </div>
 
-<div id="notif-windows" x-data="notifForm('windows')" x-show="actif" x-cloak style="position:fixed;bottom:2rem;right:2rem;background:#fff;border:2px solid var(--aventure-or);border-radius:0.8rem;padding:1.5rem;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:1000;">
-  <button @click="actif=false" style="position:absolute;top:0.5rem;right:0.8rem;background:none;border:none;font-size:1.2rem;cursor:pointer;" aria-label="Fermer">×</button>
-  <h4 style="margin:0 0 0.5rem;">Notif Windows 🖥️</h4>
-  <p style="font-size:0.9rem;margin-bottom:1rem;">Laissez votre courriel pour être avisé(e) à la sortie de la version Windows.</p>
-  <form @submit.prevent="envoyer">
-    <input type="email" x-model="courriel" placeholder="votre@courriel.com" required style="width:100%;margin-bottom:0.75rem;">
-    <button type="submit" class="btn-aventure" style="width:100%;" :disabled="envoi">M'aviser</button>
-  </form>
-  <p x-show="confirme" style="color:green;margin-top:0.5rem;font-size:0.85rem;">Merci ! Vous serez avisé(e). ✅</p>
-</div>
-
+<!-- Popup notification macOS -->
 <div id="notif-macos" x-data="notifForm('macos')" x-show="actif" x-cloak style="position:fixed;bottom:2rem;right:2rem;background:#fff;border:2px solid var(--aventure-or);border-radius:0.8rem;padding:1.5rem;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:1000;">
   <button @click="actif=false" style="position:absolute;top:0.5rem;right:0.8rem;background:none;border:none;font-size:1.2rem;cursor:pointer;" aria-label="Fermer">×</button>
   <h4 style="margin:0 0 0.5rem;">Notif macOS 🍎</h4>
