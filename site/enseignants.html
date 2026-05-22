@@ -44,10 +44,6 @@
 <body>
 
 <!-- ============ NAV MINIMALE (DEC-61) ============ -->
-<!-- Conformément à DEC-61, la nav sur cette page d'arrivée ne contient QUE
-     le retour à l'accueil. Les liens vers Acheter / Guide prof ne sont PAS
-     affichés ici. L'utilisateur doit cliquer Accueil pour atteindre le reste
-     du site via le menu principal complet. -->
 <nav class="site-nav">
   <div class="container">
     <a href="index.html" class="logo" aria-label="Accueil Mathéquête">
@@ -138,7 +134,7 @@
       </div>
 
       <p style="text-align: center; margin-top: 1.5rem; font-size: 0.95rem; opacity: 0.8;">
-        🍎 Des versions Mac et Linux sont à l'étude. Indiquez-le dans votre courriel si cela vous intéresse.
+        🍎 Des versions Mac et Linux sont à l'étude. Aucun calendrier n'est annoncé pour ces plateformes.
       </p>
     </div>
   </div>
@@ -199,7 +195,8 @@
           <span class="chevron" aria-hidden="true">▼</span>
         </button>
         <div class="faq-reponse" x-show="ouvert === 2" x-transition x-cloak>
-          <p>Oui. Mathéquête fonctionne actuellement sur Android (téléphones et tablettes). La version Windows pour élèves est en développement — aucune date annoncée. Vos élèves peuvent jouer sur leur appareil familial ou sur les tablettes Android de la classe. Une licence = un appareil, transférable en cas de changement.</p>
+          <p>Oui. Mathéquête fonctionne actuellement sur Android (téléphones et tablettes) et Windows. La version iOS et macOS est en développement — aucune date annoncée. Vos élèves peuvent jouer sur leur appareil familial ou sur les tablettes de la classe.</p>
+          <p style="margin-top: 0.75rem;"><strong>Une licence = un appareil.</strong> Les licences achetées directement sur ce site (via Stripe) sont activables sur n'importe quel appareil compatible et transférables une seule fois sur une période de 12 mois. Les licences achetées via Google Play sont liées au compte Google de l'élève et fonctionnent sur les appareils Android associés à ce compte.</p>
         </div>
       </div>
 
@@ -249,12 +246,6 @@
 </section>
 
 <!-- ============ FOOTER (sans liens d'achat dans le contenu) ============ -->
-<!--
-  Note conformité DEC-61 : le footer affiche un lien vers l'accueil et la
-  politique de confidentialité. PAS de lien direct vers /achat.html ni vers
-  les pages d'achat depuis ce pied de page. L'utilisateur retrouve le menu
-  complet sur l'accueil.
--->
 <footer class="site-footer">
   <div class="container">
     <div>
