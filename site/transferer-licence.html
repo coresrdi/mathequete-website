@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Transférer sa licence — Mathéquête</title>
-  <meta name="description" content="Comment transférer votre licence Mathéquête vers un nouvel appareil. Instructions étape par étape pour les licences individuelles et les licences école.">
+  <title>Transférer une licence — Mathéquête</title>
+  <meta name="description" content="Comment transférer votre licence Mathéquête vers un nouvel appareil. Règles et étapes selon le type d'achat (mathequete.ca ou Google Play).">
   <meta name="robots" content="index, follow">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
@@ -24,11 +24,7 @@
     <div class="nav-links">
       <a href="index.html">Accueil</a>
       <a href="achat.html">Acheter</a>
-      <a href="enseignants.html">Enseignants</a>
-      <a href="guide-prof.html">Guide école</a>
       <a href="applications.html">Applications</a>
-      <a href="iles-bonus.html">Générer une île</a>
-      <a href="template-eleves.html">Template élèves</a>
       <a href="support.html">Support</a>
     </div>
   </div>
@@ -37,117 +33,188 @@
 <!-- HERO -->
 <header class="hero" style="padding: 3rem 1rem;">
   <div class="hero-inner">
-    <h1>📱 Transférer sa licence</h1>
-    <p class="slogan">Nouveau téléphone, nouvelle tablette ? Voici comment réactiver Mathéquête.</p>
+    <div style="font-size: 3rem; margin-bottom: 0.5rem;" aria-hidden="true">🔁</div>
+    <h1>Transférer une licence</h1>
+    <p class="slogan">Changer d’appareil sans perdre votre accès.</p>
   </div>
 </header>
 
-<!-- LICENCES INDIVIDUELLES -->
-<section class="section" style="padding: 2rem 1rem 1rem;">
-  <div class="container" style="max-width: 720px;">
+<!-- DEUX TYPES -->
+<section class="section">
+  <h2 class="section-titre">D’abord&nbsp;: quel type de licence avez-vous&nbsp;?</h2>
+  <p class="section-sous-titre">Les règles de transfert dépendent de l’endroit où vous avez acheté.</p>
 
-    <h2>👤 Licence individuelle</h2>
-    <p style="margin-bottom: 1.5rem; line-height: 1.7;">Une licence individuelle est liée à <strong>un appareil à la fois</strong>. Pour l’activer sur un nouvel appareil, deux cas de figure :</p>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; max-width: 920px; margin: 0 auto;">
 
-    <!-- CAS 1 : automatique après 6 mois -->
-    <div style="background: #F0F8F0; border-left: 4px solid #437A22; border-radius: 0 8px 8px 0; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;">
-      <h3 style="margin-top: 0; color: #437A22;">Cas 1 — Changement normal (6 mois écoulés)</h3>
-      <ol style="margin: 0.75rem 0 0; padding-left: 1.5rem; line-height: 1.9;">
-        <li>Installe Mathéquête sur ton <strong>nouvel appareil</strong>.</li>
-        <li>Au premier lancement, choisis <strong>J’ai déjà une licence</strong>.</li>
-        <li>Saisis ton code de licence (reçu par courriel lors de l’achat).</li>
-        <li>Si 6 mois ou plus se sont écoulés depuis ta dernière activation, le transfert est
-        <strong>automatique et instantané</strong>.</li>
-      </ol>
+    <!-- STRIPE / mathequete.ca -->
+    <div style="background: #fff; border: 2px solid var(--aventure-or); border-radius: 1rem; padding: 2rem;">
+      <div style="font-size: 2rem; margin-bottom: 0.5rem;">🌐</div>
+      <h3 style="color: var(--aventure-bleu); margin-top: 0;">Achetée sur mathequete.ca</h3>
+      <p style="font-size: 0.95rem;">Vous avez reçu un courriel avec un <strong>code d’activation</strong> (format <code>MQ-CONT-XXXX</code>) après votre achat.</p>
+      <ul style="font-size: 0.95rem; padding-left: 1.2rem; line-height: 1.9;">
+        <li>✅ Activable sur <strong>tout appareil compatible</strong> (Android, Windows)</li>
+        <li>✅ <strong>Licence permanente</strong> : transférable <strong>une seule fois</strong> par période de <strong>12 mois</strong></li>
+        <li>❌ <strong>Licence annuelle</strong> : non transférable (liée à l’appareil d’activation pour la durée de l’abonnement)</li>
+      </ul>
+      <div style="background: var(--parchemin-clair); border-radius: 0.5rem; padding: 0.8rem 1rem; margin-top: 1rem; font-size: 0.88rem;">
+        📧 Pour initier un transfert : <a href="mailto:coresrdi@gmail.com?subject=Transfert%20licence%20Math%C3%A9qu%C3%AAte&body=Bonjour%2C%0A%0AJe%20souhaite%20transf%C3%A9rer%20ma%20licence.%0A%0ACode%20de%20licence%20%3A%20MQ-CONT-%0AAncien%20appareil%20%3A%20%0ANouvel%20appareil%20%3A%20%0A%0AMerci%20!">coresrdi@gmail.com</a> avec votre code <code>MQ-CONT-XXXX</code>.
+      </div>
     </div>
 
-    <!-- CAS 2 : avant 6 mois -->
-    <div style="background: #FFF8E8; border-left: 4px solid var(--aventure-or, #C9930A); border-radius: 0 8px 8px 0; padding: 1.25rem 1.5rem; margin-bottom: 2rem;">
-      <h3 style="margin-top: 0; color: #a8761a;">Cas 2 — Transfert urgent (moins de 6 mois)</h3>
-      <p style="margin: 0 0 0.75rem;">Si tu dois changer d’appareil avant les 6 mois (téléphone perdu, brisé, vol), écris-nous :</p>
-      <ol style="margin: 0; padding-left: 1.5rem; line-height: 1.9;">
-        <li>Envoie un courriel à <a href="mailto:coresrdi@gmail.com?subject=Transfert%20urgent%20licence%20Math%C3%A9qu%C3%AAte">coresrdi@gmail.com</a>
-        avec l’objet <em>« Transfert urgent licence Mathéquête »</em>.</li>
-        <li>Inclus ton <strong>code de licence</strong> et une brève description de la situation.</li>
-        <li>Nous traitons les demandes urgentes dans les <strong>24 h ouvrables</strong>.</li>
-      </ol>
+    <!-- GOOGLE PLAY -->
+    <div style="background: #fff; border: 2px solid var(--aventure-bleu); border-radius: 1rem; padding: 2rem;">
+      <div style="font-size: 2rem; margin-bottom: 0.5rem;">🐍</div>
+      <h3 style="color: var(--aventure-bleu); margin-top: 0;">Achetée via Google Play</h3>
+      <p style="font-size: 0.95rem;">Vous avez acheté directement dans l’application Android depuis le Play Store.</p>
+      <ul style="font-size: 0.95rem; padding-left: 1.2rem; line-height: 1.9;">
+        <li>✅ Liée à votre <strong>compte Google</strong></li>
+        <li>✅ Accessible sur tout appareil Android connecté avec le même compte Google — aucune manipulation requise</li>
+        <li>❌ Non transférable vers un autre compte Google</li>
+        <li>❌ Non utilisable sur Windows (Android seulement)</li>
+      </ul>
+      <div style="background: var(--parchemin-clair); border-radius: 0.5rem; padding: 0.8rem 1rem; margin-top: 1rem; font-size: 0.88rem;">
+        💡 Pour changer d’appareil Android, connectez-vous simplement avec le même compte Google et relancez l’app. Aucun code à saisir.
+      </div>
     </div>
+  </div>
+</section>
 
+<!-- ETAPES TRANSFERT STRIPE -->
+<section class="section-pro">
+  <div class="section">
+    <h2 class="section-titre">Étapes d’un transfert (licence Stripe permanente)</h2>
+    <p class="section-sous-titre">Achetée sur mathequete.ca seulement — licences permanentes uniquement.</p>
+
+    <div class="etapes" style="max-width: 900px; margin: 0 auto;">
+      <div class="etape">
+        <h3>Vérifiez l’éligibilité</h3>
+        <p>Votre licence doit être de type <strong>permanent</strong> (Solo permanent ou Pack 5 permanent). Le transfert n’est permis qu’<strong>une seule fois</strong> par période de <strong>12 mois</strong> par licence.</p>
+      </div>
+      <div class="etape">
+        <h3>Contactez le support</h3>
+        <p>Envoyez un courriel à <a href="mailto:coresrdi@gmail.com?subject=Transfert%20licence%20Math%C3%A9qu%C3%AAte">coresrdi@gmail.com</a> avec votre code de licence (<code>MQ-CONT-XXXX</code>), le modèle de l’ancien appareil, et le modèle du nouvel appareil.</p>
+      </div>
+      <div class="etape">
+        <h3>Confirmation</h3>
+        <p>Notre équipe révoque la licence sur l’ancien appareil et émet un nouveau code d’activation. Délai habituel : <strong>24 à 48 heures ouvrables</strong>.</p>
+      </div>
+      <div class="etape">
+        <h3>Activation</h3>
+        <p>Entrez le nouveau code dans l’application Mathéquête sur votre nouvel appareil. La progression repart de zéro (sauvegarde locale non transférable entre appareils).</p>
+      </div>
+    </div>
   </div>
 </section>
 
 <!-- LICENCES ECOLE -->
-<section class="section" style="background: var(--couleur-fond-secondaire, #F7F6F2); padding: 2rem 1rem;">
-  <div class="container" style="max-width: 720px;">
+<section class="section">
+  <h2 class="section-titre">Licences école</h2>
+  <p class="section-sous-titre">L’enseignant·e gère les transferts depuis le tableau de bord prof.</p>
+  <div style="max-width: 720px; margin: 0 auto; background: #fff; border: 1px solid var(--parchemin-fonce); border-radius: 0.8rem; padding: 1.5rem;">
+    <ol style="padding-left: 1.5rem; line-height: 2;">
+      <li>Ouvrez l’<strong>application Tableau de bord</strong> sur votre ordinateur Windows.</li>
+      <li>Allez dans <strong>Ma classe → Liste des élèves</strong>.</li>
+      <li>Cliquez sur l’élève concerné, puis sur <strong>Révoquer la licence</strong>.</li>
+      <li>Le code QR de cet élève est immédiatement réutilisable sur un autre appareil.</li>
+    </ol>
+    <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">⚠️ Un code QR révoqué cesse de fonctionner sur l’ancien appareil dès la révocation.</p>
+  </div>
+</section>
 
-    <h2>🏫 Licence école (enseignant·e)</h2>
-    <p style="margin-bottom: 1.5rem; line-height: 1.7;">Pour les licences école, c’est <strong>l’enseignant·e qui gère les transferts</strong> depuis le tableau de bord prof. Aucun contact avec le support n’est nécessaire.</p>
+<!-- FAQ -->
+<section class="section-pro">
+  <div class="section">
+    <h2 class="section-titre">Questions fréquentes</h2>
+    <div class="faq" x-data="{ ouvert: null }">
 
-    <div style="background: white; border: 1px solid var(--couleur-bordure, #DDD); border-radius: 8px; padding: 1.5rem;">
-      <h3 style="margin-top: 0;">Procédure — Tableau de bord prof</h3>
-      <ol style="margin: 0; padding-left: 1.5rem; line-height: 1.9;">
-        <li>Ouvre l’<strong>application Tableau de bord</strong> sur ton ordinateur Windows.</li>
-        <li>Va dans <strong>Ma classe → Liste des élèves</strong>.</li>
-        <li>Clique sur l’élève concerné, puis sur <strong>Révoquer la licence</strong>.</li>
-        <li>Le code QR de cet élève devient immédiatement réutilisable sur un autre appareil.</li>
-        <li>Donne le même code QR à l’élève pour qu’il l’active sur son nouvel appareil.</li>
-      </ol>
-      <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">
-        ⚠️ Un code QR révoqué ne fonctionne plus sur l’ancien appareil. L’élève doit activer le nouveau appareil avant de pouvoir jouer.
-      </p>
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 1 ? null : 1)" :aria-expanded="ouvert === 1">
+          <span>Ma tablette est brisée et je ne peux plus la désactiver. Puis-je quand même transférer&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 1" x-transition x-cloak>
+          <p>Oui. Indiquez-le dans votre courriel de transfert. Notre équipe peut révoquer la licence à distance, sans accès à l’ancien appareil.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 2 ? null : 2)" :aria-expanded="ouvert === 2">
+          <span>J’ai un Pack 5 — puis-je transférer une seule des 5 licences&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 2" x-transition x-cloak>
+          <p>Oui. Chaque licence d’un Pack 5 est indépendante. Chacune obéit à la même règle&nbsp;: un seul transfert par période de <strong>12 mois</strong> par licence.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 3 ? null : 3)" :aria-expanded="ouvert === 3">
+          <span>Puis-je transférer ma licence Google Play vers Windows&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 3" x-transition x-cloak>
+          <p>Non. Les licences achetées via Google Play sont liées au système de facturation Google et ne peuvent pas être utilisées sur Windows. Pour jouer sur Windows, une licence achetée sur <a href="achat.html">mathequete.ca</a> est nécessaire.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 4 ? null : 4)" :aria-expanded="ouvert === 4">
+          <span>Ma progression est-elle conservée après le transfert&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 4" x-transition x-cloak>
+          <p>La progression est sauvegardée localement sur l’appareil. Lors d’un changement d’appareil (licence Stripe), la progression repart de zéro sur le nouvel appareil. Pour les licences Google Play, la progression cloud de Google Play est conservée entre les appareils Android associés au même compte Google.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 5 ? null : 5)" :aria-expanded="ouvert === 5">
+          <span>Je n’ai plus mon code de licence original.</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 5" x-transition x-cloak>
+          <p>Recherchez dans vos courriels l’objet <em>« Votre licence Mathéquête »</em>. Si vous ne le retrouvez pas, écrivez à <a href="mailto:coresrdi@gmail.com?subject=R%C3%A9cup%C3%A9ration%20code%20Math%C3%A9qu%C3%AAte">coresrdi@gmail.com</a> avec l’adresse courriel utilisée lors de l’achat.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" @click="ouvert = (ouvert === 6 ? null : 6)" :aria-expanded="ouvert === 6">
+          <span>Combien de temps avant de pouvoir retransférer après un premier transfert&nbsp;?</span>
+          <span class="chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="faq-reponse" x-show="ouvert === 6" x-transition x-cloak>
+          <p><strong>12 mois</strong> à partir de la date du premier transfert, par licence individuelle. Par exemple : un transfert effectué le 1er juin 2026 permet un nouveau transfert à partir du 1er juin 2027.</p>
+        </div>
+      </div>
+
     </div>
-
   </div>
 </section>
 
-<!-- INFO COMPLEMENTAIRE -->
-<section class="section" style="padding: 2rem 1rem 3rem;">
-  <div class="container" style="max-width: 720px;">
-
-    <h2>Informations complémentaires</h2>
-
-    <details style="margin-bottom: 1rem; padding: 1rem; background: var(--couleur-fond-secondaire, #F7F6F2); border-radius: 8px; border: 1px solid var(--couleur-bordure, #DDD);">
-      <summary style="cursor: pointer; font-weight: 600;">Mon ancien appareil est encore fonctionnel. Que se passe-t-il dessus ?</summary>
-      <p style="margin-top: 1rem;">Dès que le transfert est validé, la licence est désactivée sur l’ancien appareil. Mathéquête passe en mode non-activé (Continent 1 jouable en démo gratuite, sans progression sauvegardie).</p>
-    </details>
-
-    <details style="margin-bottom: 1rem; padding: 1rem; background: var(--couleur-fond-secondaire, #F7F6F2); border-radius: 8px; border: 1px solid var(--couleur-bordure, #DDD);">
-      <summary style="cursor: pointer; font-weight: 600;">Ma progression est-elle conservée après le transfert ?</summary>
-      <p style="margin-top: 1rem;">La progression est sauvegardée <strong>localement sur l’appareil</strong>. Lors d’un changement d’appareil, la progression du nouvel appareil commence à zéro. La synchronisation cloud de la progression est une fonctionnalité prévue pour une version future.</p>
-    </details>
-
-    <details style="margin-bottom: 1rem; padding: 1rem; background: var(--couleur-fond-secondaire, #F7F6F2); border-radius: 8px; border: 1px solid var(--couleur-bordure, #DDD);">
-      <summary style="cursor: pointer; font-weight: 600;">Je n’ai plus mon code de licence original.</summary>
-      <p style="margin-top: 1rem;">Recherche dans tes courriels l’objet <em>« Votre licence Mathéquête »</em>. Si tu ne le retrouves pas, écris-nous à <a href="mailto:coresrdi@gmail.com?subject=Récupération%20code%20Math%C3%A9qu%C3%AAte">coresrdi@gmail.com</a> avec l’adresse courriel utilisée lors de l’achat.</p>
-    </details>
-
-    <details style="padding: 1rem; background: var(--couleur-fond-secondaire, #F7F6F2); border-radius: 8px; border: 1px solid var(--couleur-bordure, #DDD);">
-      <summary style="cursor: pointer; font-weight: 600;">J’ai acheté sur Google Play. La procédure est-elle différente ?</summary>
-      <p style="margin-top: 1rem;">Non. Le système de licence Mathéquête est indépendant de Google Play. Tu utilises ton code QR Crockford (reçu par courriel) de la même façon, quelle que soit la plateforme.</p>
-    </details>
-
+<!-- CTA -->
+<section class="section" style="text-align: center;">
+  <h2 class="section-titre">Besoin d’aide&nbsp;?</h2>
+  <p>Précisez votre code de licence (<code>MQ-CONT-XXXX</code>) dans votre message. Réponse dans les 48 h ouvrables.</p>
+  <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem;">
+    <a href="mailto:coresrdi@gmail.com?subject=Transfert%20de%20licence%20%E2%80%94%20Math%C3%A9qu%C3%AAte&body=Bonjour%2C%0A%0AJe%20souhaite%20transf%C3%A9rer%20ma%20licence.%0A%0ACode%20de%20licence%20%3A%20MQ-CONT-%0AAncien%20appareil%20%3A%20%0ANouvel%20appareil%20%3A%20%0A%0AMerci%20!" class="btn-aventure">
+      ✉ Demander un transfert
+    </a>
+    <a href="support.html" class="btn-secondaire">Centre de support</a>
   </div>
-</section>
-
-<!-- CTA support -->
-<section class="section" style="text-align: center; padding: 1.5rem 1rem 3rem;">
-  <p style="font-size: 1rem; margin-bottom: 1rem;">Un problème non couvert par ce guide ?</p>
-  <a href="support.html" class="btn-aventure">Contacter le support</a>
 </section>
 
 <footer class="site-footer">
   <div class="container">
     <div>
       <h4>Mathéquête</h4>
-      <p>Un jeu éducatif québécois pour apprendre les maths en s'amusant. Conçu par <strong>CORES RDI</strong>.</p>
+      <p>Un jeu éducatif québécois pour apprendre les maths en s'amusant. Conçu par <strong>CORES RDI</strong> à Québec.</p>
     </div>
     <div>
-      <h4>Liens</h4>
+      <h4>Navigation</h4>
       <p>
         <a href="index.html">Accueil</a><br>
         <a href="achat.html">Acheter</a><br>
-        <a href="enseignants.html">Enseignants</a><br>
-        <a href="guide-prof.html">Guide école</a><br>
+        <a href="applications.html">Applications</a><br>
         <a href="support.html">Support</a>
       </p>
     </div>
