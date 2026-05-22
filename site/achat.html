@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Acheter Mathéquête — Individuelle, Pack 5, écoles</title>
-  <meta name="description" content="Choisis ta licence Mathéquête : 1,99 $/an (annuelle), 9,99 $ permanent, Pack 5 à 7,99 $/an, ou 6 paliers école de 35 à 716 $ CAD. Paiement sécurisé Stripe.">
+  <meta name="description" content="Choisis ta licence Mathéquête : 1,99 $/an (annuelle), 9,99 $ permanent, Pack 5 à 7,99 $/an, ou 6 paliers école de 35 à 716 $ CAD. Android et Windows. Paiement sécurisé Stripe.">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -66,7 +66,7 @@
 <body>
 
 <div class="continent-actif-bandeau">
-  🧮 Mathéquête — Continent des Mathématiques
+  🧭 Mathéquête — Continent des Mathématiques
   <span>Seul continent disponible à l'achat pour l'instant</span>
 </div>
 
@@ -124,7 +124,7 @@
         <div class="sku-prix">1,99&nbsp;<small style="font-size: 0.9rem;">$ CAD / an</small></div>
         <div class="sku-taxes">+ TPS et TVQ calculées au paiement</div>
         <div class="sku-details">
-          <p><strong>1 licence · 1 appareil à la fois</strong> (Android, Windows, ou bientôt iOS/Mac).<br>
+          <p><strong>1 licence · 1 appareil à la fois</strong> (Android ou Windows).<br>
           Accès illimité au continent Mathéquête pendant 1 an. Renouvelable. Transférable sur un nouvel appareil.</p>
           <p style="font-size:0.82rem; opacity:0.6;">⏱ Hors-ligne jusqu'à 40 jours</p>
         </div>
@@ -139,7 +139,7 @@
         <div class="sku-prix">9,99&nbsp;<small style="font-size: 0.9rem;">$ CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ calculées au paiement</div>
         <div class="sku-details">
-          <p><strong>1 licence à vie · 1 appareil</strong> (Android, Windows, ou bientôt iOS/Mac).<br>
+          <p><strong>1 licence à vie · 1 appareil</strong> (Android ou Windows).<br>
           Accès permanent sans date d'expiration. <em>Transférable une fois dans les 12 premiers mois.</em></p>
           <p style="font-size:0.82rem; opacity:0.6;">⏱ Hors-ligne jusqu'à 40 jours</p>
         </div>
@@ -239,7 +239,7 @@
         <h3>Grande École</h3>
         <div class="sku-prix">650&nbsp;<small style="font-size: 0.9rem;">$ CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details"><p>Jusqu'à <strong>1 000 élèves</strong>.<br>Grand établissement primaire.</p></div>
+        <div class="sku-details"><p>Jusqu'à <strong>1 000 élèves</strong>.<br>Grand établissement primaire.</p></div>
         <button class="btn-aventure" @click="acheter('grande_ecole')" :disabled="loading">
           <template x-if="loading && loadingTier === 'grande_ecole'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'grande_ecole') ? 'Redirection…' : 'Acheter'"></span>
@@ -249,18 +249,18 @@
         <h3>Méga École</h3>
         <div class="sku-prix">716&nbsp;<small style="font-size: 0.9rem;">$ CAD</small></div>
         <div class="sku-taxes">+ TPS et TVQ au paiement</div>
-        <div class="sku-details"><p>Jusqu'à <strong>1 300 élèves</strong>.<br>Centre de services scolaire.</p></div>
+        <div class="sku-details"><p>Jusqu'à <strong>1 300 élèves</strong>.<br>Centre de services scolaire.</p></div>
         <button class="btn-aventure" @click="acheter('mega_ecole')" :disabled="loading">
           <template x-if="loading && loadingTier === 'mega_ecole'"><span class="spinner"></span></template>
           <span x-text="(loading && loadingTier === 'mega_ecole') ? 'Redirection…' : 'Acheter'"></span>
         </button>
       </article>
     </div>
-    <p class="note-paiement">Besoin de plus de 1 300 licences ? <a href="mailto:coresrdi@gmail.com">Demande un devis personnalisé</a>.</p>
+    <p class="note-paiement">Besoin de plus de 1 300 licences ? <a href="mailto:coresrdi@gmail.com">Demande un devis personnalisé</a>.</p>
   </div>
 
   <p class="note-paiement">
-    🔒 Paiement sécurisé par Stripe. Taxes (TPS 5 %, TVQ 9,975 %) calculées automatiquement au paiement.<br>
+    🔒 Paiement sécurisé par Stripe. Taxes (TPS 5 %, TVQ 9,975 %) calculées automatiquement au paiement.<br>
     Code(s) livré(s) par courriel dans les minutes suivant le paiement.
   </p>
 
