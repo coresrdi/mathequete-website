@@ -37,6 +37,32 @@
 - ⏳ Stripe Tax (TPS 5% + TVQ 9,975% Québec) — à activer dans dashboard Stripe → Tax
 - ⏳ Test achat réel 4,99 CAD + validation email `MQ-CONT-...` — à exécuter
 
+### [DONE — COMMIT 3 — 2026-05-22]
+**P1 — achat.html : corrections prix, SKU, bandeau continents, wording**
+- ✅ `site/achat.html` — Bandeau : *"Continent 1 disponible maintenant — Continents 2, 3… Kickstarter"*
+- ✅ `site/achat.html` — `defer` ajouté sur `<script src="js/checkout.js">` (fix Alpine race condition)
+- ✅ `site/achat.html` — SKU école alignés sur `types.ts` : `petite_ecole` (canonique Stripe)
+- ✅ `site/achat.html` — Noms paliers alignés sur `prices.json` : *Petite Classe, Classe Moyenne, Petite École…*
+- ✅ `site/achat.html` — Pack 5 wording : ajout *"lot de tablettes de classe"*
+- ✅ `site/data/prices.json` — `ecole_petite` → **`petite_ecole`** (aligné types.ts + Stripe)
+- ✅ `site/data/prices.json` — IDs individuels alignés sur les SKU Stripe : `continent_1`, `pack_5_continent_1`
+- ✅ `site/js/checkout.js` — Commentaire SKU `petite_ecole` marqué comme canonique
+
+### [DONE — COMMIT 4 — 2026-05-22]
+**P1 — applications.html : Windows disponible, politique licences, transfert corrigé**
+- ✅ `site/applications.html` — Windows : `badge-bientot` → **`badge-disponible`** ; texte mis à jour
+- ✅ `site/applications.html` — Bouton Windows : placeholder `#` avec `<!-- TODO : remplacer par lien MS Store ou téléchargement direct -->`
+- ✅ `site/applications.html` — Bloc **"Deux façons d'activer votre licence"** ajouté (Google Play vs Stripe)
+- ✅ `site/applications.html` — Popup notif Windows **supprimée** (Windows est disponible)
+- ✅ `site/applications.html` — FAQ #2 transfert corrigé : annuelles **non transférables**, permanentes 1 fois / 12 mois
+- ✅ `site/applications.html` — Mention iOS *"aucun frais supplémentaire"* retirée (politique non confirmée)
+- ✅ `site/applications.html` — Meta + hero : Windows mentionné comme disponible
+- ✅ `site/applications.html` — FAQ #4 : *"Classe Petite"* → *"Petite Classe"* (alignement registre)
+
+### [TODO — à faire — applications.html]
+- ⏳ **Remplacer le lien `#` Windows** par l'URL définitive MS Store ou téléchargement direct dès publication.
+  Fichier : `site/applications.html` — chercher `<!-- TODO : remplacer # par le lien MS Store -->`
+
 ---
 
 ## Objet
@@ -53,6 +79,7 @@ Le sprint site web couvre la correction des informations publiques sur `matheque
 | Fenêtre de transfert 6 mois | Une seule fenêtre de 12 mois, un seul transfert maximum |
 | Steam non envisagé | Steam et Epic : futur sprint, mécanismes natifs |
 | Microsoft Store canal payant | MS Store = distribution gratuite seulement, redirection web |
+| Licences Google Play = multiplateformes | Google Play = lié au compte Google (Android seulement) ; Stripe = code QR multiplateforme |
 
 ## Fichiers à créer
 
@@ -63,18 +90,20 @@ Le sprint site web couvre la correction des informations publiques sur `matheque
 | `site/data/continents.json` | Continents, statuts, badges | ✅ COMMIT 1 |
 | `site/data/support_tree.json` | Arbre support (stub) | ✅ COMMIT 1 |
 | `site/js/continents-loader.js` | Chargeur cartes continent | ✅ COMMIT 1 |
-| `site/transferer-licence.html` | Page informative transfert | ⏳ COMMIT 3 |
-| `site/acheter/[slug].html` | Pages produit par palier | ⏳ COMMIT 5 |
+| `site/transferer-licence.html` | Page informative transfert | ⏳ COMMIT 5 |
+| `site/acheter/[slug].html` | Pages produit par palier | ⏳ COMMIT 6 |
 
 ## Fichiers à modifier
 
 | Fichier / zone | Modification | Statut |
 |---|---|---|
 | `site/support.html` | Hors-ligne 40j, transfert 1×/12 mois | ✅ COMMIT 2 |
-| `site/applications.html` | Retrait date iOS/Windows, FAQ corrigée | ✅ COMMIT 2 |
-| Acheter / Tarifs | Séparer Annuel/Permanent, paliers école | ⏳ COMMIT 3 |
-| Accueil | Refonte multi-continents, loader branché | ⏳ COMMIT 3 |
-| Outils enseignants / Guide École | Fusion Espace Enseignant | ⏳ COMMIT 4 |
+| `site/applications.html` | Retrait date iOS, Windows disponible, FAQ transfert, politique licences | ✅ COMMIT 4 |
+| `site/achat.html` | Bandeau continents, SKU alignés, defer, wording pack 5 | ✅ COMMIT 3 |
+| `site/enseignants.html` | Vérification cohérence | ⏳ COMMIT 5 |
+| `site/support.html` | Arbres décision branchés JSON | ⏳ COMMIT 5 |
+| Accueil | Refonte multi-continents, loader branché | ⏳ COMMIT 6 |
+| Outils enseignants / Guide École | Fusion Espace Enseignant | ⏳ COMMIT 6 |
 
 ## Priorités d'exécution
 
@@ -85,12 +114,13 @@ Le sprint site web couvre la correction des informations publiques sur `matheque
 4. ✅ Créer `continents-loader.js`
 5. ✅ Rebrancher les pages HTML vers les JSON — COMMIT 2
 
-### P1 — corrections visibles ✅ COMMIT 2 COMPLÉTÉ
+### P1 — corrections visibles ✅ COMMITS 2-4 COMPLÉTÉS
 1. ✅ Corriger FAQ hors-ligne à 40 jours
 2. ✅ Corriger politique de transfert (1 seul, 12 mois)
 3. ✅ Retirer toute date iOS/Windows
-4. ⏳ Corriger tous les prix publics, séparer Annuel/Permanent — COMMIT 3
-5. ⏳ Créer `/transferer-licence` — COMMIT 3
+4. ✅ Corriger tous les prix publics, séparer Annuel/Permanent (achat.html)
+5. ✅ Windows disponible + politique licences Google Play vs Stripe
+6. ⏳ Créer `/transferer-licence` — COMMIT 5
 
 ### P1-BIS — infrastructure prod ✅ SPRINT S3 COMPLÉTÉ
 1. ✅ Stripe Live — secrets + webhook + produits
@@ -99,12 +129,12 @@ Le sprint site web couvre la correction des informations publiques sur `matheque
 4. ⏳ Stripe Tax Québec — à activer dashboard
 5. ⏳ Test achat réel + email licence
 
-### P2 — refonte fonctionnelle ⏳ COMMITS 3-5
+### P2 — refonte fonctionnelle ⏳ COMMITS 5-6
 1. Accueil multi-continents avec continents-loader.js
 2. Fusion Espace Enseignant
 3. Pages produit par palier
 
-### P3 — extensions marketing ⏳ COMMIT 6
+### P3 — extensions marketing ⏳ COMMIT 7
 1. Arbre support interactif via support_tree.json
 2. CTA Kickstarter sur placeholders continents
 
@@ -113,6 +143,7 @@ Le sprint site web couvre la correction des informations publiques sur `matheque
 - **R-SOURCE-VÉRITÉ** : Aucune page HTML ne hardcode des prix, durées ou politiques. Toujours lire depuis `prices.json` et `site_config.json`.
 - **R-STORE-NATIF** : Plateforme avec store natif → flux natif. MS Store = exception (gratuit + redirection web).
 - **R-REGISTRE** : À chaque commit, inscrire `[DONE — COMMIT N — DATE]` dans ce fichier avant de clore le PR.
+- **R-LICENCES** : Licences Google Play = liées au compte Google, Android seulement. Licences Stripe = code QR, activables sur tout appareil compatible. Ne jamais promettre la compatibilité multiplateforme Google Play.
 
 ## Mini plan de test
 
@@ -122,3 +153,4 @@ Le sprint site web couvre la correction des informations publiques sur `matheque
 4. Paywall MS Store ouvre bien le site web, sans achat in-app local
 5. Continents placeholder ont un visuel distinct et un message Kickstarter cohérent
 6. Test achat réel 4,99 CAD → email `MQ-CONT-...` reçu en < 2 min → code actif dans l'app Android
+7. Bouton Windows `applications.html` — vérifier lien remplacé avant go-live
