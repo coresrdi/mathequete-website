@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Applications Mathéquête — Téléchargements Android / iOS / Windows</title>
-  <meta name="description" content="Téléchargez Mathéquête sur tous vos appareils : Android (Google Play), iOS (App Store), Windows (téléchargement direct). Plus l'application gratuite Tableau de bord pour enseignants.">
+  <title>Applications Mathéquête — Téléchargements Android et Windows</title>
+  <meta name="description" content="Téléchargez Mathéquête sur tous vos appareils : Android (Google Play) et Windows (bientôt). Plus l'application gratuite Tableau de bord pour enseignants.">
   <meta name="robots" content="index, follow">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
@@ -60,13 +60,13 @@
 
 <section class="section">
   <h2 class="section-titre">Le jeu Mathéquête</h2>
-  <p class="section-sous-titre">Disponible sur Android, en développement sur iOS et Windows.</p>
+  <p class="section-sous-titre">Disponible sur Android. iOS et Windows en développement — aucune date annoncée.</p>
   <div class="platforme-grid" x-data="appsDetection">
     <article class="platforme-carte" :class="{ detectee: plateforme === 'android' }">
       <span class="platforme-icon" aria-hidden="true">🤖</span>
       <h3 class="platforme-titre">Android</h3>
       <span class="badge-statut badge-disponible">Disponible</span>
-      <p class="platforme-statut">Téléchargement gratuit sur Google Play. Continent 1 jouable, achats intégrés pour débloquer les futurs continents (4,99&nbsp;$ CAD chacun).</p>
+      <p class="platforme-statut">Téléchargement gratuit sur Google Play. Continent 1 jouable gratuitement. Les continents suivants seront disponibles à l'achat à leur sortie.</p>
       <div class="platforme-action">
         <a href="https://play.google.com/store/apps/details?id=com.coresrdi.mathequete" class="btn-aventure" rel="noopener">Voir sur Google Play</a>
       </div>
@@ -93,7 +93,7 @@
       <span class="platforme-icon" aria-hidden="true">🍎</span>
       <h3 class="platforme-titre">macOS</h3>
       <span class="badge-statut badge-bientot">Bientôt</span>
-      <p class="platforme-statut">Version macOS en développement, en parallèle de la sortie iOS. Téléchargement direct depuis ce site.</p>
+      <p class="platforme-statut">Version macOS à l'étude. Aucune date annoncée. Téléchargement direct depuis ce site lorsque disponible.</p>
       <div class="platforme-action">
         <a href="#notif-macos" class="btn-secondaire" @click.prevent="rejoindreNotifs('macos')">M'aviser à la sortie</a>
       </div>
@@ -116,7 +116,7 @@
       </div>
       <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.7;">Le lien de téléchargement direct est disponible sur la page « En savoir plus ».</p>
     </div>
-    <p class="screen-text" style="text-align: center; margin-top: 2rem; opacity: 0.7; font-size: 0.9rem;">Versions macOS et Linux du tableau de bord en réflexion pour 2026-2027.</p>
+    <p class="screen-text" style="text-align: center; margin-top: 2rem; opacity: 0.7; font-size: 0.9rem;">Versions macOS et Linux du tableau de bord à l'étude.</p>
   </div>
 </section>
 
@@ -138,7 +138,7 @@
       </div>
       <div class="faq-item">
         <button class="faq-question" @click="ouvert = (ouvert === 4 ? null : 4)" :aria-expanded="ouvert === 4"><span>Le tableau de bord enseignant est-il payant ?</span><span class="chevron" aria-hidden="true">▼</span></button>
-        <div class="faq-reponse" x-show="ouvert === 4" x-transition x-cloak><p>Non, l'application Tableau de bord est entièrement gratuite. Elle vous permet de gérer vos classes et visualiser les progrès de vos élèves. Pour que vos élèves jouent au jeu Mathéquête en classe, une licence par élève doit être achetée séparément (forfaits école disponibles à partir de 30 élèves).</p></div>
+        <div class="faq-reponse" x-show="ouvert === 4" x-transition x-cloak><p>Non, l'application Tableau de bord est entièrement gratuite. Elle vous permet de gérer vos classes et visualiser les progrès de vos élèves. Pour que vos élèves jouent au jeu Mathéquête en classe, une licence par élève doit être achetée séparément (forfaits école disponibles à partir de 10 élèves).</p></div>
       </div>
     </div>
   </div>
