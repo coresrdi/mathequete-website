@@ -15,7 +15,6 @@
 </head>
 <body>
 
-<!-- ============ NAV ============ -->
 <nav class="site-nav">
   <div class="container">
     <a href="index.html" class="logo" aria-label="Accueil Mathéquête">
@@ -23,196 +22,89 @@
     </a>
     <div class="nav-links">
       <a href="index.html">Accueil</a>
+      <a href="achat.html">Acheter</a>
       <a href="enseignants.html">Enseignants</a>
+      <a href="guide-prof.html">Guide école</a>
       <a href="applications.html">Applications</a>
-      <a href="iles-bonus.html">Générer une île</a>
+      <a href="iles-bonus.html" style="color: var(--aventure-or); font-weight: 700;">Générer une île</a>
       <a href="template-eleves.html">Template élèves</a>
+      <a href="support.html">Support</a>
     </div>
   </div>
 </nav>
 
-<!-- ============ HERO ============ -->
 <header class="hero" style="padding: 3rem 1rem;">
   <div class="hero-inner">
-    <h1 class="cinzel" style="font-size: clamp(2rem, 4vw, 2.8rem); margin-bottom: 0.5rem;">
-      Créer une île bonus
-    </h1>
-    <p style="font-size: 1.15rem; max-width: 720px; margin: 0 auto; color: var(--couleur-texte-secondaire);">
-      Compose tes propres questions et obtiens un fichier
-      <code>.mqpack.json</code> à importer dans Mathéquête. Idéal pour les enseignants
-      qui veulent personnaliser un thème, ou pour les parents qui préparent un défi
-      sur mesure.
-    </p>
+    <h1 class="cinzel" style="font-size: clamp(2rem, 4vw, 2.8rem); margin-bottom: 0.5rem;">Créer une île bonus</h1>
+    <p style="font-size: 1.15rem; max-width: 720px; margin: 0 auto; color: var(--couleur-texte-secondaire);">Compose tes propres questions et obtiens un fichier <code>.mqpack.json</code> à importer dans Mathéquête. Idéal pour les enseignants qui veulent personnaliser un thème, ou pour les parents qui préparent un défi sur mesure.</p>
   </div>
 </header>
 
-<!-- ============ APPLICATION ============ -->
 <section class="section" style="padding: 1rem 1rem 3rem;">
   <div class="container" style="max-width: 880px;" x-data="generateurIleBonus()">
-
-    <!-- Métadonnées du pack -->
     <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
       <h2 style="margin-top: 0;">1. Identité de ton île</h2>
-
-      <div class="form-row">
-        <label>
-          <span>Nom de l'île <span style="color: var(--couleur-erreur, #A12C7B);">*</span></span>
-          <input type="text" x-model="pack.nom" placeholder="Ex : Les fractions de la jungle" maxlength="80">
-        </label>
-      </div>
-
+      <div class="form-row"><label><span>Nom de l'île <span style="color: var(--couleur-erreur, #A12C7B);">*</span></span><input type="text" x-model="pack.nom" placeholder="Ex : Les fractions de la jungle" maxlength="80"></label></div>
       <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-        <label>
-          <span>Continent cible</span>
-          <select x-model.number="pack.continent_cible">
-            <template x-for="c in 8" :key="c">
-              <option :value="c" x-text="'Continent ' + c"></option>
-            </template>
-          </select>
-        </label>
-        <label>
-          <span>Matière</span>
-          <select x-model="pack.matiere">
-            <option value="math">Mathématiques</option>
-            <option value="science">Sciences</option>
-            <option value="francais">Français</option>
-            <option value="histoire">Histoire</option>
-          </select>
-        </label>
+        <label><span>Continent cible</span><select x-model.number="pack.continent_cible"><template x-for="c in 8" :key="c"><option :value="c" x-text="'Continent ' + c"></option></template></select></label>
+        <label><span>Matière</span><select x-model="pack.matiere"><option value="math">Mathématiques</option><option value="science">Sciences</option><option value="francais">Français</option><option value="histoire">Histoire</option></select></label>
       </div>
-
       <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-        <label>
-          <span>Auteur (toi)</span>
-          <input type="text" x-model="pack.auteur" placeholder="Ex : Prof Magalie" maxlength="60">
-        </label>
-        <label>
-          <span>Niveau suggéré</span>
-          <select x-model.number="pack.niveau_suggere">
-            <template x-for="n in 8" :key="n">
-              <option :value="n" x-text="'Niveau ' + n"></option>
-            </template>
-          </select>
-        </label>
+        <label><span>Auteur (toi)</span><input type="text" x-model="pack.auteur" placeholder="Ex : Prof Magalie" maxlength="60"></label>
+        <label><span>Niveau suggéré</span><select x-model.number="pack.niveau_suggere"><template x-for="n in 8" :key="n"><option :value="n" x-text="'Niveau ' + n"></option></template></select></label>
       </div>
-
-      <div class="form-row">
-        <label>
-          <span>Description courte (optionnel)</span>
-          <textarea x-model="pack.description" rows="2" maxlength="200" placeholder="Une phrase pour expliquer le thème de l'île."></textarea>
-        </label>
-      </div>
-
+      <div class="form-row"><label><span>Description courte (optionnel)</span><textarea x-model="pack.description" rows="2" maxlength="200" placeholder="Une phrase pour expliquer le thème de l'île."></textarea></label></div>
       <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-        <label>
-          <span>Couleur thème</span>
-          <input type="color" x-model="pack.couleur_theme">
-        </label>
-        <label>
-          <span>Identifiant du pack</span>
-          <input type="text" x-model="pack.pack_id" readonly style="background: var(--couleur-fond-secondaire); font-family: monospace;">
-        </label>
+        <label><span>Couleur thème</span><input type="color" x-model="pack.couleur_theme"></label>
+        <label><span>Identifiant du pack</span><input type="text" x-model="pack.pack_id" readonly style="background: var(--couleur-fond-secondaire); font-family: monospace;"></label>
       </div>
     </div>
-
-    <!-- Questions -->
     <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
       <h2 style="margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
-        <span>2. Tes questions
-          <span style="font-size: 0.85rem; font-weight: 400; color: var(--couleur-texte-secondaire);">
-            (<span x-text="pack.questions.length"></span> / 200)
-          </span>
-        </span>
-        <button class="btn-secondaire" @click="ajouterQuestion()" :disabled="pack.questions.length >= 200" style="font-size: 0.95rem;">
-          + Ajouter une question
-        </button>
+        <span>2. Tes questions <span style="font-size: 0.85rem; font-weight: 400; color: var(--couleur-texte-secondaire);">(<span x-text="pack.questions.length"></span> / 200)</span></span>
+        <button class="btn-secondaire" @click="ajouterQuestion()" :disabled="pack.questions.length >= 200" style="font-size: 0.95rem;">+ Ajouter une question</button>
       </h2>
-
-      <template x-if="pack.questions.length === 0">
-        <p style="text-align: center; padding: 2rem; color: var(--couleur-texte-secondaire);">
-          Clique sur « + Ajouter une question » pour commencer.
-        </p>
-      </template>
-
+      <template x-if="pack.questions.length === 0"><p style="text-align: center; padding: 2rem; color: var(--couleur-texte-secondaire);">Clique sur « + Ajouter une question » pour commencer.</p></template>
       <template x-for="(q, idx) in pack.questions" :key="idx">
         <div class="question-card" style="border: 1px solid var(--couleur-bordure); border-radius: 8px; padding: 1rem; margin-top: 1rem; background: var(--couleur-fond-secondaire, #F9F8F5);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
             <strong>Question <span x-text="idx + 1"></span></strong>
-            <button @click="supprimerQuestion(idx)" style="background: none; border: 1px solid var(--couleur-erreur, #A12C7B); color: var(--couleur-erreur, #A12C7B); border-radius: 6px; padding: 0.25rem 0.75rem; cursor: pointer; font-size: 0.85rem;">
-              Supprimer
-            </button>
+            <button @click="supprimerQuestion(idx)" style="background: none; border: 1px solid var(--couleur-erreur, #A12C7B); color: var(--couleur-erreur, #A12C7B); border-radius: 6px; padding: 0.25rem 0.75rem; cursor: pointer; font-size: 0.85rem;">Supprimer</button>
           </div>
-
-          <label>
-            <span>Énoncé <span style="color: var(--couleur-erreur, #A12C7B);">*</span></span>
-            <input type="text" x-model="q.enonce" placeholder="Ex : Combien font 7 × 8 ?" maxlength="200">
-          </label>
-
+          <label><span>Énoncé <span style="color: var(--couleur-erreur, #A12C7B);">*</span></span><input type="text" x-model="q.enonce" placeholder="Ex : Combien font 7 × 8 ?" maxlength="200"></label>
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem;">
-            <label>
-              <span>Mode</span>
-              <select x-model="q.mode">
-                <option value="choix_multiple">Choix multiple (4 options)</option>
-                <option value="numerique">Réponse numérique</option>
-              </select>
-            </label>
-            <label>
-              <span>Difficulté (1-10)</span>
-              <input type="number" x-model.number="q.difficulte" min="1" max="10">
-            </label>
-            <label>
-              <span>Minuteur (sec, 0 = aucun)</span>
-              <input type="number" x-model.number="q.timer_sec" min="0" max="120">
-            </label>
+            <label><span>Mode</span><select x-model="q.mode"><option value="choix_multiple">Choix multiple (4 options)</option><option value="numerique">Réponse numérique</option></select></label>
+            <label><span>Difficulté (1-10)</span><input type="number" x-model.number="q.difficulte" min="1" max="10"></label>
+            <label><span>Minuteur (sec, 0 = aucun)</span><input type="number" x-model.number="q.timer_sec" min="0" max="120"></label>
           </div>
-
-          <label style="margin-top: 0.5rem;">
-            <span>Réponse correcte <span style="color: var(--couleur-erreur, #A12C7B);">*</span></span>
-            <input type="text" x-model="q.reponse_correcte" placeholder="Ex : 56" maxlength="100">
-          </label>
-
+          <label style="margin-top: 0.5rem;"><span>Réponse correcte <span style="color: var(--couleur-erreur, #A12C7B);">*</span></span><input type="text" x-model="q.reponse_correcte" placeholder="Ex : 56" maxlength="100"></label>
           <template x-if="q.mode === 'choix_multiple'">
             <div style="margin-top: 0.5rem;">
               <span style="display: block; font-size: 0.9rem; margin-bottom: 0.25rem;">Les 4 choix proposés (la réponse correcte DOIT être l'un d'eux) <span style="color: var(--couleur-erreur, #A12C7B);">*</span></span>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                <template x-for="(_, i) in 4" :key="i">
-                  <input type="text" x-model="q.choix[i]" :placeholder="'Choix ' + (i + 1)" maxlength="60">
-                </template>
+                <template x-for="(_, i) in 4" :key="i"><input type="text" x-model="q.choix[i]" :placeholder="'Choix ' + (i + 1)" maxlength="60"></template>
               </div>
             </div>
           </template>
         </div>
       </template>
     </div>
-
-    <!-- Validation + génération -->
     <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
       <h2 style="margin-top: 0;">3. Vérification et téléchargement</h2>
-
       <button class="btn-primaire" @click="genererEtTelecharger()" :disabled="!estValide()" style="width: 100%; padding: 1rem; font-size: 1.05rem;">
         <span x-show="estValide()">Télécharger le fichier .mqpack.json</span>
         <span x-show="!estValide()">Complète les champs obligatoires pour activer le téléchargement</span>
       </button>
-
       <template x-if="erreurs.length > 0">
         <div style="margin-top: 1rem; padding: 0.75rem; background: #FCE4EC; border-left: 4px solid #A12C7B; border-radius: 4px;">
           <strong>À corriger :</strong>
-          <ul style="margin: 0.5rem 0 0 1rem; padding: 0;">
-            <template x-for="err in erreurs" :key="err">
-              <li x-text="err"></li>
-            </template>
-          </ul>
+          <ul style="margin: 0.5rem 0 0 1rem; padding: 0;"><template x-for="err in erreurs" :key="err"><li x-text="err"></li></template></ul>
         </div>
       </template>
-
       <template x-if="messageSucces">
-        <div style="margin-top: 1rem; padding: 0.75rem; background: #E8F5E9; border-left: 4px solid #437A22; border-radius: 4px;">
-          <strong x-text="messageSucces"></strong>
-        </div>
+        <div style="margin-top: 1rem; padding: 0.75rem; background: #E8F5E9; border-left: 4px solid #437A22; border-radius: 4px;"><strong x-text="messageSucces"></strong></div>
       </template>
     </div>
-
-    <!-- Instructions d'import -->
     <div class="card" style="padding: 1.5rem;">
       <h2 style="margin-top: 0;">4. Comment l'importer dans le jeu</h2>
       <ol style="margin: 0; padding-left: 1.5rem; line-height: 1.8;">
@@ -222,167 +114,111 @@
         <li>L'île apparaît dans le continent choisi. Maximum 6 îles bonus par continent — si le slot est plein, le jeu propose de remplacer une île existante.</li>
       </ol>
     </div>
-
   </div>
 </section>
 
-<!-- ============ FOOTER ============ -->
-<footer style="background: var(--couleur-texte-primaire); color: white; padding: 2rem 1rem; text-align: center;">
+<footer class="site-footer">
   <div class="container">
-    <p style="margin: 0;">© 2026 Cores RDI · Mathéquête est une création de Jeff Gravel</p>
-    <p style="margin: 0.5rem 0 0; font-size: 0.9rem; opacity: 0.7;">
-      <a href="index.html" style="color: white;">Accueil</a> ·
-      <a href="enseignants.html" style="color: white;">Enseignants</a> ·
-      <a href="applications.html" style="color: white;">Applications</a> ·
-      <a href="template-eleves.html" style="color: white;">Template élèves</a>
-    </p>
+    <div>
+      <h4>Mathéquête</h4>
+      <p>Un jeu éducatif québécois pour apprendre les maths en s'amusant. Conçu par <strong>CORES RDI</strong>.</p>
+    </div>
+    <div>
+      <h4>Liens</h4>
+      <p>
+        <a href="index.html">Accueil</a><br>
+        <a href="achat.html">Acheter</a><br>
+        <a href="enseignants.html">Enseignants</a><br>
+        <a href="guide-prof.html">Guide école</a><br>
+        <a href="support.html">Support</a>
+      </p>
+    </div>
+    <div>
+      <h4>Légal &amp; contact</h4>
+      <p>
+        <a href="https://coresrdi.github.io/mathequete-privacy/" target="_blank" rel="noopener">Politique de confidentialité</a><br>
+        <a href="mailto:coresrdi@gmail.com">coresrdi@gmail.com</a>
+      </p>
+    </div>
   </div>
+  <p class="copyright">© 2026 CORES RDI — Tous droits réservés. Fait au Québec.</p>
 </footer>
 
 <script>
 function generateurIleBonus() {
   return {
     pack: {
-      format: "mathequete_pack",
-      format_version: 1,
-      pack_id: genererPackId(),
-      nom: "",
-      auteur: "",
-      continent_cible: 1,
-      matiere: "math",
-      niveau_suggere: 1,
-      description: "",
-      couleur_theme: "#4A90E2",
-      icone: "",
-      date_creation: new Date().toISOString().slice(0, 10),
-      questions: []
+      format: "mathequete_pack", format_version: 1, pack_id: genererPackId(),
+      nom: "", auteur: "", continent_cible: 1, matiere: "math",
+      niveau_suggere: 1, description: "", couleur_theme: "#4A90E2", icone: "",
+      date_creation: new Date().toISOString().slice(0, 10), questions: []
     },
-    erreurs: [],
-    messageSucces: "",
-
+    erreurs: [], messageSucces: "",
     ajouterQuestion() {
       if (this.pack.questions.length >= 200) return;
-      this.pack.questions.push({
-        enonce: "",
-        reponse_correcte: "",
-        mode: "choix_multiple",
-        choix: ["", "", "", ""],
-        difficulte: 3,
-        timer_sec: 0,
-        poids: 1.0
-      });
+      this.pack.questions.push({ enonce: "", reponse_correcte: "", mode: "choix_multiple", choix: ["", "", "", ""], difficulte: 3, timer_sec: 0, poids: 1.0 });
     },
-
-    supprimerQuestion(idx) {
-      this.pack.questions.splice(idx, 1);
-    },
-
+    supprimerQuestion(idx) { this.pack.questions.splice(idx, 1); },
     estValide() {
       this.erreurs = [];
       const p = this.pack;
-
-      if (!p.nom || p.nom.trim().length === 0) {
-        this.erreurs.push("Le nom de l'île est obligatoire.");
-      }
-      if (p.questions.length === 0) {
-        this.erreurs.push("Ajoute au moins une question.");
-      }
+      if (!p.nom || p.nom.trim().length === 0) this.erreurs.push("Le nom de l'île est obligatoire.");
+      if (p.questions.length === 0) this.erreurs.push("Ajoute au moins une question.");
       p.questions.forEach((q, i) => {
         const n = i + 1;
-        if (!q.enonce || q.enonce.trim() === "") {
-          this.erreurs.push(`Q${n} : énoncé manquant.`);
-        }
-        if (!q.reponse_correcte || q.reponse_correcte.trim() === "") {
-          this.erreurs.push(`Q${n} : réponse correcte manquante.`);
-        }
+        if (!q.enonce || q.enonce.trim() === "") this.erreurs.push(`Q${n} : énoncé manquant.`);
+        if (!q.reponse_correcte || q.reponse_correcte.trim() === "") this.erreurs.push(`Q${n} : réponse correcte manquante.`);
         if (q.mode === "choix_multiple") {
           const choixRemplis = q.choix.map(c => (c || "").trim()).filter(c => c !== "");
-          if (choixRemplis.length !== 4) {
-            this.erreurs.push(`Q${n} : il faut remplir les 4 choix.`);
-          }
-          if (!choixRemplis.includes((q.reponse_correcte || "").trim())) {
-            this.erreurs.push(`Q${n} : la réponse correcte doit faire partie des 4 choix.`);
-          }
+          if (choixRemplis.length !== 4) this.erreurs.push(`Q${n} : il faut remplir les 4 choix.`);
+          if (!choixRemplis.includes((q.reponse_correcte || "").trim())) this.erreurs.push(`Q${n} : la réponse correcte doit faire partie des 4 choix.`);
         }
-        if (q.difficulte < 1 || q.difficulte > 10) {
-          this.erreurs.push(`Q${n} : difficulté doit être entre 1 et 10.`);
-        }
-        if (q.timer_sec < 0 || q.timer_sec > 120) {
-          this.erreurs.push(`Q${n} : minuteur doit être entre 0 et 120 secondes.`);
-        }
+        if (q.difficulte < 1 || q.difficulte > 10) this.erreurs.push(`Q${n} : difficulté doit être entre 1 et 10.`);
+        if (q.timer_sec < 0 || q.timer_sec > 120) this.erreurs.push(`Q${n} : minuteur doit être entre 0 et 120 secondes.`);
       });
-
       return this.erreurs.length === 0;
     },
-
     genererEtTelecharger() {
       if (!this.estValide()) return;
-
-      // Construire le pack final selon le schéma de PackValidator.gd
       const packFinal = {
-        format: "mathequete_pack",
-        format_version: 1,
-        pack_id: this.pack.pack_id,
-        nom: this.pack.nom.trim(),
-        auteur: (this.pack.auteur || "").trim() || "Anonyme",
-        continent_cible: parseInt(this.pack.continent_cible),
-        matiere: this.pack.matiere,
-        niveau_suggere: parseInt(this.pack.niveau_suggere),
-        description: (this.pack.description || "").trim(),
-        couleur_theme: this.pack.couleur_theme || "#4A90E2",
-        icone: this.pack.icone || "",
+        format: "mathequete_pack", format_version: 1, pack_id: this.pack.pack_id,
+        nom: this.pack.nom.trim(), auteur: (this.pack.auteur || "").trim() || "Anonyme",
+        continent_cible: parseInt(this.pack.continent_cible), matiere: this.pack.matiere,
+        niveau_suggere: parseInt(this.pack.niveau_suggere), description: (this.pack.description || "").trim(),
+        couleur_theme: this.pack.couleur_theme || "#4A90E2", icone: this.pack.icone || "",
         date_creation: this.pack.date_creation,
         questions: this.pack.questions.map(q => {
-          const base = {
-            enonce: q.enonce.trim(),
-            reponse_correcte: q.reponse_correcte.trim(),
-            mode: q.mode,
-            difficulte: parseInt(q.difficulte),
-            timer_sec: parseInt(q.timer_sec),
-            poids: 1.0
-          };
-          if (q.mode === "choix_multiple") {
-            base.choix = q.choix.map(c => (c || "").trim());
-          }
+          const base = { enonce: q.enonce.trim(), reponse_correcte: q.reponse_correcte.trim(), mode: q.mode, difficulte: parseInt(q.difficulte), timer_sec: parseInt(q.timer_sec), poids: 1.0 };
+          if (q.mode === "choix_multiple") base.choix = q.choix.map(c => (c || "").trim());
           return base;
         })
       };
-
       const json = JSON.stringify(packFinal, null, 2);
       const nomFichier = (packFinal.nom.replace(/[^a-zA-Z0-9-_]/g, "_").slice(0, 40) || "ile_bonus") + ".mqpack.json";
-
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = nomFichier;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
+      a.href = url; a.download = nomFichier;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
       this.messageSucces = "Fichier téléchargé : " + nomFichier + ". Transfère-le sur l'appareil où Mathéquête est installé.";
       setTimeout(() => { this.messageSucces = ""; }, 8000);
     }
   };
 }
-
 function genererPackId() {
-  // Format attendu : PACK-XXXX-XXXX-AAAA (regex PackValidator.gd)
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let s1 = "", s2 = "";
   for (let i = 0; i < 4; i++) s1 += chars[Math.floor(Math.random() * chars.length)];
   for (let i = 0; i < 4; i++) s2 += chars[Math.floor(Math.random() * chars.length)];
-  const annee = new Date().getFullYear();
-  return `PACK-${s1}-${s2}-${annee}`;
+  return `PACK-${s1}-${s2}-${new Date().getFullYear()}`;
 }
 </script>
-
 <style>
 .form-row { margin-bottom: 1rem; }
 .form-row label { display: block; }
 .form-row label span { display: block; font-size: 0.9rem; margin-bottom: 0.25rem; font-weight: 600; }
+[x-cloak] { display: none !important; }
 </style>
-
 </body>
 </html>

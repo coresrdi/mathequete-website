@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page introuvable — Mathéquête</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .page-404 {
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem 1.5rem;
+    }
+    .code-404 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(5rem, 18vw, 10rem);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--aventure-or, #C9922A);
+      text-shadow: 0 4px 24px rgba(201,146,42,0.35);
+      margin: 0 0 0.25rem;
+    }
+    .msg-404 {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      color: var(--aventure-or, #C9922A);
+      margin: 0 0 1.5rem;
+    }
+    .desc-404 {
+      max-width: 480px;
+      color: var(--pico-muted-color, #94a3b8);
+      font-size: 1.05rem;
+      margin-bottom: 2.5rem;
+      line-height: 1.6;
+    }
+    .liens-404 {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .liens-404 a {
+      display: inline-block;
+      padding: 0.65rem 1.4rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: opacity .15s;
+    }
+    .liens-404 a:hover { opacity: 0.82; }
+    .liens-404 .btn-principal {
+      background: var(--aventure-or, #C9922A);
+      color: #1a1208;
+    }
+    .liens-404 .btn-secondaire {
+      border: 2px solid var(--aventure-or, #C9922A);
+      color: var(--aventure-or, #C9922A);
+      background: transparent;
+    }
+    .emoji-404 {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="index.html" class="logo" aria-label="Accueil Mathéquête">
+      <img src="assets/logo.svg" alt="Mathéquête" height="44">
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="achat.html">Acheter</a>
+      <a href="enseignants.html">Enseignants</a>
+      <a href="support.html">Support</a>
+    </div>
+  </div>
+</nav>
+
+<main class="page-404">
+  <span class="emoji-404">🗺️</span>
+  <p class="code-404">404</p>
+  <p class="msg-404">Cette île n’existe pas !</p>
+  <p class="desc-404">
+    Le lien que tu as suivi est perdu quelque part dans l’océan numérique.
+    Pas de panique &mdash; ton aventure commence ici.
+  </p>
+  <div class="liens-404">
+    <a href="index.html" class="btn-principal">🏠 Retour à l’accueil</a>
+    <a href="achat.html" class="btn-secondaire">💳 Acheter une licence</a>
+    <a href="support.html" class="btn-secondaire">📧 Contacter le support</a>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div>
+      <h4>Mathéquête</h4>
+      <p>Un jeu éducatif québécois. Conçu par <strong>CORES RDI</strong>.</p>
+    </div>
+    <div>
+      <h4>Liens</h4>
+      <p>
+        <a href="index.html">Accueil</a><br>
+        <a href="achat.html">Acheter</a><br>
+        <a href="enseignants.html">Enseignants</a><br>
+        <a href="support.html">Support</a>
+      </p>
+    </div>
+    <div>
+      <h4>Légal &amp; contact</h4>
+      <p>
+        <a href="https://coresrdi.github.io/mathequete-privacy/" target="_blank" rel="noopener">Confidentialité</a><br>
+        <a href="mailto:coresrdi@gmail.com">coresrdi@gmail.com</a>
+      </p>
+    </div>
+  </div>
+  <p class="copyright">© 2026 CORES RDI — Tous droits réservés. Fait au Québec.</p>
+</footer>
+
+</body>
+</html>

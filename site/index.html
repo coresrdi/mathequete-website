@@ -6,21 +6,15 @@
   <title>Mathéquête — Apprendre les maths en explorant un monde d'aventure</title>
   <meta name="description" content="Mathéquête, un jeu éducatif québécois où les enfants progressent en maths en explorant un continent rempli d'îles et d'épreuves. Compatible Android et PC, mode prof intégré pour les écoles primaires.">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-
-  <!-- Pico.css CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-  <!-- Google Fonts : Cinzel (titres aventure) + Caveat (manuscrit) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
-  <!-- Styles custom -->
   <link rel="stylesheet" href="css/style.css">
-  <!-- Alpine.js CDN -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
 
-<!-- ============ NAV ============ -->
 <nav class="site-nav">
   <div class="container">
     <a href="index.html" class="logo" aria-label="Accueil Mathéquête">
@@ -34,11 +28,11 @@
       <a href="applications.html">Applications</a>
       <a href="iles-bonus.html">Générer une île</a>
       <a href="template-eleves.html">Template élèves</a>
+      <a href="support.html">Support</a>
     </div>
   </div>
 </nav>
 
-<!-- ============ HERO ============ -->
 <header class="hero">
   <div class="hero-inner">
     <img src="assets/logo.svg" alt="Mathéquête" style="height: 90px; margin: 0 auto;">
@@ -51,7 +45,6 @@
   </div>
 </header>
 
-<!-- ============ FONCTIONNALITÉS ============ -->
 <section class="section">
   <h2 class="section-titre">Une aventure pensée pour apprendre</h2>
   <p class="section-sous-titre">Quatre piliers qui rendent Mathéquête différent des applis d'exercices classiques.</p>
@@ -79,7 +72,6 @@
   </div>
 </section>
 
-<!-- ============ COMMENT ÇA MARCHE ============ -->
 <section class="section-pro">
   <div class="section">
     <h2 class="section-titre">Comment ça marche</h2>
@@ -101,7 +93,6 @@
   </div>
 </section>
 
-<!-- ============ TARIFS ============ -->
 <section class="section">
   <h2 class="section-titre">Des tarifs honnêtes</h2>
   <p class="section-sous-titre">Pas d'abonnement, pas de microtransactions. Tu achètes, tu joues.</p>
@@ -130,12 +121,10 @@
   </div>
 </section>
 
-<!-- ============ FAQ ============ -->
 <section class="section-pro">
   <div class="section">
     <h2 class="section-titre">Questions fréquentes</h2>
     <div class="faq" x-data="{ ouvert: null }">
-
       <div class="faq-item">
         <button class="faq-question" @click="ouvert = (ouvert === 1 ? null : 1)" :aria-expanded="ouvert === 1">
           <span>Quels appareils sont supportés&nbsp;?</span>
@@ -145,7 +134,6 @@
           <p>Mathéquête fonctionne actuellement sur Android (téléphones et tablettes) et sur Windows PC. Les versions Mac et iOS arrivent au cours de l'année 2026, sans frais supplémentaires pour les acheteurs actuels.</p>
         </div>
       </div>
-
       <div class="faq-item">
         <button class="faq-question" @click="ouvert = (ouvert === 2 ? null : 2)" :aria-expanded="ouvert === 2">
           <span>Combien de temps une licence est-elle valide&nbsp;?</span>
@@ -155,7 +143,6 @@
           <p>Les licences individuelles et Pack 5 sont à vie (1 appareil par code, transférable). Les licences école sont valides pour une année scolaire complète (10 mois) et renouvelables au tarif en vigueur.</p>
         </div>
       </div>
-
       <div class="faq-item">
         <button class="faq-question" @click="ouvert = (ouvert === 3 ? null : 3)" :aria-expanded="ouvert === 3">
           <span>Les autres continents seront-ils gratuits pour moi&nbsp;?</span>
@@ -165,7 +152,6 @@
           <p>Le Continent&nbsp;1 est jouable aujourd'hui et couvre déjà des dizaines d'heures de jeu (8 îles + 8 sous-sols, capture des profs, mode boutique, healer). Les Continents&nbsp;2 à 8 sont en développement et seront proposés un par un à un tarif similaire (4,99&nbsp;$ CAD chacun), sans abonnement.</p>
         </div>
       </div>
-
       <div class="faq-item">
         <button class="faq-question" @click="ouvert = (ouvert === 4 ? null : 4)" :aria-expanded="ouvert === 4">
           <span>Mon enfant peut-il jouer sans internet&nbsp;?</span>
@@ -175,7 +161,6 @@
           <p>Oui. Une fois le code activé (connexion requise une seule fois), Mathéquête fonctionne complètement hors-ligne. Idéal pour les voyages, le chalet, ou les classes sans wifi fiable.</p>
         </div>
       </div>
-
       <div class="faq-item">
         <button class="faq-question" @click="ouvert = (ouvert === 5 ? null : 5)" :aria-expanded="ouvert === 5">
           <span>Y a-t-il une démo gratuite&nbsp;?</span>
@@ -185,7 +170,6 @@
           <p>Oui&nbsp;! Le tutoriel complet et la première île du Continent&nbsp;1 sont jouables gratuitement. Aucun code de carte de crédit demandé pour essayer.</p>
         </div>
       </div>
-
       <div class="faq-item">
         <button class="faq-question" @click="ouvert = (ouvert === 6 ? null : 6)" :aria-expanded="ouvert === 6">
           <span>Mode prof&nbsp;: comment ça marche&nbsp;?</span>
@@ -195,12 +179,10 @@
           <p>Vous achetez un palier qui correspond à votre nombre d'élèves. Vous recevez un PDF avec un code par élève, un code prof, et un tableau de bord pour suivre la progression individuelle et les statistiques de classe en temps réel. Voir le <a href="guide-prof.html">guide enseignant</a> pour les détails.</p>
         </div>
       </div>
-
     </div>
   </div>
 </section>
 
-<!-- ============ FOOTER ============ -->
 <footer class="site-footer">
   <div class="container">
     <div>
@@ -213,7 +195,8 @@
         <a href="index.html">Accueil</a><br>
         <a href="achat.html">Acheter</a><br>
         <a href="enseignants.html">Enseignants (info)</a><br>
-        <a href="guide-prof.html">Guide école</a>
+        <a href="guide-prof.html">Guide école</a><br>
+        <a href="support.html">Support</a>
       </p>
     </div>
     <div>
