@@ -44,12 +44,10 @@
     }
     .continent-carte.carte-en-creation { opacity: 0.80; }
     .continent-carte.carte-a-venir     { opacity: 0.50; pointer-events: none; filter: grayscale(0.3); }
-
     .continent-icone { font-size: 2.2rem; line-height: 1; margin-bottom: 0.3rem; }
     .continent-nom   { font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700; margin: 0; }
     .continent-sous-titre { font-size: 0.82rem; opacity: 0.6; margin: 0; }
     .continent-desc  { font-size: 0.88rem; line-height: 1.55; flex: 1; margin: 0.4rem 0 0.8rem; }
-
     .continent-badge {
       display: inline-block;
       font-size: 0.72rem;
@@ -64,7 +62,6 @@
     .badge-success { background: #d4f0e0; color: #1a6638; }
     .badge-warning { background: #fef3c7; color: #92400e; }
     .badge-muted   { background: #e5e7eb; color: #6b7280; }
-
     .continent-cta-group { display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto; }
     .btn-continent-primaire {
       display: block; text-align: center; padding: 0.6rem 1rem;
@@ -91,9 +88,142 @@
       position: absolute; top: 1rem; right: 1rem;
       font-size: 1.3rem; opacity: 0.4;
     }
+
+    /* ── Section Vidéos ── */
+    .video-grid-3 {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-top: 1.8rem;
+      max-width: 1100px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .video-thumb-wrap {
+      flex: 1 1 280px;
+      max-width: 340px;
+    }
+    .video-label {
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin: 0 0 0.5rem 0.2rem;
+    }
+    .video-thumb {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      background: #1a1a2e;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .video-thumb:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+    }
+    .video-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.2s;
+    }
+    .video-thumb:hover img { opacity: 0.85; }
+    .video-play-btn {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 56px; height: 56px;
+      background: rgba(255,255,255,0.92);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+      transition: background 0.18s, transform 0.18s;
+    }
+    .video-thumb:hover .video-play-btn {
+      background: #fff;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+    .video-play-btn svg { margin-left: 4px; }
+
+    /* ── Modal Lightbox ── */
+    #video-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,0.88);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    #video-modal.actif {
+      display: flex;
+      animation: fadeInModal 0.22s ease;
+    }
+    @keyframes fadeInModal {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .modal-inner {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+    }
+    .modal-iframe-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .modal-iframe-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .modal-close {
+      position: absolute;
+      top: -2.8rem; right: 0;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: #fff;
+      font-size: 1.4rem;
+      line-height: 1;
+      width: 2.4rem; height: 2.4rem;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.18s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.28); }
   </style>
 </head>
 <body>
+
+<!-- ═══════ MODAL VIDÉO LIGHTBOX ═══════ -->
+<div id="video-modal" role="dialog" aria-modal="true" aria-label="Lecteur vidéo" tabindex="-1">
+  <div class="modal-inner">
+    <button class="modal-close" id="modal-close-btn" aria-label="Fermer la vidéo">✕</button>
+    <div class="modal-iframe-wrap">
+      <iframe id="modal-iframe"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        title="Vidéo Mathéquête">
+      </iframe>
+    </div>
+  </div>
+</div>
 
 <nav class="site-nav">
   <div class="container">
@@ -126,20 +256,53 @@
 </header>
 
 <!-- ═══════════════════════════════════════════
-     SECTION VIDÉO — Commit 5
+     SECTION VIDÉO — 3 vidéos YouTube avec lightbox
+     IDs : bLijXDgYm2U | v7oa01j_A80 | sut0bZkPiIw
      ═══════════════════════════════════════════ -->
 <section class="section" style="padding-bottom: 1.5rem;">
   <h2 class="section-titre">Voir Mathéquête en action</h2>
-  <p class="section-sous-titre">Survole pour un aperçu, clique pour regarder avec le son.</p>
-  <div style="display:flex; flex-wrap:wrap; gap:1.5rem; justify-content:center; margin-top:1.8rem; max-width:900px; margin-left:auto; margin-right:auto;">
-    <div style="flex:1 1 300px; max-width:380px;">
-      <p style="font-family:'Cinzel',serif; font-weight:700; font-size:0.85rem; letter-spacing:0.05em; text-transform:uppercase; opacity:0.6; margin:0 0 0.5rem 0.2rem;">Démo — Mode révisions</p>
-      <div data-video-context="hero"></div>
+  <p class="section-sous-titre">Clique sur une vidéo pour la regarder.</p>
+  <div class="video-grid-3">
+
+    <div class="video-thumb-wrap">
+      <p class="video-label">Démo — Mode révisions</p>
+      <div class="video-thumb" role="button" tabindex="0"
+           data-yt-id="bLijXDgYm2U"
+           aria-label="Regarder : Démo — Mode révisions">
+        <img src="https://img.youtube.com/vi/bLijXDgYm2U/mqdefault.jpg"
+             alt="Démo — Mode révisions" loading="lazy" width="320" height="180">
+        <div class="video-play-btn" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#1a1a2e"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+      </div>
     </div>
-    <div style="flex:1 1 300px; max-width:380px;">
-      <p style="font-family:'Cinzel',serif; font-weight:700; font-size:0.85rem; letter-spacing:0.05em; text-transform:uppercase; opacity:0.6; margin:0 0 0.5rem 0.2rem;">Mathéquête en action</p>
-      <div data-video-context="aventure"></div>
+
+    <div class="video-thumb-wrap">
+      <p class="video-label">Mathéquête en action</p>
+      <div class="video-thumb" role="button" tabindex="0"
+           data-yt-id="v7oa01j_A80"
+           aria-label="Regarder : Mathéquête en action">
+        <img src="https://img.youtube.com/vi/v7oa01j_A80/mqdefault.jpg"
+             alt="Mathéquête en action" loading="lazy" width="320" height="180">
+        <div class="video-play-btn" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#1a1a2e"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+      </div>
     </div>
+
+    <div class="video-thumb-wrap">
+      <p class="video-label">Aperçu du jeu</p>
+      <div class="video-thumb" role="button" tabindex="0"
+           data-yt-id="sut0bZkPiIw"
+           aria-label="Regarder : Aperçu du jeu">
+        <img src="https://img.youtube.com/vi/sut0bZkPiIw/mqdefault.jpg"
+             alt="Aperçu du jeu" loading="lazy" width="320" height="180">
+        <div class="video-play-btn" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#1a1a2e"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -179,7 +342,6 @@
     <p class="section-sous-titre">Un continent disponible aujourd'hui. D'autres en cours de création.</p>
   </div>
   <div class="continents-grid" id="continents-grid">
-    <!-- Chargé dynamiquement par le script ci-dessous -->
     <p style="text-align:center; opacity:0.5; font-style:italic;" id="continents-loading">Chargement des continents…</p>
   </div>
 </section>
@@ -191,56 +353,25 @@
     .then(data => {
       const grid = document.getElementById('continents-grid');
       grid.innerHTML = '';
-
       data.continents.forEach(c => {
         const isDisponible  = c.statut === 'disponible';
         const isEnCreation  = c.statut === 'en_creation';
         const isAVenir      = c.statut === 'a_venir';
-
-        // Badge
         const badgeClass = data.statuts_visuels[c.statut]?.css_class || 'badge-muted';
         const badgeLabel = data.statuts_visuels[c.statut]?.label || c.badge;
-
-        // Classe carte
         let carteClass = 'continent-carte';
         if (isEnCreation) carteClass += ' carte-en-creation';
         if (isAVenir)     carteClass += ' carte-a-venir carte-locked';
-
-        // CTA HTML
         let ctaHtml = '';
         if (isDisponible && c.cta_primaire) {
-          ctaHtml = `
-            <div class="continent-cta-group">
-              <a href="${c.cta_primaire.url}" class="btn-continent-primaire"
-                 style="background:${c.couleur_accent};">
-                ${c.cta_primaire.label}
-              </a>
-            </div>`;
+          ctaHtml = `<div class="continent-cta-group"><a href="${c.cta_primaire.url}" class="btn-continent-primaire" style="background:${c.couleur_accent};">${c.cta_primaire.label}</a></div>`;
         } else if (isEnCreation) {
-          ctaHtml = `
-            <div class="continent-cta-group">
-              <span class="btn-continent-disabled" aria-disabled="true">🚀 Bientôt sur Kickstarter</span>
-            </div>`;
+          ctaHtml = `<div class="continent-cta-group"><span class="btn-continent-disabled" aria-disabled="true">🚀 Bientôt sur Kickstarter</span></div>`;
         } else if (isAVenir) {
-          ctaHtml = `
-            <div class="continent-cta-group">
-              <span class="btn-continent-disabled" aria-disabled="true">🔒 À venir</span>
-            </div>`;
+          ctaHtml = `<div class="continent-cta-group"><span class="btn-continent-disabled" aria-disabled="true">🔒 À venir</span></div>`;
         }
-
-        // Overlay cadenas pour A_VENIR
         const cadenas = isAVenir ? `<span class="carte-locked-overlay" aria-hidden="true">🔒</span>` : '';
-
-        grid.innerHTML += `
-          <article class="${carteClass}" style="border-top: 4px solid ${c.couleur_accent};">
-            ${cadenas}
-            <span class="continent-badge ${badgeClass}">${badgeLabel}</span>
-            <div class="continent-icone" aria-hidden="true">${c.icone}</div>
-            <h3 class="continent-nom" style="color:${c.couleur_accent};">${c.nom}</h3>
-            <p class="continent-sous-titre">${c.sous_titre}</p>
-            <p class="continent-desc">${c.description}</p>
-            ${ctaHtml}
-          </article>`;
+        grid.innerHTML += `<article class="${carteClass}" style="border-top: 4px solid ${c.couleur_accent};">${cadenas}<span class="continent-badge ${badgeClass}">${badgeLabel}</span><div class="continent-icone" aria-hidden="true">${c.icone}</div><h3 class="continent-nom" style="color:${c.couleur_accent};">${c.nom}</h3><p class="continent-sous-titre">${c.sous_titre}</p><p class="continent-desc">${c.description}</p>${ctaHtml}</article>`;
       });
     })
     .catch(() => {
