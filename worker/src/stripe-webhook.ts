@@ -2,13 +2,18 @@
  * Webhook Stripe — événement `checkout.session.completed` (DEC-29).
  *
  * Flow :
- *   1. Stripe envoie le webhook après paiement réussi
- *   2. Vérification signature HMAC Stripe (sécurité)
- *   3. Lecture du tier dans metadata.tier
- *   4. Génération d'un code de licence HMAC (generate-codes.ts)
- *   5. Persistance en D1 (tables `licences` + `achats`)
- *   6. Envoi email Resend avec code + CSV
- *   7. Retour 200 à Stripe (sinon il retente)
+ * 1. Stripe envoie le webhook après paiement réussi
+ * 2. Vérification signature HMAC Stripe (sécurité)
+ * 3. Lecture du tier dans metadata.tier
+ * 4. Génération d'un code de licence HMAC (generate-codes.ts)
+ * 5. Persistance en D1 (tables `licences` + `achats`)
+ * 6. Envoi email Resend avec code + CSV
+ * 7. Retour 200 à Stripe (sinon il retente)
+ *
+ * PATCH abonnement — 22 mai 2026 :
+ * Les tiers avec duree: 'annuel' (continent_1, pack_5_continent_1) utilisent
+ * mode: 'subscription' + price_id Stripe livemode au lieu de price_data inline.
+ * Stripe interdit price_data en mode subscription.
  */
 
 import Stripe from 'stripe';
@@ -129,8 +134,8 @@ export async function handleStripeWebhook(
   // ===== 5. Persistance D1 (atomique : N licences + 1 achat) =====
   const stmts = licences.map(l => env.DB.prepare(`
     INSERT INTO licences
-      (id, code, type, tier, nb_eleves_max, emis_le, expire_le,
-       email_acheteur, nom_acheteur, stripe_session, source)
+    (id, code, type, tier, nb_eleves_max, emis_le, expire_le,
+     email_acheteur, nom_acheteur, stripe_session, source)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'stripe')
   `).bind(
     l.id, l.code_affiche, type, tier, nbElevesMax,
@@ -140,9 +145,9 @@ export async function handleStripeWebhook(
   stmts.push(
     env.DB.prepare(`
       INSERT INTO achats
-        (stripe_session_id, stripe_payment_id, tier, montant_cents,
-         tps_cents, tvq_cents, total_cents, email_acheteur, nom_acheteur,
-         licence_id, paye_le, statut, raw_event_json)
+      (stripe_session_id, stripe_payment_id, tier, montant_cents,
+       tps_cents, tvq_cents, total_cents, email_acheteur, nom_acheteur,
+       licence_id, paye_le, statut, raw_event_json)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', ?)
     `).bind(
       session.id,
@@ -180,7 +185,7 @@ export async function handleStripeWebhook(
     : `★ Votre licence Mathéquête : ${codesAffiches[0]}`;
   await env.DB.prepare(`
     INSERT INTO emails_envoyes
-      (destinataire, sujet, type, licence_id, envoye_le, resend_id, statut, erreur)
+    (destinataire, sujet, type, licence_id, envoye_le, resend_id, statut, erreur)
     VALUES (?, ?, 'licence_emise', ?, ?, ?, ?, ?)
   `).bind(
     email,
@@ -202,6 +207,10 @@ export async function handleStripeWebhook(
 
 /* ===== Création d'une session Stripe Checkout =====
  * Appelée depuis le bouton "Acheter" du site (achat.html).
+ *
+ * PATCH abonnement (22 mai 2026) :
+ * - duree === 'annuel'  → mode: 'subscription' + price_id Stripe livemode
+ * - duree === 'permanent' | 'ecole' → mode: 'payment' + price_data inline (inchangé)
  */
 export async function handleCreateCheckoutSession(
   request: Request,
@@ -213,7 +222,7 @@ export async function handleCreateCheckoutSession(
 
   let body: {
     tier?: string;
-    email_admin?: string;            // requis pour paliers école
+    email_admin?: string;   // requis pour paliers école
     ecole_nom?: string;
     code_court?: string;
     commission_type?: 'publique' | 'privee';
@@ -283,34 +292,60 @@ export async function handleCreateCheckoutSession(
     httpClient: Stripe.createFetchHttpClient()
   });
 
-  // Description Stripe : adaptée au type de licence
-  const isIndividuel = tier.startsWith('continent') || tier.startsWith('pack_5_continent');
-  const description = tarif.nb_codes > 1
-    ? `${tarif.nb_codes} codes permanents, 1 appareil par code`
-    : (isIndividuel
-      ? `Licence permanente, 1 appareil`
-      : `Licence annuelle ${tarif.nb_eleves} élèves`);
+  // ===== PATCH abonnement : détecter si le tier est récurrent =====
+  // duree === 'annuel' → subscription (continent_1, pack_5_continent_1)
+  // duree === 'permanent' | 'ecole' → payment one-time (inchangé)
+  const isRecurring = tarif.duree === 'annuel';
 
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
-    payment_method_types: ['card'],
-    line_items: [{
-      price_data: {
-        currency: 'cad',
-        product_data: {
-          name: `Mathéquête — ${tarif.nom}`,
-          description: description
+  let session: Stripe.Checkout.Session;
+
+  if (isRecurring) {
+    // ── Mode abonnement ───────────────────────────────────────────────────────
+    // price_data interdit en mode subscription — on utilise le price_id livemode
+    // stocké dans PRIX_TIERS_CENTS[tier].stripe_price_id (types.ts).
+    session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [{
+        price: tarif.stripe_price_id,
+        quantity: 1
+      }],
+      automatic_tax: { enabled: true },
+      metadata: { tier, ...metadataExtra },
+      customer_email: body.email_admin,
+      success_url: `${env.PUBLIC_SITE_URL}/merci.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${env.PUBLIC_SITE_URL}/achat.html`
+    });
+  } else {
+    // ── Mode paiement unique (code original inchangé) ─────────────────────────
+    const isIndividuel = tier.startsWith('continent') || tier.startsWith('pack_5_continent');
+    const description = tarif.nb_codes > 1
+      ? `${tarif.nb_codes} codes permanents, 1 appareil par code`
+      : (isIndividuel
+        ? `Licence permanente, 1 appareil`
+        : `Licence annuelle ${tarif.nb_eleves} élèves`);
+
+    session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'cad',
+          product_data: {
+            name: `Mathéquête — ${tarif.nom}`,
+            description: description
+          },
+          unit_amount: tarif.prix_cents
         },
-        unit_amount: tarif.prix_cents
-      },
-      quantity: 1
-    }],
-    automatic_tax: { enabled: true },
-    metadata: { tier, ...metadataExtra },
-    customer_email: body.email_admin,    // pré-remplit Stripe pour les paliers école
-    success_url: `${env.PUBLIC_SITE_URL}/merci.html?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${env.PUBLIC_SITE_URL}/achat.html`
-  });
+        quantity: 1
+      }],
+      automatic_tax: { enabled: true },
+      metadata: { tier, ...metadataExtra },
+      customer_email: body.email_admin,
+      success_url: `${env.PUBLIC_SITE_URL}/merci.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${env.PUBLIC_SITE_URL}/achat.html`
+    });
+  }
 
   return new Response(
     JSON.stringify({ url: session.url, session_id: session.id }),
