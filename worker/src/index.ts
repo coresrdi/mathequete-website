@@ -86,7 +86,13 @@ import {
   handleProfMeLierEcole,
   handleProfValiderMembre
 } from './admin-ecole';
-import { handleJeuInfoQr, handleJeuSaisieCodeClasse, handleJeuActiverQr, handleJeuMesLicences } from './jeu-routes';
+import {
+  handleJeuInfoQr,
+  handleJeuSaisieCodeClasse,
+  handleJeuActiverQr,
+  handleJeuDesactiverQr,
+  handleJeuMesLicences
+} from './jeu-routes';
 import {
   handleProfClasseElevesImport,
   handleProfClasseElevesLister,
@@ -394,6 +400,16 @@ export default {
         const rl = await checkRateLimit(env, `activer-qr:ip:${getClientIp(request)}`, RL_ACTIVATION);
         if (!rl.allowed) return rateLimitResponse(rl);
         return handleJeuActiverQr(request, env);
+      }
+
+      // ===== Transfert licence : révocation device joueur =====
+      // PUBLIC + rate-limité RL_ACTIVATION (même profil que activer-qr)
+      // Fixe le bug "la licence se réactive automatiquement après désactivation"
+      // en révoquant l'entrée activations_appareil côté serveur.
+      if (url.pathname === '/api/jeu/desactiver-qr') {
+        const rl = await checkRateLimit(env, `desactiver-qr:ip:${getClientIp(request)}`, RL_ACTIVATION);
+        if (!rl.allowed) return rateLimitResponse(rl);
+        return handleJeuDesactiverQr(request, env);
       }
 
       // ===== DEC-63 : liste des produits actifs sur cet appareil (multi-licences) =====

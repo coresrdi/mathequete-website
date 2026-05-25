@@ -6,6 +6,7 @@
  *   GET  /api/jeu/info-qr/:cle_qr     → magie pré-remplissage code classe (DEC-56)
  *   POST /api/jeu/saisie-code-classe  → matching DEC-57 (item IE-3)
  *   POST /api/jeu/activer-qr          → activation initiale (item 12 PB1)
+ *   POST /api/jeu/desactiver-qr       → révocation device (transfert licence)
  *   GET  /api/jeu/mes-licences/:dev   → liste produits actifs (DEC-63)
  *
  * Modèle DEC-63 (multi-licences hybride) :
@@ -525,6 +526,112 @@ export async function handleJeuActiverQr(request: Request, env: Env): Promise<Re
     premiere_activation: premiereActivation,
     expire_le: expire_le_response
   })
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ROUTE : POST /api/jeu/desactiver-qr
+// ══════════════════════════════════════════════════════════════════════════════
+//
+// Révoque l'association device ↔ licence dans activations_appareil.
+// Après cet appel, GET /api/jeu/mes-licences ne retournera plus ce produit
+// pour ce device → l'accès premium ne se réactive PLUS automatiquement.
+//
+// Body :
+//   {
+//     cle_qr_masque: string,       // ex: "JF40G..." (4 premiers chars + "...")
+//     device_fingerprint: string,
+//     produit_id: string           // ex: "continent_1"
+//   }
+//
+// Notes sécurité :
+//   - On accepte le masque (4 chars) ET la clé complète (12 chars normalisée)
+//     pour flexibilité côté Godot.
+//   - On ne vérifie PAS de JWT : la possession du device_fingerprint + cle_qr
+//     est suffisante (le device_fingerprint est un secret local généré par Godot).
+//   - Rate-limité RL_ACTIVATION côté index.ts (anti-spam révocations).
+//
+// Réponse 200 :
+//   { ok: true, revocations: N }   // N = nombre de rangées révoquées (0 ou 1+)
+//
+// Réponse 404 si la cle_qr est introuvable ou ne correspond pas au device.
+
+interface DesactiverQrBody {
+  cle_qr_masque?: string
+  device_fingerprint?: string
+  produit_id?: string
+}
+
+export async function handleJeuDesactiverQr(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') {
+    return jsonResp({ ok: false, code: 'METHOD_NOT_ALLOWED' }, 405)
+  }
+
+  let body: DesactiverQrBody
+  try { body = await request.json() }
+  catch { return jsonResp({ ok: false, code: 'BAD_JSON' }, 400) }
+
+  if (typeof body.device_fingerprint !== 'string' || body.device_fingerprint.length < 8) {
+    return jsonResp({ ok: false, code: 'BAD_DEVICE' }, 400)
+  }
+  if (typeof body.cle_qr_masque !== 'string' || body.cle_qr_masque.length < 4) {
+    return jsonResp({ ok: false, code: 'BAD_CLE_QR_MASQUE' }, 400)
+  }
+  if (typeof body.produit_id !== 'string' || body.produit_id.length === 0) {
+    return jsonResp({ ok: false, code: 'BAD_PRODUIT_ID' }, 400)
+  }
+
+  const now = Math.floor(Date.now() / 1000)
+  const prefixe = body.cle_qr_masque.replace(/\.\.\..*$/, '').toUpperCase().slice(0, 4)
+
+  // Résoudre la cle_qr complète : chercher dans activations_appareil
+  // toutes les activations actives de ce device+produit dont la cle_qr commence
+  // par le préfixe fourni.
+  const candidates = await env.DB.prepare(
+    `SELECT aa.id, aa.cle_qr
+       FROM activations_appareil aa
+      WHERE aa.device_fingerprint = ?
+        AND aa.produit_id = ?
+        AND aa.date_revocation IS NULL
+        AND UPPER(SUBSTR(aa.cle_qr, 1, 4)) = ?`
+  ).bind(body.device_fingerprint, body.produit_id, prefixe)
+   .all<{ id: number; cle_qr: string }>()
+
+  const rows = candidates.results ?? []
+
+  if (rows.length === 0) {
+    // Aucune activation active trouvée pour ce device+produit+préfixe
+    return jsonResp({
+      ok: false,
+      code: 'NOT_FOUND',
+      message: 'Aucune licence active trouvee pour ce device et ce produit.'
+    }, 404)
+  }
+
+  // Révoquer toutes les entrées correspondantes (normalement 1)
+  let revocations = 0
+  for (const row of rows) {
+    await env.DB.prepare(
+      `UPDATE activations_appareil
+          SET date_revocation = ?,
+              motif_revocation = 'transfert_joueur'
+        WHERE id = ?`
+    ).bind(now, row.id).run()
+
+    // Compatibilité rétro : remettre licences_qr.device_fingerprint à NULL
+    // pour que l'ancienne logique de activer-qr voie la licence comme "libre"
+    // (transfert_requis = false sur le prochain appareil)
+    await env.DB.prepare(
+      `UPDATE licences_qr
+          SET device_fingerprint = NULL,
+              activation_initiale_date = NULL
+        WHERE cle_qr = ?
+          AND device_fingerprint = ?`
+    ).bind(row.cle_qr, body.device_fingerprint).run()
+
+    revocations++
+  }
+
+  return jsonResp({ ok: true, revocations })
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
