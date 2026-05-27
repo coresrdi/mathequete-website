@@ -91,7 +91,8 @@ import {
   handleJeuSaisieCodeClasse,
   handleJeuActiverQr,
   handleJeuDesactiverQr,
-  handleJeuMesLicences
+  handleJeuMesLicences,
+  handleJeuCheckVersion
 } from './jeu-routes';
 import {
   handleProfClasseElevesImport,
@@ -421,6 +422,13 @@ export default {
         const rl = await checkRateLimit(env, `mes-licences:ip:${getClientIp(request)}`, RL_INFO_QR);
         if (!rl.allowed) return rateLimitResponse(rl);
         return handleJeuMesLicences(request, env, mesLicencesMatch[1]);
+      }
+
+      // ===== Vérification version Store (check-version) =====
+      // PUBLIC, pas de rate limit dédié (payload léger, idempotent).
+      // Godot appelle cet endpoint au démarrage pour détecter les mises à jour disponibles.
+      if (url.pathname === '/api/jeu/check-version' && request.method === 'POST') {
+        return handleJeuCheckVersion(request, env);
       }
 
       if (url.pathname === '/verify-license' && request.method === 'POST') {
