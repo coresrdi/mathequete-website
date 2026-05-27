@@ -8,6 +8,7 @@
  *   POST /api/jeu/activer-qr          → activation initiale (item 12 PB1)
  *   POST /api/jeu/desactiver-qr       → révocation device (transfert licence)
  *   GET  /api/jeu/mes-licences/:dev   → liste produits actifs (DEC-63)
+ *   POST /api/jeu/check-version       → vérification version Store vs version jeu
  *
  * Modèle DEC-63 (multi-licences hybride) :
  *   - Source de vérité = table activations_appareil (1 rangée active par produit)
@@ -703,5 +704,56 @@ export async function handleJeuMesLicences(request: Request, env: Env, deviceFp:
     est_gratuit: produitsActifs.length === 0,
     produits_actifs: produitsActifs,
     activations
+  })
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ROUTE : POST /api/jeu/check-version
+// ══════════════════════════════════════════════════════════════════════════════
+//
+// Appelé par Godot au démarrage pour comparer sa version interne avec la version
+// de référence publiée sur le Store. Si les versions diffèrent, le jeu peut
+// afficher un bandeau "Mise à jour disponible" (logique côté Godot).
+//
+// Body :
+//   {
+//     device_id: string,    // identifiant appareil (pour logs)
+//     platform: string      // "android" | "ios" | "windows" | "macos" | "linux"
+//   }
+//
+// Réponse 200 :
+//   {
+//     latest_version: string,  // ex: "0.5.9"
+//     status: "ok"
+//   }
+//
+// Réponse 400 si le body JSON est invalide.
+//
+// ⚠ VERSION DE RÉFÉRENCE : changer LATEST_VERSION à chaque publication Store.
+// Public (pas de JWT), pas de rate limit dédié (payload très léger, idempotent).
+
+interface CheckVersionBody {
+  device_id?: string
+  platform?: string
+}
+
+export async function handleJeuCheckVersion(request: Request, _env: Env): Promise<Response> {
+  if (request.method !== 'POST') {
+    return jsonResp({ ok: false, code: 'METHOD_NOT_ALLOWED' }, 405)
+  }
+
+  let body: CheckVersionBody
+  try { body = await request.json() }
+  catch { return jsonResp({ error: 'Invalid JSON' }, 400) }
+
+  // Log pour traçabilité (visible dans Cloudflare Workers Logs)
+  console.log('Vérification version par :', body.device_id ?? 'inconnu', 'Plateforme :', body.platform ?? 'inconnue')
+
+  // ⚠ METTRE À JOUR CE NUMÉRO à chaque publication sur le Store.
+  const LATEST_VERSION = '0.5.9'
+
+  return jsonResp({
+    latest_version: LATEST_VERSION,
+    status: 'ok'
   })
 }
