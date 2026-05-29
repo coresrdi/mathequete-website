@@ -339,6 +339,7 @@ export async function handleCreateCheckoutSession(
         },
         quantity: 1
       }],
+      allow_promotion_codes: true,     // ← codes promo activés
       automatic_tax: { enabled: true },
       metadata: { tier, ...metadataExtra },
       customer_email: body.email_admin,
