@@ -72,6 +72,8 @@ function nomTierLisible(tier: string): string {
   const map: Record<string, string> = {
     'continent_1':         'Continent 1 — Individuelle (1 appareil)',
     'pack_5_continent_1':  'Continent 1 — Pack 5 (5 codes, 5 appareils)',
+    'solo_permanent':      'Permanente — Individuelle (1 appareil, à vie)',
+    'pack_5_permanent':    'Permanente — Pack 5 (5 codes, 5 appareils, à vie)',
     'classe_petite':       'Classe Petite (30 élèves)',
     'classe_moyenne':      'Classe Moyenne (100 élèves)',
     'petite_ecole':        'Petite École (300 élèves)',
@@ -83,8 +85,11 @@ function nomTierLisible(tier: string): string {
 }
 
 function estTierIndividuel(tier: string): boolean {
-  // Individuelle ou Pack 5 — codes à vie, 1 appareil par code
-  return tier.startsWith('continent') || tier.startsWith('pack_5_continent');
+  // Individuelle ou Pack 5 (annuel OU permanent) — codes à vie/an, 1 appareil par code
+  return tier.startsWith('continent')
+    || tier.startsWith('pack_5_continent')
+    || tier === 'solo_permanent'
+    || tier === 'pack_5_permanent';
 }
 
 /* ===== Template HTML licence émise ===== */

@@ -184,6 +184,8 @@ export function nbElevesPourTier(tier: string): number {
   const map: Record<string, number> = {
     'continent_1':         1,
     'pack_5_continent_1':  1,
+    'solo_permanent':      1,
+    'pack_5_permanent':    1,
     'classe_petite':       30,
     'classe_moyenne':      100,
     'petite_ecole':        300,
@@ -200,7 +202,8 @@ export function nbElevesPourTier(tier: string): number {
  * (voir `nbClesQrPourTier`) sont rattachées dans `licences_qr`. */
 export function nbCodesPourTier(tier: string): number {
   const map: Record<string, number> = {
-    'pack_5_continent_1':  5
+    'pack_5_continent_1':  5,
+    'pack_5_permanent':    5
   };
   return map[tier] ?? 1;
 }
@@ -213,6 +216,8 @@ export function nbClesQrPourTier(tier: string): number {
   const map: Record<string, number> = {
     'continent_1':         1,
     'pack_5_continent_1':  5,
+    'solo_permanent':      1,
+    'pack_5_permanent':    5,
     'classe_petite':       30,
     'classe_moyenne':      100,
     'petite_ecole':        300,
@@ -224,6 +229,8 @@ export function nbClesQrPourTier(tier: string): number {
 }
 
 export function tierVersType(tier: string): LicenceType {
+  // Paliers individuels permanents (achat unique, 8 continents a vie, 1 appareil/code)
+  if (tier === 'pack_5_permanent' || tier === 'solo_permanent') return 'CONTINENT';
   if (tier.startsWith('pack_5_continent') || tier.startsWith('continent')) return 'CONTINENT';
   if (tier.startsWith('classe')) return 'CLASSE';
   return 'ECOLE';

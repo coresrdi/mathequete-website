@@ -397,7 +397,8 @@ export async function handleCreateCheckoutSession(
     });
   } else {
     // ── Mode paiement unique (code original inchangé) ─────────────────────────
-    const isIndividuel = tier.startsWith('continent') || tier.startsWith('pack_5_continent');
+    const isIndividuel = tier.startsWith('continent') || tier.startsWith('pack_5_continent')
+      || tier === 'solo_permanent' || tier === 'pack_5_permanent';
     const description = tarif.nb_codes > 1
       ? `${tarif.nb_codes} codes permanents, 1 appareil par code`
       : (isIndividuel
