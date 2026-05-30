@@ -105,8 +105,67 @@ export async function handleStripeWebhook(
     .first<{ licence_id: string }>();
 
   if (dejaFait?.licence_id) {
-    console.log('[Webhook] session déjà traitée :', session.id);
-    return new Response('OK (déjà traité)', { status: 200 });
+    // Licences DEJA creees. Mais l'email a-t-il bien ete LIVRE (resend_id non-null) ?
+    // Si un retry Stripe arrive ici suite a un echec email precedent (502), on doit
+    // RENVOYER l'email au lieu de repondre 200 a l'aveugle (sinon le code reste perdu).
+    const emailOk = await env.DB
+      .prepare(`SELECT resend_id FROM emails_envoyes
+                WHERE licence_id = ? AND type = 'licence_emise'
+                  AND resend_id IS NOT NULL
+                LIMIT 1`)
+      .bind(dejaFait.licence_id)
+      .first<{ resend_id: string }>();
+
+    if (emailOk?.resend_id) {
+      console.log('[Webhook] session deja traitee + email confirme :', session.id);
+      return new Response('OK (deja traite)', { status: 200 });
+    }
+
+    // Email jamais confirme -> on re-tente l'envoi avec les codes deja en base.
+    console.warn('[Webhook] session deja traitee MAIS email non confirme -> renvoi :', session.id);
+    const lignes = await env.DB
+      .prepare(`SELECT code, tier, nb_eleves_max, expire_le
+                FROM licences WHERE stripe_session = ? ORDER BY emis_le ASC`)
+      .bind(session.id)
+      .all<{ code: string; tier: string; nb_eleves_max: number; expire_le: number }>();
+
+    if (lignes.results && lignes.results.length > 0) {
+      const r0 = lignes.results[0];
+      const totalCADrenvoi = (session.amount_total ?? PRIX_TIERS_CENTS[tier].prix_cents) / 100;
+      const respRenvoi = await envoyerLicenceEmise(env, {
+        email,
+        nom,
+        codes_affiches: lignes.results.map(l => l.code),
+        tier: r0.tier,
+        nb_eleves_max: r0.nb_eleves_max,
+        expire_le: r0.expire_le,
+        montant_paye_cad: totalCADrenvoi
+      });
+      const nowR = Math.floor(Date.now() / 1000);
+      await env.DB.prepare(`
+        INSERT INTO emails_envoyes
+        (destinataire, sujet, type, licence_id, envoye_le, resend_id, statut, erreur)
+        VALUES (?, ?, 'licence_emise', ?, ?, ?, ?, ?)
+      `).bind(
+        email,
+        `★ Votre licence Mathéquête : ${r0.code}`,
+        dejaFait.licence_id,
+        nowR,
+        respRenvoi.id ?? null,
+        respRenvoi.error ? 'failed' : 'sent',
+        respRenvoi.error ? respRenvoi.error.message : null
+      ).run();
+
+      if (respRenvoi.error) {
+        console.error('[Webhook] renvoi email encore en echec ->502 :', respRenvoi.error.message);
+        return new Response(
+          JSON.stringify({ ok: false, erreur: 'renvoi_email_echoue', detail: respRenvoi.error.message }),
+          { status: 502, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      console.log('[Webhook] email renvoye avec succes au retry :', session.id);
+    }
+    return new Response('OK (email renvoye)', { status: 200 });
   }
 
   // ===== 4. Génération des codes de licence (1 ou plusieurs pour Pack 5) =====
@@ -196,6 +255,26 @@ export async function handleStripeWebhook(
     resp.error ? 'failed' : 'sent',
     resp.error ? resp.error.message : null
   ).run();
+
+  // ===== 6.5. ECHEC EMAIL = retourner non-200 pour que Stripe RETENTE =====
+  // Bug du 28 mai 2026 : un email echoue (resend_id null) etait quand meme
+  // marque 'sent' + reponse 200 -> Stripe n'a jamais retente -> code perdu a
+  // jamais. Desormais : si Resend n'a PAS confirme (pas d'id), on renvoie 502.
+  // Stripe relivrera automatiquement le webhook (jusqu'a ~3 jours). L'idempotence
+  // (SELECT achats) garantit qu'on ne recree PAS de licences ; on re-tente juste
+  // l'email au prochain passage (voir bloc renvoi ci-dessous).
+  if (resp.error) {
+    console.error(`[Webhook] ECHEC envoi email pour ${email} (${tier}) : ${resp.error.message}. Reponse 502 -> Stripe va retenter.`);
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        erreur: 'envoi_email_echoue',
+        detail: resp.error.message,
+        licence_id: primaryLicenceId
+      }),
+      { status: 502, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
 
   console.log(`[Webhook] ${nbCodes} licence(s) émise(s) pour ${email} (${tier}) : ${codesAffiches.join(', ')}`);
 

@@ -13,6 +13,34 @@ import type { Env } from './types';
 export interface ResendResponse {
   id?: string;
   error?: { message: string; name: string };
+  // Resend renvoie parfois ce format en cas d'echec (403 domaine partage,
+  // quota, validation) : { statusCode, message, name } SANS champ `error`.
+  statusCode?: number;
+  message?: string;
+  name?: string;
+}
+
+/**
+ * Normalise la reponse Resend en succes/echec FIABLE.
+ * Regle d'or : un envoi n'est un succes QUE si HTTP ok ET un `id` est present.
+ * Sinon (403 domaine partage, quota, body inattendu) on force un objet `error`
+ * pour que l'appelant (webhook) detecte l'echec et NE marque PAS 'sent' a tort.
+ * Cf. bug du 28 mai 2026 : resend_id=null mais statut='sent' -> code perdu.
+ */
+function normaliserReponseResend(
+  httpOk: boolean,
+  httpStatus: number,
+  data: ResendResponse
+): ResendResponse {
+  if (httpOk && data.id) {
+    return data; // succes confirme
+  }
+  // Echec : construire un message d'erreur exploitable et loggable
+  const msg = data.error?.message
+    ?? data.message
+    ?? `Resend a repondu HTTP ${httpStatus} sans id de message`;
+  const nom = data.error?.name ?? data.name ?? 'resend_failed';
+  return { error: { message: msg, name: nom } };
 }
 
 export interface DonneesLicenceEmise {
@@ -227,10 +255,10 @@ export async function envoyerEmail(
   });
 
   const data = await res.json() as ResendResponse;
-  if (!res.ok) {
-    console.error('[Resend envoyerEmail] echec :', data);
+  if (!res.ok || !data.id) {
+    console.error('[Resend envoyerEmail] echec :', res.status, data);
   }
-  return data;
+  return normaliserReponseResend(res.ok, res.status, data);
 }
 
 /* ===== Sprint S2 : Email notification admin pour demande d'activation manuelle ===== */
@@ -306,10 +334,10 @@ export async function envoyerEmailNotificationAdmin(
   });
 
   const data = await res.json() as ResendResponse;
-  if (!res.ok) {
-    console.error('[Resend admin] echec envoi :', data);
+  if (!res.ok || !data.id) {
+    console.error('[Resend admin] echec envoi :', res.status, data);
   }
-  return data;
+  return normaliserReponseResend(res.ok, res.status, data);
 }
 
 function escapeHtml(s: string): string {
@@ -359,8 +387,8 @@ export async function envoyerLicenceEmise(
   });
 
   const data = await res.json() as ResendResponse;
-  if (!res.ok) {
-    console.error('[Resend] échec envoi :', data);
+  if (!res.ok || !data.id) {
+    console.error('[Resend] échec envoi :', res.status, data);
   }
-  return data;
+  return normaliserReponseResend(res.ok, res.status, data);
 }
