@@ -12,13 +12,12 @@
  *
  * Pourquoi côté Worker (et non WAF Cloudflare)
  * --------------------------------------------
- *   - mathequete-api.coresrdi.workers.dev est un sous-domaine *.workers.dev,
- *     pas une zone DNS qui nous appartient.
- *   - Sur le plan Free actuel, IP Access Rules / Bot Fight Mode / Custom WAF
- *     rules exigent une zone propriétaire.
- *   - Solution durable (TODO) : brancher un domaine custom
- *     (ex: api.mathequete.ca) sur Cloudflare DNS et activer Bot Fight Mode
- *     + IP Access Rules → cette fonction pourra alors être désactivée.
+ *   - Historique : l'API tournait sur *.workers.dev (pas de zone DNS a nous).
+ *   - Depuis le 30 mai 2026, l'API est sur api.mathequete.com (zone Cloudflare
+ *     proprietaire mathequete.com). Bot Fight Mode / IP Access Rules / Custom WAF
+ *     deviennent donc disponibles cote Cloudflare.
+ *   - TODO : activer Bot Fight Mode + regles WAF sur la zone mathequete.com ;
+ *     cette fonction de filtrage applicatif pourra alors etre allegee/desactivee.
  *
  * Stratégie
  * ---------

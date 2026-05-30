@@ -382,7 +382,7 @@ Téléchargez et conservez le PDF en lieu sûr — il contient toutes vos licenc
   <li>Scannez les QR pour les attribuer à vos élèves.</li>
 </ol>
 <p style="font-size:12px;color:#999;border-top:1px solid #ddd;padding-top:12px;margin-top:24px;">
-Mathéquête · CORES RDI · coresrdi@gmail.com
+Mathéquête · CORES RDI · support@mathequete.com
 </p></body></html>`;
 
   const resp = await envoyerEmail(env, {
@@ -419,10 +419,10 @@ sur notre poste dédié. Vous recevrez un second courriel avec le lien de
 téléchargement <strong>sous 24 à 48 heures ouvrables</strong>.
 </p>
 <p>Si vous n'avez rien reçu après 48h, écrivez à
-<a href="mailto:coresrdi@gmail.com">coresrdi@gmail.com</a> en mentionnant
+<a href="mailto:support@mathequete.com">support@mathequete.com</a> en mentionnant
 le numéro de forfait <code>#${p.forfait_id}</code>.</p>
 <p style="font-size:12px;color:#999;border-top:1px solid #ddd;padding-top:12px;margin-top:24px;">
-Mathéquête · CORES RDI · coresrdi@gmail.com
+Mathéquête · CORES RDI · support@mathequete.com
 </p></body></html>`;
 
   const resp = await envoyerEmail(env, {

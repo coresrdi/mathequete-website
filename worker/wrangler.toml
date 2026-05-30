@@ -12,9 +12,9 @@ compatibility_flags = ["nodejs_compat"]
 # ─── Route domaine custom (désactivée pour l'instant) ───────────────────────
 # Décommente quand mathequete.ca sera branché sur Cloudflare DNS.
 #
-# routes = [
-#   { pattern = "mathequete.ca/api/*", zone_name = "mathequete.ca" }
-# ]
+routes = [
+  { pattern = "api.mathequete.com", custom_domain = true }
+]
 
 # ─── D1 (SQLite serverless) ─────────────────────────────────────────────────
 # UUID récupéré via `wrangler d1 list` le 13 mai 2026.
@@ -42,9 +42,9 @@ STRIPE_API_VERSION = "2024-12-18.acacia"
 # Resend : onboarding@resend.dev est le domaine partagé Resend, marche sans
 # vérification DNS. À remplacer par licences@mathequete.ca quand le domaine
 # sera vérifié sur resend.com → Domains.
-RESEND_FROM_EMAIL = "onboarding@resend.dev"
+RESEND_FROM_EMAIL = "licences@mathequete.com"
 RESEND_FROM_NAME = "Mathéquête"
-PUBLIC_SITE_URL = "https://mathequete.pages.dev"
+PUBLIC_SITE_URL = "https://mathequete.com"
 
 # ─── Secrets (poussés via `wrangler secret put`, JAMAIS dans ce fichier) ────
 #   wrangler secret put HMAC_SECRET_KEY

@@ -20,14 +20,14 @@
     "licence_probleme": {
       "question": "Sur quelle plateforme avez-vous acheté?",
       "options": [
-        { "label": "Site web (mathequete.pages.dev)", "suivant": "licence_web"     },
+        { "label": "Site web (mathequete.com)", "suivant": "licence_web"     },
         { "label": "Google Play (Android)",           "suivant": "licence_android" },
         { "label": "Autre",                           "suivant": "contact_direct"  }
       ]
     },
     "licence_web": {
       "type": "reponse",
-      "texte": "Vérifiez que votre code QR Crockford est bien scanné. Si votre licence est expirée, rendez-vous sur mathequete.pages.dev/acheter pour renouveler. Pour toute autre erreur, contactez-nous.",
+      "texte": "Vérifiez que votre code QR Crockford est bien scanné. Si votre licence est expirée, rendez-vous sur mathequete.com/acheter pour renouveler. Pour toute autre erreur, contactez-nous.",
       "cta": { "label": "Nous contacter", "url": null }
     },
     "licence_android": {
@@ -38,7 +38,7 @@
     "transfert": {
       "type": "reponse",
       "texte": "Chaque licence peut être transférée une seule fois dans les 12 premiers mois. Consultez la page de transfert pour les instructions détaillées.",
-      "cta": { "label": "Page transfert de licence", "url": "https://mathequete.pages.dev/transferer-licence" }
+      "cta": { "label": "Page transfert de licence", "url": "https://mathequete.com/transferer-licence" }
     },
     "hors_ligne": {
       "type": "reponse",

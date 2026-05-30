@@ -13,7 +13,7 @@
  * À la place, on génère un *jeton HMAC* {forfait_id, expire_at} signé avec
  * HMAC_SECRET_KEY, qu'on inclut dans une URL Worker :
  *
- *     https://mathequete-api.coresrdi.workers.dev/api/pdf/{forfait_id}?t={jeton}
+ *     https://api.mathequete.com/api/pdf/{forfait_id}?t={jeton}
  *
  * Avantages :
  *   - Aucune clé S3 supplémentaire à gérer (réutilise HMAC_SECRET_KEY existant).
@@ -157,7 +157,7 @@ export function urlTelechargementPdf(env: Env, forfaitId: number, jeton: string)
   // PUBLIC_SITE_URL = site Pages. On utilise plutôt l'URL Worker directe car
   // c'est le Worker qui sert le PDF (pas le site).
   // En prod, idéalement on route mathequete.ca/api/pdf/... → Worker.
-  const base = `https://mathequete-api.coresrdi.workers.dev`;
+  const base = `https://api.mathequete.com`;
   return `${base}/api/pdf/${forfaitId}?t=${encodeURIComponent(jeton)}`;
 }
 

@@ -40,29 +40,29 @@
     },
     "microsoft_store": {
       "question": "La version Microsoft Store est-elle gratuite?",
-      "reponse": "Oui. La version Microsoft Store distribue le jeu gratuitement. L'achat de licence Premium se fait exclusivement sur mathequete.pages.dev."
+      "reponse": "Oui. La version Microsoft Store distribue le jeu gratuitement. L'achat de licence Premium se fait exclusivement sur mathequete.com."
     }
   },
 
   "politiques": {
     "transfert_detail": "Les licences QR Crockford suivent un principe de réarmage avec incrémentation du compteur côté backend. Après un transfert, la licence n'est plus transférable, même si la fenêtre de 12 mois n'est pas écoulée.",
-    "ms_store": "Microsoft Store distribue uniquement la version gratuite. Les paywalls redirigent vers mathequete.pages.dev.",
+    "ms_store": "Microsoft Store distribue uniquement la version gratuite. Les paywalls redirigent vers mathequete.com.",
     "android": "Les achats Android se font via le flux natif Play Billing de Google Play."
   },
 
   "plateformes": {
     "android":         { "label": "Android / Google Play",  "achat_natif": true,  "systeme": "Play Billing", "redirection_web": false },
-    "microsoft_store": { "label": "Microsoft Store",        "achat_natif": false, "gratuit_seulement": true, "redirection_web": true, "url_redirect": "https://mathequete.pages.dev/acheter" },
-    "build_direct":    { "label": "Build direct PC",        "achat_natif": false, "redirection_web": true,   "url_redirect": "https://mathequete.pages.dev/acheter" },
+    "microsoft_store": { "label": "Microsoft Store",        "achat_natif": false, "gratuit_seulement": true, "redirection_web": true, "url_redirect": "https://mathequete.com/acheter" },
+    "build_direct":    { "label": "Build direct PC",        "achat_natif": false, "redirection_web": true,   "url_redirect": "https://mathequete.com/acheter" },
     "steam":           { "label": "Steam",                  "statut": "futur_sprint", "note": "Système natif Steam. Ne pas planifier redirection externe." },
     "epic":            { "label": "Epic Games Store",       "statut": "futur_sprint", "note": "Système natif Epic. Ne pas planifier redirection externe." },
     "ios":             { "label": "iOS / App Store",        "statut": "futur_sprint", "note": "Question App Store séparée, non résolue par ce sprint." }
   },
 
   "urls": {
-    "achat": "https://mathequete.pages.dev/acheter",
-    "transferer_licence": "https://mathequete.pages.dev/transferer-licence",
-    "espace_enseignant": "https://mathequete.pages.dev/enseignant",
+    "achat": "https://mathequete.com/acheter",
+    "transferer_licence": "https://mathequete.com/transferer-licence",
+    "espace_enseignant": "https://mathequete.com/enseignant",
     "contact": null,
     "_note_contact": "Valider l'adresse courriel officielle avant publication."
   },

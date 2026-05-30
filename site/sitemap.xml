@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://mathequete.pages.dev/</loc>
+    <loc>https://mathequete.com/</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://mathequete.pages.dev/achat.html</loc>
+    <loc>https://mathequete.com/achat.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://mathequete.pages.dev/enseignants.html</loc>
+    <loc>https://mathequete.com/enseignants.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://mathequete.pages.dev/guide-prof.html</loc>
+    <loc>https://mathequete.com/guide-prof.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://mathequete.pages.dev/applications.html</loc>
+    <loc>https://mathequete.com/applications.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mathequete.pages.dev/iles-bonus.html</loc>
+    <loc>https://mathequete.com/iles-bonus.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://mathequete.pages.dev/template-eleves.html</loc>
+    <loc>https://mathequete.com/template-eleves.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://mathequete.pages.dev/support.html</loc>
+    <loc>https://mathequete.com/support.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

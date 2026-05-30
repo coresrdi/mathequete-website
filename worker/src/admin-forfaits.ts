@@ -362,7 +362,7 @@ async function envoyerEmailLienFrais(
 </p>
 <p style="font-size:13px;color:#666;">⚠️ Lien valide <strong>30 jours</strong>. Téléchargez-le et conservez le PDF en lieu sûr.</p>
 <p style="font-size:12px;color:#999;border-top:1px solid #ddd;padding-top:12px;margin-top:24px;">
-Mathéquête · CORES RDI · coresrdi@gmail.com — forfait #${forfait.id}
+Mathéquête · CORES RDI · support@mathequete.com — forfait #${forfait.id}
 </p></body></html>`;
 
   const resp = await envoyerEmail(env, {

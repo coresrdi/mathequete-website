@@ -30,7 +30,7 @@ function checkoutApp() {
       this.error = '';
       try {
         const resp = await fetch(
-          'https://mathequete-api.coresrdi.workers.dev/create-checkout-session',
+          'https://api.mathequete.com/create-checkout-session',
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

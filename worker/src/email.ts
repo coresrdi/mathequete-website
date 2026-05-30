@@ -147,7 +147,7 @@ export function renderEmailLicenceEmise(d: DonneesLicenceEmise): string {
             : `<strong>Bon à savoir :</strong> cette licence est à vie et valable sur 1 appareil à la fois
                (Windows, Android, ou bientôt Apple). Transférable depuis le jeu en quelques secondes.
                Pour équiper une classe ou une école, découvrez nos packs sur
-               <a href="https://mathequete.pages.dev/achat.html">mathequete.pages.dev</a>.`)
+               <a href="https://mathequete.com/achat.html">mathequete.com</a>.`)
           : `<strong>Bon à savoir :</strong> une licence débloque l'appareil au complet.
              Tous les profils enfants créés sur la même tablette / téléphone profitent
              automatiquement des contenus prémium. Pour équiper plusieurs appareils
@@ -177,7 +177,7 @@ export function renderEmailLicenceEmise(d: DonneesLicenceEmise): string {
 
       <p style="margin-top:32px;">
         Une question ? Répondez directement à ce courriel ou écrivez à
-        <a href="mailto:coresrdi@gmail.com">coresrdi@gmail.com</a>.
+        <a href="mailto:support@mathequete.com">support@mathequete.com</a>.
       </p>
 
       <p>
@@ -189,8 +189,8 @@ export function renderEmailLicenceEmise(d: DonneesLicenceEmise): string {
 
     <div style="background:#0f172a; color:#94a3b8; padding:20px; text-align:center; font-size:13px;">
       Mathéquête — Fait avec ★ au Québec<br>
-      <a href="https://mathequete.pages.dev" style="color:#f59e0b; text-decoration:none;">mathequete.pages.dev</a> ·
-      <a href="mailto:coresrdi@gmail.com" style="color:#f59e0b; text-decoration:none;">coresrdi@gmail.com</a>
+      <a href="https://mathequete.com" style="color:#f59e0b; text-decoration:none;">mathequete.com</a> ·
+      <a href="mailto:support@mathequete.com" style="color:#f59e0b; text-decoration:none;">support@mathequete.com</a>
     </div>
 
   </div>
@@ -280,7 +280,7 @@ export async function envoyerEmailNotificationAdmin(
   d: DonneesNotificationAdmin
 ): Promise<ResendResponse> {
   const baseUrl = env.ENVIRONMENT === 'production'
-    ? 'https://mathequete-api.coresrdi.workers.dev'
+    ? 'https://api.mathequete.com'
     : 'http://localhost:8787';
   const lienDecision = `${baseUrl}/admin/decide?token=${encodeURIComponent(d.magicToken)}`;
 
