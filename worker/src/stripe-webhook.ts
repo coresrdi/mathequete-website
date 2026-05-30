@@ -25,8 +25,9 @@ import {
   tierVersType,
   expirationParDefaut,
   nbElevesPourTier,
-  nbCodesPourTier
+  nbClesQrPourTier
 } from './generate-codes';
+import { genererLotClesQrUniques, formaterCleQrAffichage } from './qr-gen';
 import { envoyerLicenceEmise } from './email';
 import {
   estTierEcole,
@@ -121,21 +122,32 @@ export async function handleStripeWebhook(
       return new Response('OK (deja traite)', { status: 200 });
     }
 
-    // Email jamais confirme -> on re-tente l'envoi avec les codes deja en base.
+    // Email jamais confirme -> on re-tente l'envoi avec les CLES QR deja en base.
+    // CORRECTIF format : on renvoie les cles QR (XXXX-XXXX-XXXX, ce que le jeu
+    // accepte), pas les codes HMAC. On lit licences_qr rattachees au parent.
     console.warn('[Webhook] session deja traitee MAIS email non confirme -> renvoi :', session.id);
-    const lignes = await env.DB
-      .prepare(`SELECT code, tier, nb_eleves_max, expire_le
-                FROM licences WHERE stripe_session = ? ORDER BY emis_le ASC`)
+    // Licence parent (pour tier, nb_eleves_max, expire_le)
+    const parent = await env.DB
+      .prepare(`SELECT id, tier, nb_eleves_max, expire_le
+                FROM licences WHERE stripe_session = ? ORDER BY emis_le ASC LIMIT 1`)
       .bind(session.id)
-      .all<{ code: string; tier: string; nb_eleves_max: number; expire_le: number }>();
+      .first<{ id: string; tier: string; nb_eleves_max: number; expire_le: number }>();
+    // Cles QR rattachees a ce parent
+    const qrLignes = parent
+      ? await env.DB
+          .prepare(`SELECT cle_qr FROM licences_qr
+                    WHERE licence_id_hmac = ? ORDER BY numero_sequence ASC`)
+          .bind(parent.id)
+          .all<{ cle_qr: string }>()
+      : { results: [] as { cle_qr: string }[] };
 
-    if (lignes.results && lignes.results.length > 0) {
-      const r0 = lignes.results[0];
+    if (parent && qrLignes.results && qrLignes.results.length > 0) {
+      const r0 = parent;
       const totalCADrenvoi = (session.amount_total ?? PRIX_TIERS_CENTS[tier].prix_cents) / 100;
       const respRenvoi = await envoyerLicenceEmise(env, {
         email,
         nom,
-        codes_affiches: lignes.results.map(l => l.code),
+        codes_affiches: qrLignes.results.map(l => formaterCleQrAffichage(l.cle_qr)),
         tier: r0.tier,
         nb_eleves_max: r0.nb_eleves_max,
         expire_le: r0.expire_le,
@@ -148,7 +160,9 @@ export async function handleStripeWebhook(
         VALUES (?, ?, 'licence_emise', ?, ?, ?, ?, ?)
       `).bind(
         email,
-        `★ Votre licence Mathéquête : ${r0.code}`,
+        (qrLignes.results.length > 1
+          ? `★ Vos ${qrLignes.results.length} licences Mathéquête (Pack 5)`
+          : `★ Votre licence Mathéquête : ${formaterCleQrAffichage(qrLignes.results[0].cle_qr)}`),
         dejaFait.licence_id,
         nowR,
         respRenvoi.id ?? null,
@@ -168,40 +182,42 @@ export async function handleStripeWebhook(
     return new Response('OK (email renvoye)', { status: 200 });
   }
 
-  // ===== 4. Génération des codes de licence (1 ou plusieurs pour Pack 5) =====
-  const type = tierVersType(tier);
-  const expire_le = expirationParDefaut(type);
-  const nbCodes = nbCodesPourTier(tier);
+  // ===== 4. Génération des licences (DEC-QR : clés QR pour le JEU) =====
+  // CORRECTIF format courriel : le jeu n'accepte QUE les clés QR courtes
+  // (12 chars Crockford « XXXX-XXXX-XXXX », table licences_qr, cf. jeu-routes.ts
+  // CLE_REGEX). On génère donc N clés QR (N = nbClesQrPourTier) et on envoie
+  // CELLES-CI dans le courriel — plus les codes HMAC (refusés par le jeu).
+  //
+  // On conserve UNE licence HMAC « parent » par achat (comme webhook-school.ts) :
+  //   - achats.licence_id pointe dessus (traçabilité, idempotence inchangée)
+  //   - licences_qr.licence_id_hmac référence ce parent
+  // Les N clés QR sont rattachées à ce parent (forfait_ecole_id = NULL,
+  // source = 'pack_familial' — achat individuel/familial via Stripe).
+  const type = tierVersType(tier);                 // 'continent'
+  const expire_le = expirationParDefaut(type);     // 0 = à vie (CONTINENT)
+  const nbCles = nbClesQrPourTier(tier);           // continent_1=1, pack_5=5, etc.
   const nbElevesMax = nbElevesPourTier(tier);
   const now = Math.floor(Date.now() / 1000);
   const tarif = PRIX_TIERS_CENTS[tier];
 
-  const licences: Array<{ id: string; code_affiche: string }> = [];
-  for (let i = 0; i < nbCodes; i++) {
-    const id = genererId('c');
-    const { code_affiche } = await genererCode(
-      { type, id, expire_le },
-      env.HMAC_SECRET_KEY
-    );
-    licences.push({ id, code_affiche });
-  }
+  // Licence HMAC parent (1 seule, pour idempotence + lien licences_qr)
+  const primaryLicenceId = genererId('c');
+  const { code_affiche: codeParentHmac } = await genererCode(
+    { type, id: primaryLicenceId, expire_le },
+    env.HMAC_SECRET_KEY
+  );
 
-  // licence_id stocké dans la table `achats` pointe sur la première licence du lot
-  const primaryLicenceId = licences[0].id;
-  const codesAffiches = licences.map(l => l.code_affiche);
-
-  // ===== 5. Persistance D1 (atomique : N licences + 1 achat) =====
-  const stmts = licences.map(l => env.DB.prepare(`
-    INSERT INTO licences
-    (id, code, type, tier, nb_eleves_max, emis_le, expire_le,
-     email_acheteur, nom_acheteur, stripe_session, source)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'stripe')
-  `).bind(
-    l.id, l.code_affiche, type, tier, nbElevesMax,
-    now, expire_le, email, nom ?? null, session.id
-  ));
-
-  stmts.push(
+  // ===== 5. Persistance D1 (atomique : licence parent + achat) =====
+  const stmts = [
+    env.DB.prepare(`
+      INSERT INTO licences
+      (id, code, type, tier, nb_eleves_max, emis_le, expire_le,
+       email_acheteur, nom_acheteur, stripe_session, source)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'stripe')
+    `).bind(
+      primaryLicenceId, codeParentHmac, type, tier, nbElevesMax,
+      now, expire_le, email, nom ?? null, session.id
+    ),
     env.DB.prepare(`
       INSERT INTO achats
       (stripe_session_id, stripe_payment_id, tier, montant_cents,
@@ -222,9 +238,31 @@ export async function handleStripeWebhook(
       now,
       JSON.stringify(event)
     )
-  );
+  ];
 
   await env.DB.batch(stmts);
+
+  // ===== 5.5. Génération + INSERT des N clés QR (ce que le jeu accepte) =====
+  // expire_le_qr : pour les tiers permanents (à vie) → NULL (jamais).
+  //   Pour les tiers annuels (continent_1, pack_5_continent_1) → expire_le absolu.
+  // duree_apres_activation_jours : NULL ici (la règle « transfert 1 an après
+  //   activation » — DEC-45 — sera branchée séparément, item dédié).
+  const expireLeQr = expire_le === 0 ? null : expire_le;
+  const clesQrBrutes = await genererLotClesQrUniques(env, nbCles);
+  const stmtsQr = clesQrBrutes.map((cle, idx) => env.DB.prepare(`
+    INSERT INTO licences_qr
+      (cle_qr, forfait_ecole_id, licence_id_hmac, produit_id,
+       numero_sequence, source, date_creation, expire_le,
+       duree_apres_activation_jours)
+    VALUES (?, NULL, ?, 'continent_1', ?, 'pack_familial', ?, ?, NULL)
+  `).bind(cle, primaryLicenceId, idx + 1, now, expireLeQr));
+  await env.DB.batch(stmtsQr);
+
+  // Les codes ENVOYÉS dans le courriel = clés QR formatées « XXXX-XXXX-XXXX ».
+  const codesAffiches = clesQrBrutes.map(c => formaterCleQrAffichage(c));
+  const nbCodes = codesAffiches.length;
+
+  console.log(`[Webhook] ${nbCles} clé(s) QR générée(s) pour ${email} (${tier}) parent=${primaryLicenceId}`);
 
   // ===== 6. Envoi email Resend (1 email avec tous les codes) =====
   const totalCAD = (session.amount_total ?? tarif.prix_cents) / 100;
